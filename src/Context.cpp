@@ -106,7 +106,7 @@ void Context::imguiInit()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init();
 
-    io.FontGlobalScale = 1.85f; // Scale everything
+    // io.FontGlobalScale = 1.85f; // Scale everything
 }
 
 void Context::show_view(View *view)

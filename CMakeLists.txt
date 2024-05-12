@@ -17,35 +17,38 @@ set(CMAKE_CXX_STANDARD 17)
 set(SRC_FILES
     ./src/glad.c
     ./src/main.cpp
+    ./src/Context.cpp
 )
 
-# set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
-# add_library(imgui STATIC)
-# target_sources(imgui
-#     PRIVATE
-#         ${IMGUI_DIR}/imgui_demo.cpp
-#         ${IMGUI_DIR}/imgui_draw.cpp
-#         ${IMGUI_DIR}/imgui_tables.cpp
-#         ${IMGUI_DIR}/imgui_widgets.cpp
-#         ${IMGUI_DIR}/imgui.cpp
-#         ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
-#         ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
-# )
-# target_include_directories(imgui
-#     PUBLIC
-#         ${IMGUI_DIR}
-# )
+set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/imgui)
+add_library(imgui STATIC)
+target_sources(imgui
+    PRIVATE
+        ${IMGUI_DIR}/imgui_demo.cpp
+        ${IMGUI_DIR}/imgui_draw.cpp
+        ${IMGUI_DIR}/imgui_tables.cpp
+        ${IMGUI_DIR}/imgui_widgets.cpp
+        ${IMGUI_DIR}/imgui.cpp
+        ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
+        ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+)
+target_include_directories(imgui
+    PUBLIC
+        ${IMGUI_DIR}
+)
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 target_compile_options(${PROJECT_NAME} PRIVATE -W) # -Wall -Wextra) # -g3
 target_include_directories(${PROJECT_NAME}
     PRIVATE
         ./include/
-        # ${IMGUI_DIR}
-        # ${IMGUI_DIR}/backends
+        ${IMGUI_DIR}
+        ${IMGUI_DIR}/backends
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE -lglfw -lGL -lX11 -lpthread -lXrandr -ldl) # -lXi
-# target_link_libraries(${PROJECT_NAME} PRIVATE imgui)
+target_link_libraries(${PROJECT_NAME} PRIVATE imgui)
+
+add_definitions(-D GLM_ENABLE_EXPERIMENTAL) ## for GLM
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "./"
