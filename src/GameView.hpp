@@ -4,6 +4,13 @@
 #include "Camera.hpp"
 #include "Program.h"
 
+// typedef struct Chunk
+// {
+    // int x, y;
+    // GLuint VAO;
+    // Blocktype blocks[4096];
+// } Chunk_t;
+
 class GameView: public View {
     public:
         GameView(Context& ctx): View(ctx)
@@ -17,6 +24,35 @@ class GameView: public View {
             );
 
             cube_shader = new Program("./assets/shaders/cube.vs", "./assets/shaders/cube.fs");
+
+            // float vertices[] = {
+            //     0.0f, 0.0f, 0.0f,
+            //     0.0f, 0.0f, 1.0f,
+            //     0.0f, 1.0f, 0.0f
+            // };
+
+            // int indices[] = {
+            //     0, 1, 2
+            // };
+
+            GLuint VBO, EBO;
+            glGenVertexArrays(1, &VAO);
+            // glGenBuffers(1, &VBO);
+            // glGenBuffers(1, &EBO);
+
+            glBindVertexArray(VAO);
+
+            // glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+            // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+            // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+            // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+            // glEnableVertexAttribArray(0);
+
+            // glBindVertexArray(0);
+
         }
 
         void onUpdate(float time_since_start, float dt)
@@ -35,7 +71,10 @@ class GameView: public View {
             cube_shader->setMat4("u_projectionMatrix", camera->getProjection());
             cube_shader->setMat4("u_viewMatrix", camera->getView());
 
-            glDrawArrays(GL_TRIANGLES, 0, 3*10);
+            glDrawArrays(GL_TRIANGLES, 0, 3*100);
+
+            // glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+            // glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
             gui(dt);
         }
@@ -98,4 +137,6 @@ class GameView: public View {
     private:
         OrbitCamera* camera;
         Program* cube_shader;
+
+        GLuint VAO;
 };
