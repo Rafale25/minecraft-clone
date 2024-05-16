@@ -23,93 +23,122 @@ typedef struct Chunk
     BlockType blocks[4096]; // 16 x 16 x 16
 } Chunk_t;
 
+inline int XYZtoIndex(int x, int y, int z) {
+    if (x < 0 || x > 15 || y < 0 || y > 15 || z < 0 || z > 15) return -1;
+    return z * 16*16 + y * 16 + x;
+}
+
 void computeChunckVAO(Chunk_t &chunk)
 {
-    glCreateVertexArrays(1, &chunk.VAO);
-
     GLuint VBO;
+    glCreateVertexArrays(1, &chunk.VAO);
     glCreateBuffers(1, &VBO);
 
-    std::vector<glm::vec3> v;
-    // std::vector<float> vertices;
+    std::vector<float> v;
+    int i;
 
     for (int z = 0 ; z < 16 ; ++z) {
     for (int y = 0 ; y < 16 ; ++y) {
     for (int x = 0 ; x < 16 ; ++x) {
-
-        glm::vec3 pos{x, y, z};
+        int index = z * 16*16 + y * 16 + x;
+        if (chunk.blocks[index] == BlockType::Air) continue;
 
         // front
-        v.push_back(pos + glm::vec3(0, 0, 0)); // xyz
-        // v.push_back(); // uv
-        // v.insert(v.end(), { x+0.0f, y+0.0f, z+0.0f, 0.0f, 0.0f });
+        i = XYZtoIndex(x, y, z-1);
+        if (i == -1 || chunk.blocks[i] == BlockType::Air)
+            v.insert(v.end(), {
+                x+0.f, y+0.f, z+0.f, 0.f, 0.f,
+                x+1.f, y+0.f, z+0.f, 1.f, 0.f,
+                x+1.f, y+1.f, z+0.f, 1.f, 1.f,
 
-        v.push_back(pos + glm::vec3(1, 0, 0));
-        v.push_back(pos + glm::vec3(1, 1, 0));
-
-        // v.insert(v.end(), {0,1,2,3,4,5,6,7,8,9});
-
-        v.push_back(pos + glm::vec3(0, 0, 0));
-        v.push_back(pos + glm::vec3(1, 1, 0));
-        v.push_back(pos + glm::vec3(0, 1, 0));
+                x+0.f, y+0.f, z+0.f, 0.f, 0.f,
+                x+1.f, y+1.f, z+0.f, 1.f, 1.f,
+                x+0.f, y+1.f, z+0.f, 0.f, 1.f,
+            });
 
         // back
-        v.push_back(pos + glm::vec3(0, 0, 1));
-        v.push_back(pos + glm::vec3(1, 0, 1));
-        v.push_back(pos + glm::vec3(1, 1, 1));
+        i = XYZtoIndex(x, y, z+1);
+        if (i == -1 || chunk.blocks[i] == BlockType::Air)
+            v.insert(v.end(), {
+                x+0.f, y+0.f, z+1.f, 0.f, 0.f,
+                x+1.f, y+1.f, z+1.f, 1.f, 1.f,
+                x+1.f, y+0.f, z+1.f, 1.f, 0.f,
 
-        v.push_back(pos + glm::vec3(0, 0, 1));
-        v.push_back(pos + glm::vec3(1, 1, 1));
-        v.push_back(pos + glm::vec3(0, 1, 1));
+                x+0.f, y+0.f, z+1.f, 0.f, 0.f,
+                x+0.f, y+1.f, z+1.f, 0.f, 1.f,
+                x+1.f, y+1.f, z+1.f, 1.f, 1.f,
+            });
 
         // down
-        v.push_back(pos + glm::vec3(0, 0, 0));
-        v.push_back(pos + glm::vec3(1, 0, 0));
-        v.push_back(pos + glm::vec3(1, 0, 1));
+        i = XYZtoIndex(x, y-1, z);
+        if (i == -1 || chunk.blocks[i] == BlockType::Air)
+            v.insert(v.end(), {
+                x+0.f, y+0.f, z+0.f, 0.f, 0.f,
+                x+1.f, y+0.f, z+1.f, 1.f, 1.f,
+                x+1.f, y+0.f, z+0.f, 1.f, 0.f,
 
-        v.push_back(pos + glm::vec3(0, 0, 0));
-        v.push_back(pos + glm::vec3(1, 0, 1));
-        v.push_back(pos + glm::vec3(0, 0, 1));
+                x+0.f, y+0.f, z+0.f, 0.f, 0.f,
+                x+0.f, y+0.f, z+1.f, 0.f, 1.f,
+                x+1.f, y+0.f, z+1.f, 1.f, 1.f,
+            });
 
         // top
-        v.push_back(pos + glm::vec3(0, 1, 0));
-        v.push_back(pos + glm::vec3(1, 1, 0));
-        v.push_back(pos + glm::vec3(1, 1, 1));
+        i = XYZtoIndex(x, y+1, z);
+        if (i == -1 || chunk.blocks[i] == BlockType::Air)
+            v.insert(v.end(), {
+                x+0.f, y+1.f, z+0.f, 0.f, 0.f,
+                x+1.f, y+1.f, z+0.f, 1.f, 0.f,
+                x+1.f, y+1.f, z+1.f, 1.f, 1.f,
 
-        v.push_back(pos + glm::vec3(0, 1, 0));
-        v.push_back(pos + glm::vec3(1, 1, 1));
-        v.push_back(pos + glm::vec3(0, 1, 1));
+                x+0.f, y+1.f, z+0.f, 0.f, 0.f,
+                x+1.f, y+1.f, z+1.f, 1.f, 1.f,
+                x+0.f, y+1.f, z+1.f, 0.f, 1.f
+            });
 
         // left
-        v.push_back(pos + glm::vec3(0, 0, 0));
-        v.push_back(pos + glm::vec3(0, 0, 1));
-        v.push_back(pos + glm::vec3(0, 1, 1));
+        i = XYZtoIndex(x-1, y, z);
+        if (i == -1 || chunk.blocks[i] == BlockType::Air)
+            v.insert(v.end(), {
+                x+0.f, y+0.f, z+0.f, 0.f, 0.f,
+                x+0.f, y+1.f, z+1.f, 1.f, 1.f,
+                x+0.f, y+0.f, z+1.f, 0.f, 1.f,
 
-        v.push_back(pos + glm::vec3(0, 0, 0));
-        v.push_back(pos + glm::vec3(0, 1, 1));
-        v.push_back(pos + glm::vec3(0, 1, 0));
+                x+0.f, y+0.f, z+0.f, 0.f, 0.f,
+                x+0.f, y+1.f, z+0.f, 1.f, 0.f,
+                x+0.f, y+1.f, z+1.f, 1.f, 1.f,
+            });
 
         // right
-        v.push_back(pos + glm::vec3(1, 0, 0));
-        v.push_back(pos + glm::vec3(1, 0, 1));
-        v.push_back(pos + glm::vec3(1, 1, 1));
+        i = XYZtoIndex(x+1, y, z);
+        if (i == -1 || chunk.blocks[i] == BlockType::Air)
+            v.insert(v.end(), {
+                x+1.f, y+0.f, z+0.f, 0.f, 0.f,
+                x+1.f, y+0.f, z+1.f, 0.f, 1.f,
+                x+1.f, y+1.f, z+1.f, 1.f, 1.f,
 
-        v.push_back(pos + glm::vec3(1, 0, 0));
-        v.push_back(pos + glm::vec3(1, 1, 1));
-        v.push_back(pos + glm::vec3(1, 1, 0));
+                x+1.f, y+0.f, z+0.f, 0.f, 0.f,
+                x+1.f, y+1.f, z+1.f, 1.f, 1.f,
+                x+1.f, y+1.f, z+0.f, 1.f, 0.f
+            });
     }
     }
     }
 
-    chunk.vertices_count = v.size() * 3;
+    chunk.vertices_count = v.size() / 5;
 
-    glNamedBufferData(VBO, chunk.vertices_count  * sizeof(float), &v[0], GL_STATIC_DRAW);
+    // std::cout << chunk.vertices_count << std::endl;
+
+    glNamedBufferData(VBO, v.size() * sizeof(GL_FLOAT), &v[0], GL_STATIC_DRAW);
 
     glEnableVertexArrayAttrib(chunk.VAO, 0);
     glVertexArrayAttribBinding(chunk.VAO, 0, 0);
     glVertexArrayAttribFormat(chunk.VAO, 0, 3, GL_FLOAT, GL_FALSE, 0);
 
-    glVertexArrayVertexBuffer(chunk.VAO, 0, VBO, 0, 3*sizeof(GL_FLOAT));
+    glEnableVertexArrayAttrib(chunk.VAO, 1);
+    glVertexArrayAttribBinding(chunk.VAO, 1, 0);
+    glVertexArrayAttribFormat(chunk.VAO, 1, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT));
+
+    glVertexArrayVertexBuffer(chunk.VAO, 0, VBO, 0, 5 * sizeof(GL_FLOAT));
 }
 
 Chunk_t generateChunk(int x, int y)
@@ -119,11 +148,21 @@ Chunk_t generateChunk(int x, int y)
     chunk.x = x;
     chunk.y = y;
 
+    srand(time(NULL));
+
     for (int z = 0 ; z < 16 ; ++z) {
     for (int y = 0 ; y < 16 ; ++y) {
     for (int x = 0 ; x < 16 ; ++x) {
         int index = z * 16*16 + y * 16 + x;
-        chunk.blocks[index] = BlockType::Grass;
+
+        // chunk.blocks[index] = BlockType::Grass;
+
+        // DEBUG
+        if (rand() % 3 == 0)
+            chunk.blocks[index] = BlockType::Grass;
+        else
+            chunk.blocks[index] = BlockType::Air;
+
     }
     }
     }
@@ -159,6 +198,10 @@ class GameView: public View {
         {
             glEnable(GL_DEPTH_TEST);
             glDepthFunc(GL_LESS);
+
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_BACK);
+            glFrontFace(GL_CW);
 
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
