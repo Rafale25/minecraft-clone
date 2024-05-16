@@ -15,9 +15,9 @@ set(CMAKE_CXX_STANDARD 17)
 # link_libraries(${GLFW_LIBRARY_DIRS})
 
 set(SRC_FILES
-    ./src/glad.c
+    ./src/engine/glad.c
+    ./src/engine/Context.cpp
     ./src/main.cpp
-    ./src/Context.cpp
 )
 
 set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/imgui)
@@ -42,6 +42,8 @@ target_compile_options(${PROJECT_NAME} PRIVATE -W) # -Wall -Wextra) # -g3
 target_include_directories(${PROJECT_NAME}
     PRIVATE
         ./include/
+        ./src/
+        ./src/engine/
         ${IMGUI_DIR}
         ${IMGUI_DIR}/backends
 )

@@ -1,15 +1,137 @@
 #pragma once
 
+#include <unordered_map>
+#include <map>
+
+#include <glm/gtc/type_ptr.hpp>
+
 #include "View.hpp"
 #include "Camera.hpp"
 #include "Program.h"
 
-// typedef struct Chunk
-// {
-    // int x, y;
-    // GLuint VAO;
-    // Blocktype blocks[4096];
-// } Chunk_t;
+
+enum BlockType : uint8_t {
+    Air = 0,
+    Grass = 1,
+};
+
+typedef struct Chunk
+{
+    int x, y;
+    GLuint VAO;
+    uint vertices_count;
+    BlockType blocks[4096]; // 16 x 16 x 16
+} Chunk_t;
+
+void computeChunckVAO(Chunk_t &chunk)
+{
+    glCreateVertexArrays(1, &chunk.VAO);
+
+    GLuint VBO;
+    glCreateBuffers(1, &VBO);
+
+    std::vector<glm::vec3> v;
+    // std::vector<float> vertices;
+
+    for (int z = 0 ; z < 16 ; ++z) {
+    for (int y = 0 ; y < 16 ; ++y) {
+    for (int x = 0 ; x < 16 ; ++x) {
+
+        glm::vec3 pos{x, y, z};
+
+        // front
+        v.push_back(pos + glm::vec3(0, 0, 0)); // xyz
+        // v.push_back(); // uv
+        // v.insert(v.end(), { x+0.0f, y+0.0f, z+0.0f, 0.0f, 0.0f });
+
+        v.push_back(pos + glm::vec3(1, 0, 0));
+        v.push_back(pos + glm::vec3(1, 1, 0));
+
+        // v.insert(v.end(), {0,1,2,3,4,5,6,7,8,9});
+
+        v.push_back(pos + glm::vec3(0, 0, 0));
+        v.push_back(pos + glm::vec3(1, 1, 0));
+        v.push_back(pos + glm::vec3(0, 1, 0));
+
+        // back
+        v.push_back(pos + glm::vec3(0, 0, 1));
+        v.push_back(pos + glm::vec3(1, 0, 1));
+        v.push_back(pos + glm::vec3(1, 1, 1));
+
+        v.push_back(pos + glm::vec3(0, 0, 1));
+        v.push_back(pos + glm::vec3(1, 1, 1));
+        v.push_back(pos + glm::vec3(0, 1, 1));
+
+        // down
+        v.push_back(pos + glm::vec3(0, 0, 0));
+        v.push_back(pos + glm::vec3(1, 0, 0));
+        v.push_back(pos + glm::vec3(1, 0, 1));
+
+        v.push_back(pos + glm::vec3(0, 0, 0));
+        v.push_back(pos + glm::vec3(1, 0, 1));
+        v.push_back(pos + glm::vec3(0, 0, 1));
+
+        // top
+        v.push_back(pos + glm::vec3(0, 1, 0));
+        v.push_back(pos + glm::vec3(1, 1, 0));
+        v.push_back(pos + glm::vec3(1, 1, 1));
+
+        v.push_back(pos + glm::vec3(0, 1, 0));
+        v.push_back(pos + glm::vec3(1, 1, 1));
+        v.push_back(pos + glm::vec3(0, 1, 1));
+
+        // left
+        v.push_back(pos + glm::vec3(0, 0, 0));
+        v.push_back(pos + glm::vec3(0, 0, 1));
+        v.push_back(pos + glm::vec3(0, 1, 1));
+
+        v.push_back(pos + glm::vec3(0, 0, 0));
+        v.push_back(pos + glm::vec3(0, 1, 1));
+        v.push_back(pos + glm::vec3(0, 1, 0));
+
+        // right
+        v.push_back(pos + glm::vec3(1, 0, 0));
+        v.push_back(pos + glm::vec3(1, 0, 1));
+        v.push_back(pos + glm::vec3(1, 1, 1));
+
+        v.push_back(pos + glm::vec3(1, 0, 0));
+        v.push_back(pos + glm::vec3(1, 1, 1));
+        v.push_back(pos + glm::vec3(1, 1, 0));
+    }
+    }
+    }
+
+    chunk.vertices_count = v.size() * 3;
+
+    glNamedBufferData(VBO, chunk.vertices_count  * sizeof(float), &v[0], GL_STATIC_DRAW);
+
+    glEnableVertexArrayAttrib(chunk.VAO, 0);
+    glVertexArrayAttribBinding(chunk.VAO, 0, 0);
+    glVertexArrayAttribFormat(chunk.VAO, 0, 3, GL_FLOAT, GL_FALSE, 0);
+
+    glVertexArrayVertexBuffer(chunk.VAO, 0, VBO, 0, 3*sizeof(GL_FLOAT));
+}
+
+Chunk_t generateChunk(int x, int y)
+{
+    Chunk_t chunk;
+
+    chunk.x = x;
+    chunk.y = y;
+
+    for (int z = 0 ; z < 16 ; ++z) {
+    for (int y = 0 ; y < 16 ; ++y) {
+    for (int x = 0 ; x < 16 ; ++x) {
+        int index = z * 16*16 + y * 16 + x;
+        chunk.blocks[index] = BlockType::Grass;
+    }
+    }
+    }
+
+    computeChunckVAO(chunk);
+
+    return chunk;
+}
 
 class GameView: public View {
     public:
@@ -25,34 +147,8 @@ class GameView: public View {
 
             cube_shader = new Program("./assets/shaders/cube.vs", "./assets/shaders/cube.fs");
 
-            // float vertices[] = {
-            //     0.0f, 0.0f, 0.0f,
-            //     0.0f, 0.0f, 1.0f,
-            //     0.0f, 1.0f, 0.0f
-            // };
-
-            // int indices[] = {
-            //     0, 1, 2
-            // };
-
-            GLuint VBO, EBO;
-            glGenVertexArrays(1, &VAO);
-            // glGenBuffers(1, &VBO);
-            // glGenBuffers(1, &EBO);
-
-            glBindVertexArray(VAO);
-
-            // glBindBuffer(GL_ARRAY_BUFFER, VBO);
-            // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-            // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-            // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-            // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-            // glEnableVertexAttribArray(0);
-
-            // glBindVertexArray(0);
-
+            Chunk c = generateChunk(0, 0);
+            chunks[{c.x, c.y}] = c;
         }
 
         void onUpdate(float time_since_start, float dt)
@@ -71,10 +167,11 @@ class GameView: public View {
             cube_shader->setMat4("u_projectionMatrix", camera->getProjection());
             cube_shader->setMat4("u_viewMatrix", camera->getView());
 
-            glDrawArrays(GL_TRIANGLES, 0, 3*100);
-
-            // glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-            // glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+            for (const auto& [key, chunk] : chunks)
+            {
+                glBindVertexArray(chunk.VAO);
+                glDrawArrays(GL_TRIANGLES, 0, chunk.vertices_count);
+            }
 
             gui(dt);
         }
@@ -126,7 +223,8 @@ class GameView: public View {
 
         void onMouseScroll(int scroll_x, int scroll_y)
         {
-            camera->setDistance( camera->getDistance() - (scroll_y * 0.2f) );
+            float scale = 1.0f;
+            camera->setDistance( camera->getDistance() - (scroll_y * scale) );
         }
 
         void onResize(int width, int height)
@@ -139,4 +237,6 @@ class GameView: public View {
         Program* cube_shader;
 
         GLuint VAO;
+
+        std::map<std::pair<int, int>, Chunk_t> chunks;
 };
