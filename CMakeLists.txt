@@ -15,7 +15,8 @@ set(CMAKE_CXX_STANDARD 17)
 # link_libraries(${GLFW_LIBRARY_DIRS})
 
 set(SRC_FILES
-    ./src/engine/glad.c
+    ./src/engine/gl.c
+    # ./src/engine/glad.c
     ./src/engine/Context.cpp
     ./src/main.cpp
 )

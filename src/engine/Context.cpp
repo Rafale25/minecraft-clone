@@ -28,9 +28,10 @@ Context::Context(int width, int height, const char *title)
     // user pointer to Context
     glfwSetWindowUserPointer(window, this);
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+    int version = gladLoadGL(glfwGetProcAddress);
+    if (version == 0) {
+        std::cout << "Failed to initialize OpenGL context" << std::endl;
+        return;
     }
 
     imguiInit();
