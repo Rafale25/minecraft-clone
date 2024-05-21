@@ -16,7 +16,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(SRC_FILES
     ./src/engine/gl.c
-    # ./src/engine/glad.c
+    ./src/engine/stb_image.cpp
     ./src/engine/Context.cpp
     ./src/main.cpp
 )
@@ -40,6 +40,8 @@ target_include_directories(imgui
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 target_compile_options(${PROJECT_NAME} PRIVATE -W) # -Wall -Wextra) # -g3
+# target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+
 target_include_directories(${PROJECT_NAME}
     PRIVATE
         ./include/

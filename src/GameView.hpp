@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include <map>
+#include <math.h>
 
 #ifndef GLM_ENABLE_EXPERIMENTAL
 #define GLM_ENABLE_EXPERIMENTAL
@@ -13,6 +14,14 @@
 #include "View.hpp"
 #include "Camera.hpp"
 #include "Program.h"
+
+#include "Texture.hpp"
+
+
+/*
+
+*/
+
 
 enum Orientation : int {
     Top = 0,
@@ -26,18 +35,57 @@ enum Orientation : int {
 enum BlockType : uint8_t {
     Air = 0,
     Grass = 1,
+    Stone = 2,
 };
 
-enum Materials : int {
-    Grass_Top,
-    Grass_Side,
-    Grass_Bottom
+enum Texture : int {
+    GrassTop,
+    GrassSide,
+    GrassBottom,
 };
+
+std::unordered_map<Texture, const char* const> textures_name = {
+    { Texture::GrassTop, "grass_block_top.png"},
+    { Texture::GrassSide, "grass_block_side.png"},
+    { Texture::GrassBottom, "dirt.png"},
+};
+
+std::unordered_map<BlockType, std::array<Texture, 3>> block_textures_path = {
+    {
+        BlockType::Grass, { Texture::GrassTop, Texture::GrassSide, Texture::GrassBottom }
+    }
+};
+
+std::unordered_map<BlockType, std::array<GLuint64, 3>> block_textures_handles;
+
+void loadAllTextures()
+{
+    std::string textures_path = "assets/textures/";
+
+    for (const auto& [key, value] : block_textures_path) {
+        // TODO: make texture manager to avoid duplicated when calling loadTextures
+
+        GLuint texture_top = loadTexture((textures_path + textures_name[value[0]]).c_str(), GL_RGB, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
+        GLuint texture_side = loadTexture((textures_path + textures_name[value[1]]).c_str(), GL_RGB, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
+        GLuint texture_bot = loadTexture((textures_path + textures_name[value[2]]).c_str(), GL_RGB, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
+
+        GLuint64 texture_top_handle = glGetTextureHandleARB(texture_top);
+        GLuint64 texture_side_handle = glGetTextureHandleARB(texture_side);
+        GLuint64 texture_bot_handle = glGetTextureHandleARB(texture_bot);
+
+        glMakeTextureHandleResidentARB(texture_top_handle);
+        glMakeTextureHandleResidentARB(texture_side_handle);
+        glMakeTextureHandleResidentARB(texture_bot_handle);
+
+        block_textures_handles.insert( {key, {texture_top_handle, texture_side_handle, texture_bot_handle}} );
+    }
+}
 
 typedef struct Chunk
 {
     glm::ivec2 pos;
     GLuint VAO;
+    GLuint ssbo_texture_handles;
     uint vertices_count;
     BlockType blocks[4096]; // 16 x 16 x 16
 } Chunk_t;
@@ -53,11 +101,14 @@ void computeChunckVAO(Chunk_t &chunk)
     glCreateVertexArrays(1, &chunk.VAO);
     glCreateBuffers(1, &VBO);
 
+    std::vector<GLuint64> textures_handles;
+    glCreateBuffers(1, &chunk.ssbo_texture_handles);
+
     /*
-        position     float  32-bit  x 3
-        uv           float  32-bit  x 2
-        orientation  int    32-bit  x 1
-        material     int    32-bit  x 1
+        position         float  32-bit  x 3
+        uv               float  32-bit  x 2
+        orientation      int    32-bit  x 1
+        texture handle   float  32-bit  x 2
     */
 
     std::vector<float> v;
@@ -69,9 +120,11 @@ void computeChunckVAO(Chunk_t &chunk)
         int index = z * 16*16 + y * 16 + x;
         if (chunk.blocks[index] == BlockType::Air) continue;
 
+        auto [texture_top_handle, texture_side_handle, texture_bot_handle] = block_textures_handles[chunk.blocks[index]];
+
         // front
         i = XYZtoIndex(x, y, z-1);
-        if (i == -1 || chunk.blocks[i] == BlockType::Air)
+        if (i == -1 || chunk.blocks[i] == BlockType::Air) {
             v.insert(v.end(), {
                 x+0.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Front,
                 x+1.f, y+0.f, z+0.f, 1.f, 0.f, Orientation::Front,
@@ -81,10 +134,12 @@ void computeChunckVAO(Chunk_t &chunk)
                 x+1.f, y+1.f, z+0.f, 1.f, 1.f, Orientation::Front,
                 x+0.f, y+1.f, z+0.f, 0.f, 1.f, Orientation::Front,
             });
+            textures_handles.push_back(texture_side_handle);
+        }
 
         // back
         i = XYZtoIndex(x, y, z+1);
-        if (i == -1 || chunk.blocks[i] == BlockType::Air)
+        if (i == -1 || chunk.blocks[i] == BlockType::Air) {
             v.insert(v.end(), {
                 x+0.f, y+0.f, z+1.f, 0.f, 0.f, Orientation::Back,
                 x+1.f, y+1.f, z+1.f, 1.f, 1.f, Orientation::Back,
@@ -94,10 +149,12 @@ void computeChunckVAO(Chunk_t &chunk)
                 x+0.f, y+1.f, z+1.f, 0.f, 1.f, Orientation::Back,
                 x+1.f, y+1.f, z+1.f, 1.f, 1.f, Orientation::Back,
             });
+            textures_handles.push_back(texture_side_handle);
+        }
 
         // down
         i = XYZtoIndex(x, y-1, z);
-        if (i == -1 || chunk.blocks[i] == BlockType::Air)
+        if (i == -1 || chunk.blocks[i] == BlockType::Air) {
             v.insert(v.end(), {
                 x+0.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Bottom,
                 x+1.f, y+0.f, z+1.f, 1.f, 1.f, Orientation::Bottom,
@@ -107,10 +164,12 @@ void computeChunckVAO(Chunk_t &chunk)
                 x+0.f, y+0.f, z+1.f, 0.f, 1.f, Orientation::Bottom,
                 x+1.f, y+0.f, z+1.f, 1.f, 1.f, Orientation::Bottom,
             });
+            textures_handles.push_back(texture_bot_handle);
+        }
 
         // top
         i = XYZtoIndex(x, y+1, z);
-        if (i == -1 || chunk.blocks[i] == BlockType::Air)
+        if (i == -1 || chunk.blocks[i] == BlockType::Air) {
             v.insert(v.end(), {
                 x+0.f, y+1.f, z+0.f, 0.f, 0.f, Orientation::Top,
                 x+1.f, y+1.f, z+0.f, 1.f, 0.f, Orientation::Top,
@@ -120,32 +179,39 @@ void computeChunckVAO(Chunk_t &chunk)
                 x+1.f, y+1.f, z+1.f, 1.f, 1.f, Orientation::Top,
                 x+0.f, y+1.f, z+1.f, 0.f, 1.f, Orientation::Top,
             });
+            textures_handles.push_back(texture_top_handle);
+        }
+
 
         // left
         i = XYZtoIndex(x-1, y, z);
-        if (i == -1 || chunk.blocks[i] == BlockType::Air)
+        if (i == -1 || chunk.blocks[i] == BlockType::Air) {
             v.insert(v.end(), {
                 x+0.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Left,
                 x+0.f, y+1.f, z+1.f, 1.f, 1.f, Orientation::Left,
-                x+0.f, y+0.f, z+1.f, 0.f, 1.f, Orientation::Left,
+                x+0.f, y+0.f, z+1.f, 1.f, 0.f, Orientation::Left,
 
                 x+0.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Left,
-                x+0.f, y+1.f, z+0.f, 1.f, 0.f, Orientation::Left,
+                x+0.f, y+1.f, z+0.f, 0.f, 1.f, Orientation::Left,
                 x+0.f, y+1.f, z+1.f, 1.f, 1.f, Orientation::Left,
             });
+            textures_handles.push_back(texture_side_handle);
+        }
 
         // right
         i = XYZtoIndex(x+1, y, z);
-        if (i == -1 || chunk.blocks[i] == BlockType::Air)
+        if (i == -1 || chunk.blocks[i] == BlockType::Air) {
             v.insert(v.end(), {
                 x+1.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Right,
-                x+1.f, y+0.f, z+1.f, 0.f, 1.f, Orientation::Right,
+                x+1.f, y+0.f, z+1.f, 1.f, 0.f, Orientation::Right,
                 x+1.f, y+1.f, z+1.f, 1.f, 1.f, Orientation::Right,
 
                 x+1.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Right,
                 x+1.f, y+1.f, z+1.f, 1.f, 1.f, Orientation::Right,
-                x+1.f, y+1.f, z+0.f, 1.f, 0.f, Orientation::Right,
+                x+1.f, y+1.f, z+0.f, 0.f, 1.f, Orientation::Right,
             });
+            textures_handles.push_back(texture_side_handle);
+        }
     }
     }
     }
@@ -169,6 +235,11 @@ void computeChunckVAO(Chunk_t &chunk)
     glVertexArrayAttribFormat(chunk.VAO, 2, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT));
 
     glVertexArrayVertexBuffer(chunk.VAO, 0, VBO, 0, 6 * sizeof(GL_FLOAT));
+
+    glNamedBufferStorage(chunk.ssbo_texture_handles,
+                     sizeof(GLuint64) * textures_handles.size(),
+                     (const void *)textures_handles.data(),
+                     GL_DYNAMIC_STORAGE_BIT);
 }
 
 Chunk_t generateChunk(glm::ivec2 pos)
@@ -177,7 +248,7 @@ Chunk_t generateChunk(glm::ivec2 pos)
 
     chunk.pos = pos;
 
-    srand(time(NULL));
+    // srand(time(NULL));
 
     for (int z = 0 ; z < 16 ; ++z) {
     for (int x = 0 ; x < 16 ; ++x) {
@@ -186,8 +257,8 @@ Chunk_t generateChunk(glm::ivec2 pos)
         int index = z * 16*16 + y * 16 + x;
 
         // chunk.blocks[index] = BlockType::Grass;
-        chunk.blocks[index] = y < height ? BlockType::Grass : BlockType::Air;
-        // chunk.blocks[index] = rand() % 3 == 0 ? BlockType::Grass : BlockType::Air;
+        // chunk.blocks[index] = y < height ? BlockType::Grass : BlockType::Air;
+        chunk.blocks[index] = rand() % 3 == 0 ? BlockType::Grass : BlockType::Air;
     }
     }
     }
@@ -205,18 +276,27 @@ class GameView: public View {
             glfwGetWindowSize(ctx.window, &width, &height);
 
             camera = new OrbitCamera(
-                glm::vec3(0.0f), 0.0f, 0.0f, 10.0f,
-                60.0f, (float)width / (float)height, 0.01f, 1000.0f
+                glm::vec3(0.0f), M_PI/4, M_PI/4, 20.0f,
+                60.0f, (float)width / (float)height, 0.1f, 1000.0f
             );
+
+            loadAllTextures();
 
             cube_shader = new Program("./assets/shaders/cube.vs", "./assets/shaders/cube.fs");
 
-            Chunk c = generateChunk({0, 0});
-            chunks[c.pos] = c;
+            int size = 4;
+            for (int x = -size ; x < size ; ++x) {
+            for (int y = -size ; y < size ; ++y) {
+                Chunk c = generateChunk({x, y});
+                chunks[c.pos] = c;
+            }
+            }
+
         }
 
         void onUpdate(float time_since_start, float dt)
         {
+
         }
 
         void onDraw(float time_since_start, float dt)
@@ -237,6 +317,8 @@ class GameView: public View {
 
             for (const auto& [key, chunk] : chunks)
             {
+                cube_shader->setVec3("u_chunkPos", glm::vec3(chunk.pos.x, 0.0f, chunk.pos.y) * 16.0f);
+                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk.ssbo_texture_handles);
                 glBindVertexArray(chunk.VAO);
                 glDrawArrays(GL_TRIANGLES, 0, chunk.vertices_count);
             }
