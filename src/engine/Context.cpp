@@ -127,9 +127,9 @@ void Context::key_callback(GLFWwindow* window, int key, int scancode, int action
 {
     Context* ctx = ((Context*)glfwGetWindowUserPointer(window));
 
-    // if (key >= 0 && key < GLFW_KEY_LAST) {
-        // ctx->keyState[key] = action;
-    // }
+    if (key >= 0 && key < GLFW_KEY_LAST) {
+        ctx->keyState[key] = action;
+    }
 
     // call pressed/release events (need to do that because of key repeat)
     if (action == GLFW_PRESS)

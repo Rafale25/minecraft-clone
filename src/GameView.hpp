@@ -76,11 +76,11 @@ void loadAllTextures()
 
 typedef struct Chunk
 {
-    glm::ivec2 pos;
+    glm::ivec3 pos;
     GLuint VAO;
     GLuint ssbo_texture_handles;
     uint vertices_count;
-    BlockType blocks[4096]; // 16 x 16 x 16
+    BlockType blocks[4096]; // 16x16x16
 } Chunk_t;
 
 inline int XYZtoIndex(int x, int y, int z) {
@@ -253,32 +253,37 @@ class GameView: public View {
 
             cube_shader = new Program("./assets/shaders/cube.vs", "./assets/shaders/cube.fs");
 
-            int size = 8;
-            for (int x = -size ; x < size ; ++x) {
-            for (int y = -size ; y < size ; ++y) {
-                Chunk c = generateChunk({x, y});
+            int SIZE_X = 4;
+            int SIZE_Y = 1;
+            int SIZE_Z = 4;
+            for (int x = -SIZE_X ; x < SIZE_X ; ++x) {
+            for (int y = -SIZE_Y ; y < SIZE_Y ; ++y) {
+            for (int z = -SIZE_Z ; z < SIZE_Z ; ++z) {
+                Chunk c = generateChunk({x, y, z});
                 chunks[c.pos] = c;
+            }
             }
             }
 
         }
 
-        Chunk_t generateChunk(glm::ivec2 pos)
+        Chunk_t generateChunk(glm::ivec3 pos)
         {
             Chunk_t chunk;
             chunk.pos = pos;
 
             // srand(time(NULL));
+            glm::vec3 chunkPosWorld = pos * 16;
 
             for (int z = 0 ; z < 16 ; ++z) {
             for (int x = 0 ; x < 16 ; ++x) {
-                int height = 1.0f + (noise.GetNoise((float)chunk.pos.x*16.0f + x, (float)chunk.pos.y*16.0f + z) * 0.5f + 0.5f) * 15.0f;
+                int height = 1.0f + (noise.GetNoise(chunkPosWorld.x + x, chunkPosWorld.z + z) * 0.5f + 0.5f) * 15.0f;
 
                 for (int y = 0 ; y < 16 ; ++y) {
                     int index = z * 16*16 + y * 16 + x;
 
                     // chunk.blocks[index] = BlockType::Grass;
-                    chunk.blocks[index] = y < height ? BlockType::Grass : BlockType::Air;
+                    chunk.blocks[index] = chunkPosWorld.y + y < height ? BlockType::Grass : BlockType::Air;
                     // chunk.blocks[index] = rand() % 3 == 0 ? BlockType::Grass : BlockType::Air;
                 }
             }
@@ -312,7 +317,7 @@ class GameView: public View {
 
             for (const auto& [key, chunk] : chunks)
             {
-                cube_shader->setVec3("u_chunkPos", glm::vec3(chunk.pos.x, 0.0f, chunk.pos.y) * 16.0f);
+                cube_shader->setVec3("u_chunkPos", chunk.pos * 16);
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk.ssbo_texture_handles);
                 glBindVertexArray(chunk.VAO);
                 glDrawArrays(GL_TRIANGLES, 0, chunk.vertices_count);
@@ -357,6 +362,9 @@ class GameView: public View {
         void onMouseScroll(int scroll_x, int scroll_y)
         {
             float scale = 1.0f;
+            if (ctx.keyState[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS)
+                scale = 8.0f;
+
             camera->setDistance( camera->getDistance() - (scroll_y * scale) );
         }
 
@@ -369,7 +377,7 @@ class GameView: public View {
         OrbitCamera* camera;
         Program* cube_shader;
 
-        std::unordered_map<glm::ivec2, Chunk_t> chunks;
+        std::unordered_map<glm::ivec3, Chunk_t> chunks;
 
         FastNoiseLite noise;
 };
