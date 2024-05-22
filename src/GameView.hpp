@@ -4,23 +4,16 @@
 #include <map>
 #include <math.h>
 
-#ifndef GLM_ENABLE_EXPERIMENTAL
-#define GLM_ENABLE_EXPERIMENTAL
-#endif
-
 #include "glm/gtx/hash.hpp"
 #include <glm/gtc/type_ptr.hpp>
+
+#include "FastNoiseLite.h"
 
 #include "View.hpp"
 #include "Camera.hpp"
 #include "Program.h"
 
 #include "Texture.hpp"
-
-
-/*
-
-*/
 
 
 enum Orientation : int {
@@ -242,32 +235,6 @@ void computeChunckVAO(Chunk_t &chunk)
                      GL_DYNAMIC_STORAGE_BIT);
 }
 
-Chunk_t generateChunk(glm::ivec2 pos)
-{
-    Chunk_t chunk;
-
-    chunk.pos = pos;
-
-    // srand(time(NULL));
-
-    for (int z = 0 ; z < 16 ; ++z) {
-    for (int x = 0 ; x < 16 ; ++x) {
-        int height = 1 + rand() % 8;
-    for (int y = 0 ; y < 16 ; ++y) {
-        int index = z * 16*16 + y * 16 + x;
-
-        // chunk.blocks[index] = BlockType::Grass;
-        // chunk.blocks[index] = y < height ? BlockType::Grass : BlockType::Air;
-        chunk.blocks[index] = rand() % 3 == 0 ? BlockType::Grass : BlockType::Air;
-    }
-    }
-    }
-
-    computeChunckVAO(chunk);
-
-    return chunk;
-}
-
 class GameView: public View {
     public:
         GameView(Context& ctx): View(ctx)
@@ -280,11 +247,13 @@ class GameView: public View {
                 60.0f, (float)width / (float)height, 0.1f, 1000.0f
             );
 
+            noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+
             loadAllTextures();
 
             cube_shader = new Program("./assets/shaders/cube.vs", "./assets/shaders/cube.fs");
 
-            int size = 4;
+            int size = 8;
             for (int x = -size ; x < size ; ++x) {
             for (int y = -size ; y < size ; ++y) {
                 Chunk c = generateChunk({x, y});
@@ -292,6 +261,32 @@ class GameView: public View {
             }
             }
 
+        }
+
+        Chunk_t generateChunk(glm::ivec2 pos)
+        {
+            Chunk_t chunk;
+            chunk.pos = pos;
+
+            // srand(time(NULL));
+
+            for (int z = 0 ; z < 16 ; ++z) {
+            for (int x = 0 ; x < 16 ; ++x) {
+                int height = 1.0f + (noise.GetNoise((float)chunk.pos.x*16.0f + x, (float)chunk.pos.y*16.0f + z) * 0.5f + 0.5f) * 15.0f;
+
+                for (int y = 0 ; y < 16 ; ++y) {
+                    int index = z * 16*16 + y * 16 + x;
+
+                    // chunk.blocks[index] = BlockType::Grass;
+                    chunk.blocks[index] = y < height ? BlockType::Grass : BlockType::Air;
+                    // chunk.blocks[index] = rand() % 3 == 0 ? BlockType::Grass : BlockType::Air;
+                }
+            }
+            }
+
+            computeChunckVAO(chunk);
+
+            return chunk;
         }
 
         void onUpdate(float time_since_start, float dt)
@@ -351,24 +346,12 @@ class GameView: public View {
         {
         }
 
-        void onMouseMotion(int x, int y, int dx, int dy)
-        {
-        }
-
         void onMouseDrag(int x, int y, int dx, int dy)
         {
             if (ImGui::GetIO().WantCaptureMouse) return;
 
             camera->setYaw( camera->getYaw() - (dx * 0.005f) );
             camera->setPitch( camera->getPitch() + (dy * 0.005f) );
-        }
-
-        void onMousePress(int x, int y, int button)
-        {
-        }
-
-        void onMouseRelease(int x, int y, int button)
-        {
         }
 
         void onMouseScroll(int scroll_x, int scroll_y)
@@ -386,9 +369,7 @@ class GameView: public View {
         OrbitCamera* camera;
         Program* cube_shader;
 
-        GLuint VAO;
-
-        // std::map<std::pair<int, int>, Chunk_t> chunks;
-
         std::unordered_map<glm::ivec2, Chunk_t> chunks;
+
+        FastNoiseLite noise;
 };
