@@ -1,4 +1,4 @@
-#include "Context.hpp"
+#include "context.hpp"
 
 Context::Context(int width, int height, const char *title)
 {

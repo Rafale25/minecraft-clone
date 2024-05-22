@@ -17,7 +17,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(SRC_FILES
     ./src/engine/gl.c
     ./src/engine/stb_image.cpp
-    ./src/engine/Context.cpp
+    ./src/engine/context.cpp
+    ./src/game/chunk.cpp
+    ./src/game/texture_manager.cpp
     ./src/main.cpp
 )
 
@@ -47,6 +49,7 @@ target_include_directories(${PROJECT_NAME}
         ./include/
         ./src/
         ./src/engine/
+        ./src/game/
         ${IMGUI_DIR}
         ${IMGUI_DIR}/backends
 )
