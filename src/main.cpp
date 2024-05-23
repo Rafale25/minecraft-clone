@@ -10,8 +10,6 @@ const int VSYNC = 1;
 
 int main()
 {
-    std::cout << "Hello World!" << std::endl;
-
     Context ctx(SCR_WIDTH, SCR_HEIGHT, TITLE);
     View* view = new GameView(ctx);
 

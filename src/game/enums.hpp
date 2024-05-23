@@ -13,7 +13,7 @@ enum Orientation : int {
 
 enum class BlockType : uint8_t {
     Air = 0,
-    Grass,
+    Grass = 1,
     Dirt,
     Stone,
 };

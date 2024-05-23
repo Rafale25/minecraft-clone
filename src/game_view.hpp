@@ -6,6 +6,7 @@
 
 #include "glm/gtx/hash.hpp"
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #include "FastNoiseLite.h"
 
@@ -16,6 +17,13 @@
 #include "texture_manager.hpp"
 #include "chunk.hpp"
 #include "enums.hpp"
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#include <unistd.h>
+
 
 Chunk generateChunk(glm::ivec3 pos, FastNoiseLite &noise, TextureManager &texture_manager)
 {
@@ -53,6 +61,66 @@ Chunk generateChunk(glm::ivec3 pos, FastNoiseLite &noise, TextureManager &textur
     return chunk;
 }
 
+static void print_buf(const char *title, const unsigned char *buf, size_t buf_len)
+{
+    size_t i = 0;
+    fprintf(stdout, "%s [ ", title);
+    for(i = 0; i < buf_len; ++i)
+    fprintf(stdout, "%02X%s", buf[i], ( i + 1 ) % 16 == 0 ? "\r\n" : " " );
+    std::cout << ']' <<  std::endl;
+}
+
+Chunk readChunk(uint8_t *buffer, TextureManager &texture_manager)
+{
+    uint8_t *head = &buffer[0];
+    int x, y, z;
+
+    // skip packet id
+    head += sizeof(uint8_t);
+
+    x = *(int*)&head[0];
+    head += sizeof(int);
+
+    y = *(int*)&head[0];
+    head += sizeof(int);
+
+    z = *(int*)&head[0];
+    head += sizeof(int);
+
+    Chunk chunk;
+    chunk.pos = glm::ivec3(htonl(x), htonl(y), htonl(z)) / 16;
+
+    glm::vec3 chunkPosWorld = chunk.pos * 16;
+
+    for (int i = 0 ; i < 16*16*16 ; ++i) {
+        uint8_t byte = *(uint8_t*)&head[0];
+        head += sizeof(uint8_t);
+
+        /* convert to BlackoutBurst indexing -_- */
+        int x = i % 16;
+        int y = (i / 16) % 16;
+        int z = i / (16 * 16);
+
+        int index = x * 16*16 + y * 16 + z;
+
+        chunk.blocks[index] = (BlockType)byte;
+
+        // switch (byte)
+        // {
+        //     case 0:
+        //         chunk.blocks[i] = BlockType::Air;
+        //         break;
+        //     case 1:
+        //         chunk.blocks[i] = BlockType::Grass;
+        //         break;
+        // }
+    }
+
+    chunk.computeChunckVAO(texture_manager);
+
+    return chunk;
+}
+
 class GameView: public View {
     public:
         GameView(Context& ctx): View(ctx)
@@ -71,6 +139,8 @@ class GameView: public View {
 
             cube_shader = new Program("./assets/shaders/cube.vs", "./assets/shaders/cube.fs");
 
+
+#if 0
             int SIZE_X = 4;
             int SIZE_Y = 1;
             int SIZE_Z = 4;
@@ -82,7 +152,61 @@ class GameView: public View {
             }
             }
             }
+#else
 
+            // -- Sockets -- //
+            int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+            // specifying address
+            sockaddr_in serverAddress;
+            serverAddress.sin_family = AF_INET;
+            serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
+            serverAddress.sin_port = htons(15000);
+
+            // sending connection request
+            connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
+
+            // recieving data
+            uint8_t buffer[5000] = { 0 };
+            recv(clientSocket, buffer, sizeof(buffer), 0);
+            printf("%d\n", buffer[0]);
+            // print_buf("Buffer: ", buffer, 5000);
+
+            struct timeval timeout;
+            timeout.tv_sec = 1;
+            timeout.tv_usec = 0;
+            setsockopt(clientSocket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+
+            while (1)
+            {
+                int bytes_received = 0;
+                bool should_break = false;
+
+                while (1) {
+                    int recv_size = recv(clientSocket, &buffer[bytes_received], 5000 - bytes_received, 0);
+                    bytes_received += recv_size;
+                    // printf("bytes_received: %d %d\n", recv_size, bytes_received);
+                    if (bytes_received == 5000)
+                        break;
+                    if (recv_size == -1) {
+                        should_break = true;
+                        break;
+                    }
+                }
+                if (should_break) break;
+
+                if (buffer[0] != 0x05) {
+                    continue;
+                }
+
+                Chunk c = readChunk(buffer, texture_manager);
+                chunks[c.pos] = c;
+            }
+
+            printf("Chunks count: %ld\n", chunks.size());
+
+            // close(clientSocket);
+#endif
         }
 
         void onUpdate(float time_since_start, float dt)
@@ -172,4 +296,6 @@ class GameView: public View {
 
         FastNoiseLite noise;
         TextureManager texture_manager;
+
+        // std::thread;
 };
