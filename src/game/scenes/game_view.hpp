@@ -18,6 +18,9 @@
 #include "chunk.hpp"
 #include "enums.hpp"
 
+#include <thread>
+#include <mutex>
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -104,21 +107,29 @@ Chunk readChunk(uint8_t *buffer, TextureManager &texture_manager)
         int index = x * 16*16 + y * 16 + z;
 
         chunk.blocks[index] = (BlockType)byte;
-
-        // switch (byte)
-        // {
-        //     case 0:
-        //         chunk.blocks[i] = BlockType::Air;
-        //         break;
-        //     case 1:
-        //         chunk.blocks[i] = BlockType::Grass;
-        //         break;
-        // }
     }
 
     chunk.computeChunckVAO(texture_manager);
 
     return chunk;
+}
+
+int recv_full(int fd, uint8_t *buffer, size_t size)
+{
+    size_t bytes_received = 0;
+
+    while (1) {
+        int recv_size = recv(fd, &buffer[bytes_received], size - bytes_received, 0);
+        bytes_received += recv_size;
+
+        if (recv_size == -1)
+            return -1;
+
+        if (bytes_received == size)
+            break;
+    }
+
+    return 0;
 }
 
 class GameView: public View {
@@ -179,25 +190,12 @@ class GameView: public View {
 
             while (1)
             {
-                int bytes_received = 0;
-                bool should_break = false;
+                int res = recv_full(clientSocket, buffer, 5000);
+                if (res == -1)
+                    break;
 
-                while (1) {
-                    int recv_size = recv(clientSocket, &buffer[bytes_received], 5000 - bytes_received, 0);
-                    bytes_received += recv_size;
-                    // printf("bytes_received: %d %d\n", recv_size, bytes_received);
-                    if (bytes_received == 5000)
-                        break;
-                    if (recv_size == -1) {
-                        should_break = true;
-                        break;
-                    }
-                }
-                if (should_break) break;
-
-                if (buffer[0] != 0x05) {
+                if (buffer[0] != 0x05) // if packet isn't a chunk
                     continue;
-                }
 
                 Chunk c = readChunk(buffer, texture_manager);
                 chunks[c.pos] = c;
@@ -209,9 +207,13 @@ class GameView: public View {
 #endif
         }
 
+
+
         void onUpdate(float time_since_start, float dt)
         {
-
+            // mutex.lock();
+            // chunks;
+            // mutex.unlock();
         }
 
         void onDraw(float time_since_start, float dt)
@@ -293,9 +295,10 @@ class GameView: public View {
         Program* cube_shader;
 
         std::unordered_map<glm::ivec3, Chunk> chunks;
+        std::mutex chunk_mutex;
 
         FastNoiseLite noise;
         TextureManager texture_manager;
 
-        // std::thread;
+        // std::queue
 };
