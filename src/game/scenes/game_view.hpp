@@ -17,6 +17,7 @@
 #include "texture_manager.hpp"
 #include "chunk.hpp"
 #include "enums.hpp"
+#include "client.hpp"
 
 #include <thread>
 #include <mutex>
@@ -26,7 +27,6 @@
 #include <arpa/inet.h>
 
 #include <unistd.h>
-
 
 Chunk generateChunk(glm::ivec3 pos, FastNoiseLite &noise, TextureManager &texture_manager)
 {
@@ -73,64 +73,8 @@ static void print_buf(const char *title, const unsigned char *buf, size_t buf_le
     std::cout << ']' <<  std::endl;
 }
 
-Chunk readChunk(uint8_t *buffer, TextureManager &texture_manager)
-{
-    uint8_t *head = &buffer[0];
-    int x, y, z;
 
-    // skip packet id
-    head += sizeof(uint8_t);
 
-    x = *(int*)&head[0];
-    head += sizeof(int);
-
-    y = *(int*)&head[0];
-    head += sizeof(int);
-
-    z = *(int*)&head[0];
-    head += sizeof(int);
-
-    Chunk chunk;
-    chunk.pos = glm::ivec3(htonl(x), htonl(y), htonl(z)) / 16;
-
-    glm::vec3 chunkPosWorld = chunk.pos * 16;
-
-    for (int i = 0 ; i < 16*16*16 ; ++i) {
-        uint8_t byte = *(uint8_t*)&head[0];
-        head += sizeof(uint8_t);
-
-        /* convert to BlackoutBurst indexing -_- */
-        int x = i % 16;
-        int y = (i / 16) % 16;
-        int z = i / (16 * 16);
-
-        int index = x * 16*16 + y * 16 + z;
-
-        chunk.blocks[index] = (BlockType)byte;
-    }
-
-    chunk.computeChunckVAO(texture_manager);
-
-    return chunk;
-}
-
-int recv_full(int fd, uint8_t *buffer, size_t size)
-{
-    size_t bytes_received = 0;
-
-    while (1) {
-        int recv_size = recv(fd, &buffer[bytes_received], size - bytes_received, 0);
-        bytes_received += recv_size;
-
-        if (recv_size == -1)
-            return -1;
-
-        if (bytes_received == size)
-            break;
-    }
-
-    return 0;
-}
 
 class GameView: public View {
     public:
@@ -150,6 +94,9 @@ class GameView: public View {
 
             cube_shader = new Program("./assets/shaders/cube.vs", "./assets/shaders/cube.fs");
 
+            client = Client(chunks, chunks_mutex, texture_manager);
+            client.Start();
+
 
 #if 0
             int SIZE_X = 4;
@@ -163,57 +110,21 @@ class GameView: public View {
             }
             }
             }
-#else
-
-            // -- Sockets -- //
-            int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-
-            // specifying address
-            sockaddr_in serverAddress;
-            serverAddress.sin_family = AF_INET;
-            serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
-            serverAddress.sin_port = htons(15000);
-
-            // sending connection request
-            connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
-
-            // recieving data
-            uint8_t buffer[5000] = { 0 };
-            recv(clientSocket, buffer, sizeof(buffer), 0);
-            printf("%d\n", buffer[0]);
-            // print_buf("Buffer: ", buffer, 5000);
-
-            struct timeval timeout;
-            timeout.tv_sec = 1;
-            timeout.tv_usec = 0;
-            setsockopt(clientSocket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-
-            while (1)
-            {
-                int res = recv_full(clientSocket, buffer, 5000);
-                if (res == -1)
-                    break;
-
-                if (buffer[0] != 0x05) // if packet isn't a chunk
-                    continue;
-
-                Chunk c = readChunk(buffer, texture_manager);
-                chunks[c.pos] = c;
-            }
-
-            printf("Chunks count: %ld\n", chunks.size());
-
-            // close(clientSocket);
 #endif
+
         }
-
-
 
         void onUpdate(float time_since_start, float dt)
         {
-            // mutex.lock();
-            // chunks;
-            // mutex.unlock();
+            for (auto& [key, chunk] : chunks)
+            {
+                if (chunk.vao_initialized == false) {
+                    chunks_mutex.lock();
+                    chunk.computeChunckVAO(texture_manager);
+                    chunks_mutex.unlock();
+                }
+            }
+
         }
 
         void onDraw(float time_since_start, float dt)
@@ -231,6 +142,7 @@ class GameView: public View {
             cube_shader->use();
             cube_shader->setMat4("u_projectionMatrix", camera->getProjection());
             cube_shader->setMat4("u_viewMatrix", camera->getView());
+
 
             for (const auto& [key, chunk] : chunks)
             {
@@ -295,10 +207,12 @@ class GameView: public View {
         Program* cube_shader;
 
         std::unordered_map<glm::ivec3, Chunk> chunks;
-        std::mutex chunk_mutex;
+        std::mutex chunks_mutex;
 
         FastNoiseLite noise;
         TextureManager texture_manager;
 
+        Client client;
+        // Client
         // std::queue
 };
