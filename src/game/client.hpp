@@ -120,12 +120,12 @@ public:
                     break;
 
                 if (buffer[0] == 0x05) { // if packet is a chunk
-                    (*chunks_mutex).lock();
+                    chunks_mutex->lock();
 
                     Chunk c = readChunk(buffer, *texture_manager);
                     (*chunks)[c.pos] = c;
 
-                    (*chunks_mutex).unlock();
+                    chunks_mutex->unlock();
                 }
             }
 

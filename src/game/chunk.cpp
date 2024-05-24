@@ -129,7 +129,7 @@ void Chunk::computeChunckVAO(TextureManager &texture_manager)
     }
     }
 
-    vertices_count = v.size() / 5;
+    vertices_count = v.size() / 6;
 
     // std::cout << _vertices_count << std::endl;
 
@@ -149,7 +149,7 @@ void Chunk::computeChunckVAO(TextureManager &texture_manager)
 
     glVertexArrayVertexBuffer(VAO, 0, VBO, 0, 6 * sizeof(GL_FLOAT));
 
-    glNamedBufferStorage(ssbo_texture_handles,
+    glNamedBufferStorage(ssbo_texture_handles, // WTF: TODO DONT DUPLICATE THE TEXTURE HANDLES FOR EVERY CHUNKS
                      sizeof(GLuint64) * textures_handles.size(),
                      (const void *)textures_handles.data(),
                      GL_DYNAMIC_STORAGE_BIT);

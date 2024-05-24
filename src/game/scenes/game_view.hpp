@@ -75,7 +75,6 @@ static void print_buf(const char *title, const unsigned char *buf, size_t buf_le
 
 
 
-
 class GameView: public View {
     public:
         GameView(Context& ctx): View(ctx)
@@ -124,7 +123,6 @@ class GameView: public View {
                     chunks_mutex.unlock();
                 }
             }
-
         }
 
         void onDraw(float time_since_start, float dt)
@@ -142,7 +140,7 @@ class GameView: public View {
             cube_shader->use();
             cube_shader->setMat4("u_projectionMatrix", camera->getProjection());
             cube_shader->setMat4("u_viewMatrix", camera->getView());
-
+            cube_shader->setVec3("u_view_position", camera->getPosition());
 
             for (const auto& [key, chunk] : chunks)
             {
@@ -213,6 +211,5 @@ class GameView: public View {
         TextureManager texture_manager;
 
         Client client;
-        // Client
         // std::queue
 };
