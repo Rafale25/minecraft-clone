@@ -114,7 +114,7 @@ public:
         {
             // poll (check if server sent anything)
             int rv = poll(&fds, 1, 0);
-            if (rv > 0) {
+            if (rv > 0 && (fds.revents & POLLIN)) {
                 int res = recv_full(client_socket, buffer, 5000);
                 if (res == -1)
                     break;
