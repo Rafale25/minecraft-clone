@@ -1,9 +1,9 @@
 #pragma once
 
+#include <array>
 #include <unordered_map>
 #include <glad/gl.h>
 
-#include "chunk.hpp"
 #include "enums.hpp"
 
 class TextureManager

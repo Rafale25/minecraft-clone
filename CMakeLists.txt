@@ -50,8 +50,8 @@ target_include_directories(${PROJECT_NAME}
         ./include/
         ./src/
         ./src/engine/
-        ./src/game/scenes
         ./src/game/
+        ./src/game/scenes
         ${IMGUI_DIR}
         ${IMGUI_DIR}/backends
 )

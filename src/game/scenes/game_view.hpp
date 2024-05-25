@@ -1,12 +1,10 @@
 #pragma once
 
 #include <unordered_map>
-#include <map>
 #include <math.h>
+#include <mutex>
 
 #include "glm/gtx/hash.hpp"
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/string_cast.hpp>
 
 #include "FastNoiseLite.h"
 
@@ -19,14 +17,7 @@
 #include "enums.hpp"
 #include "client.hpp"
 
-#include <thread>
-#include <mutex>
-
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-#include <unistd.h>
+#include "imgui.h"
 
 Chunk generateChunk(glm::ivec3 pos, FastNoiseLite &noise, TextureManager &texture_manager)
 {
@@ -73,8 +64,6 @@ static void print_buf(const char *title, const unsigned char *buf, size_t buf_le
     std::cout << ']' <<  std::endl;
 }
 
-
-
 class GameView: public View {
     public:
         GameView(Context& ctx): View(ctx)
@@ -83,7 +72,7 @@ class GameView: public View {
             glfwGetWindowSize(ctx.window, &width, &height);
 
             camera = new OrbitCamera(
-                glm::vec3(0.0f), M_PI/4, M_PI/4, 20.0f,
+                glm::vec3(0.0f), M_PI/4, M_PI/4, 50.0f,
                 60.0f, (float)width / (float)height, 0.1f, 1000.0f
             );
 
@@ -93,7 +82,7 @@ class GameView: public View {
 
             cube_shader = new Program("./assets/shaders/cube.vs", "./assets/shaders/cube.fs");
 
-            client = Client(chunks, chunks_mutex, texture_manager);
+            client = Client(&chunks, chunks_mutex, texture_manager);
             client.Start();
 
 

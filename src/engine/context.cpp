@@ -1,4 +1,10 @@
+#include <iostream>
 #include "context.hpp"
+#include "view.hpp"
+
+// #include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 
 Context::Context(int width, int height, const char *title)
 {
