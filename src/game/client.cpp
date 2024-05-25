@@ -1,16 +1,12 @@
 #include <iostream>
-#include <stdio.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <poll.h>
 
-#include <glm/gtc/type_ptr.hpp>
-
 #include "client.hpp"
 #include "chunk.hpp"
-#include "texture_manager.hpp"
 
 int recv_full(int fd, uint8_t *buffer, size_t size)
 {
@@ -30,7 +26,7 @@ int recv_full(int fd, uint8_t *buffer, size_t size)
     return 0;
 }
 
-Chunk readChunk(uint8_t *buffer, TextureManager &texture_manager)
+Chunk readChunk(uint8_t *buffer)
 {
     uint8_t *head = &buffer[0];
     int x, y, z;
@@ -60,7 +56,6 @@ Chunk readChunk(uint8_t *buffer, TextureManager &texture_manager)
         int x = i % 16;
         int y = (i / 16) % 16;
         int z = i / (16 * 16);
-
         int index = x * 16*16 + y * 16 + z;
 
         chunk.blocks[index] = (BlockType)byte;
@@ -71,8 +66,8 @@ Chunk readChunk(uint8_t *buffer, TextureManager &texture_manager)
     return chunk;
 }
 
-Client::Client(std::unordered_map<glm::ivec3, Chunk> *chunks, std::mutex &chunks_mutex, TextureManager &texture_manager):
-    chunks(chunks), chunks_mutex(&chunks_mutex), texture_manager(&texture_manager)
+Client::Client(std::unordered_map<glm::ivec3, Chunk> *chunks, std::mutex &chunks_mutex):
+    chunks(chunks), chunks_mutex(&chunks_mutex)
 {
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -129,7 +124,7 @@ void Client::client_thread_func()
                 case 0x05: // Send Chunk
                     {
                         chunks_mutex->lock();
-                        Chunk c = readChunk(buffer, *texture_manager);
+                        Chunk c = readChunk(buffer);
                         (*chunks)[c.pos] = c;
                         chunks_mutex->unlock();
                     }

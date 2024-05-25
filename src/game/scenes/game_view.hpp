@@ -82,24 +82,23 @@ class GameView: public View {
 
             cube_shader = new Program("./assets/shaders/cube.vs", "./assets/shaders/cube.fs");
 
-            client = Client(&chunks, chunks_mutex, texture_manager);
+            client = Client(&chunks, chunks_mutex);
             client.Start();
 
 
-#if 0
-            int SIZE_X = 4;
-            int SIZE_Y = 1;
-            int SIZE_Z = 4;
-            for (int x = -SIZE_X ; x < SIZE_X ; ++x) {
-            for (int y = -SIZE_Y ; y < SIZE_Y ; ++y) {
-            for (int z = -SIZE_Z ; z < SIZE_Z ; ++z) {
-                Chunk c = generateChunk({x, y, z}, noise, texture_manager);
-                chunks[c.pos] = c;
-            }
-            }
-            }
-#endif
-
+            #if 0
+                int SIZE_X = 4;
+                int SIZE_Y = 1;
+                int SIZE_Z = 4;
+                for (int x = -SIZE_X ; x < SIZE_X ; ++x) {
+                for (int y = -SIZE_Y ; y < SIZE_Y ; ++y) {
+                for (int z = -SIZE_Z ; z < SIZE_Z ; ++z) {
+                    Chunk c = generateChunk({x, y, z}, noise, texture_manager);
+                    chunks[c.pos] = c;
+                }
+                }
+                }
+            #endif
         }
 
         void onUpdate(float time_since_start, float dt)

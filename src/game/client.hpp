@@ -13,7 +13,7 @@ class Client
 {
 public:
     Client() {};
-    Client(std::unordered_map<glm::ivec3, Chunk> *chunks, std::mutex &chunks_mutex, TextureManager &texture_manager);
+    Client(std::unordered_map<glm::ivec3, Chunk> *chunks, std::mutex &chunks_mutex);
 
     void Start();
     void client_thread_func();
@@ -26,6 +26,4 @@ private:
 
     std::unordered_map<glm::ivec3, Chunk> *chunks;
     std::mutex *chunks_mutex;
-
-    TextureManager *texture_manager; //TODO: remove from here
 };
