@@ -75,7 +75,7 @@ static void print_buf(const char *title, const unsigned char *buf, size_t buf_le
     std::cout << ']' <<  std::endl;
 }
 
-std::tuple<BlockType, glm::ivec3, glm::vec3> BlockRaycast(World& world, glm::vec3 origin, glm::vec3 direction)
+std::tuple<BlockType, glm::ivec3, glm::vec3> BlockRaycast(World& world, glm::vec3 origin, glm::vec3 direction, int maxSteps=16)
 {
     glm::vec3 rayPos = origin;
     glm::vec3 mapPos = glm::ivec3(glm::floor(rayPos));
@@ -87,12 +87,12 @@ std::tuple<BlockType, glm::ivec3, glm::vec3> BlockRaycast(World& world, glm::vec
 	glm::vec3 mask;
     glm::vec3 normal;
 
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < maxSteps; i++) {
         auto block = world.get_block(mapPos);
         normal = -mask * rayStep;
 
         if (block != BlockType::Air) {
-            printf("mapPos: %f %f %f\n", mapPos.x, mapPos.y, mapPos.z);
+            // printf("mapPos: %f %f %f\n", mapPos.x, mapPos.y, mapPos.z);
             return std::tuple<BlockType, glm::ivec3, glm::vec3>({block, mapPos, normal});
         };
 
@@ -162,7 +162,7 @@ class GameView: public View {
             raycastBlocktype = blocktype;
             raycastWorldPos = world_pos;
             raycastNormal = normal;
-            printf("Blocktype: %d, worldpos: %d %d %d, normal: %f %f %f\n", (int)blocktype, world_pos.x, world_pos.y, world_pos.z, normal.x, normal.y, normal.z);
+            // printf("Blocktype: %d, worldpos: %d %d %d, normal: %f %f %f\n", (int)blocktype, world_pos.x, world_pos.y, world_pos.z, normal.x, normal.y, normal.z);
 
             for (auto& [key, chunk] : world.chunks)
             {
@@ -271,6 +271,7 @@ class GameView: public View {
             ImGui::Text("center: %.2f, %.2f, %.2f", camera_pos.x, camera_pos.y, camera_pos.z);
             ImGui::Text("forward: %.2f, %.2f, %.2f", camera.forward.x, camera.forward.y, camera.forward.z);
             // ImGui::Text("yaw: %.2f", camera.getYaw());
+            ImGui::Text("block in hand: %d", (int)blockInHand);
             // ImGui::Text("pitch: %.2f", camera.getPitch());
 
             ImGui::End();
@@ -333,7 +334,7 @@ class GameView: public View {
             if (button == GLFW_MOUSE_BUTTON_LEFT) {
                 breakBlock(raycastWorldPos);
             } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-                placeBlock(raycastWorldPos + glm::ivec3(raycastNormal), BlockType::Stone);
+                placeBlock(raycastWorldPos + glm::ivec3(raycastNormal), blockInHand);
             }
         }
 
@@ -347,11 +348,15 @@ class GameView: public View {
 
         void onMouseScroll(int scroll_x, int scroll_y)
         {
-            float scale = 1.0f;
-            if (ctx.keyState[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS)
-                scale = 8.0f;
-
+            // float scale = 1.0f;
+            // if (ctx.keyState[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS)
+            //     scale = 8.0f;
             // camera.setDistance( camera.getDistance() - (scroll_y * scale) );
+
+            int block = ((int)blockInHand + scroll_y) % ((int)BlockType::LAST-1);
+            if (block < 1)
+                block += (int)BlockType::LAST-1;
+            blockInHand = (BlockType)block;
         }
 
         void onMouseMotion(int x, int y, int dx, int dy)
@@ -382,6 +387,8 @@ class GameView: public View {
         int _cursorEnable = false;
 
         // std::deque<>
+
+        BlockType blockInHand = BlockType::Grass;
 
         BlockType raycastBlocktype;
         glm::vec3 raycastNormal;
