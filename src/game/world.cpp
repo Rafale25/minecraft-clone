@@ -3,6 +3,8 @@
 #include "texture_manager.hpp"
 // #include "entity.hpp"
 
+#include <stdio.h>
+
 World::World()
 {
 }
@@ -47,9 +49,14 @@ void World::update_entity(int id, glm::vec3 pos, float yaw, float pitch)
 
 BlockType World::get_block(glm::ivec3 pos)
 {
-    glm::ivec3 chunk_pos = pos / 16;
+    glm::ivec3 chunk_pos = glm::floor(glm::vec3(pos) / 16.0f);
     glm::ivec3 local_pos = {pos.x % 16, pos.y % 16, pos.z % 16};
+    if (local_pos.x < 0) local_pos.x += 16;
+    if (local_pos.y < 0) local_pos.y += 16;
+    if (local_pos.z < 0) local_pos.z += 16;
 
+    // printf("chunck pos: %d %d %d\n", chunk_pos.x, chunk_pos.y, chunk_pos.z);
+    // printf("local_pos: %d %d %d\n", local_pos.x, local_pos.y, local_pos.z);
     if (chunks.count(chunk_pos) == 0) return BlockType::Air; // chunk doesn't exist //
 
     int index = Chunk::XYZtoIndex(local_pos.x, local_pos.y, local_pos.z);

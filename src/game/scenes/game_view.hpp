@@ -4,9 +4,11 @@
 #include <math.h>
 #include <mutex>
 
+// #define GLM_SWIZZLE
 #include "glm/gtx/hash.hpp"
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/quaternion.hpp>
+// #include <glm/gtx/vec_swizzle.hpp>
 
 #include "FastNoiseLite.h"
 
@@ -27,6 +29,7 @@
 #include <arpa/inet.h>
 
 #include <endian.h>
+
 
 Chunk generateChunk(glm::ivec3 pos, FastNoiseLite &noise, TextureManager &texture_manager)
 {
@@ -70,6 +73,37 @@ static void print_buf(const char *title, const unsigned char *buf, size_t buf_le
     for(i = 0; i < buf_len; ++i)
     fprintf(stdout, "%02X%s", buf[i], ( i + 1 ) % 16 == 0 ? "\r\n" : " " );
     std::cout << ']' <<  std::endl;
+}
+
+std::tuple<BlockType, glm::ivec3, glm::vec3> BlockRaycast(World& world, glm::vec3 origin, glm::vec3 direction)
+{
+    glm::vec3 rayPos = origin;
+    glm::vec3 mapPos = glm::ivec3(glm::floor(rayPos));
+
+    glm::vec3 deltaDist = abs(glm::vec3(glm::length(direction)) / direction);
+	glm::vec3 rayStep = sign(direction);
+	glm::vec3 sideDist = (sign(direction) * (mapPos - rayPos) + (sign(direction) * 0.5f) + 0.5f) * deltaDist;
+
+	glm::vec3 mask;
+    glm::vec3 normal;
+
+	for (int i = 0; i < 10; i++) {
+        auto block = world.get_block(mapPos);
+        normal = -mask * rayStep;
+
+        if (block != BlockType::Air) {
+            printf("mapPos: %f %f %f\n", mapPos.x, mapPos.y, mapPos.z);
+            return std::tuple<BlockType, glm::ivec3, glm::vec3>({block, mapPos, normal});
+        };
+
+		mask = glm::step(sideDist, glm::vec3(sideDist.y, sideDist.z, sideDist.x)) * glm::step(sideDist, glm::vec3(sideDist.z, sideDist.x, sideDist.y));
+		sideDist += mask * deltaDist;
+		mapPos += mask * rayStep;
+
+        // printf("mapPos: %f %f %f\n", mapPos.x, mapPos.y, mapPos.z);
+	}
+
+    return std::tuple<BlockType, glm::ivec3, glm::vec3>({BlockType::Air, mapPos, normal});
 }
 
 class GameView: public View {
@@ -123,6 +157,12 @@ class GameView: public View {
 
             camera.move(glm::vec3(dx, dy, dz));
             camera.update(dt);
+
+            auto [blocktype, world_pos, normal] = BlockRaycast(world, camera.getPosition(), camera.forward);
+            raycastBlocktype = blocktype;
+            raycastWorldPos = world_pos;
+            raycastNormal = normal;
+            printf("Blocktype: %d, worldpos: %d %d %d, normal: %f %f %f\n", (int)blocktype, world_pos.x, world_pos.y, world_pos.z, normal.x, normal.y, normal.z);
 
             for (auto& [key, chunk] : world.chunks)
             {
@@ -229,11 +269,48 @@ class GameView: public View {
 
             glm::vec3 camera_pos = camera.getPosition();
             ImGui::Text("center: %.2f, %.2f, %.2f", camera_pos.x, camera_pos.y, camera_pos.z);
+            ImGui::Text("forward: %.2f, %.2f, %.2f", camera.forward.x, camera.forward.y, camera.forward.z);
             // ImGui::Text("yaw: %.2f", camera.getYaw());
             // ImGui::Text("pitch: %.2f", camera.getPitch());
 
             ImGui::End();
             ctx.imguiRender();
+        }
+
+        void breakBlock(glm::ivec3 world_pos)
+        {
+            // Send server block update
+            struct __attribute__ ((packed)) moveEntityPacket {
+                uint8_t id;
+                uint8_t blockType;
+                int x, y, z;
+            } packet;
+
+            packet.id = 0x01; // update block //
+            packet.blockType = 0;
+            packet.x = htobe32(*(uint32_t*)&world_pos.x);
+            packet.y = htobe32(*(uint32_t*)&world_pos.y);
+            packet.z = htobe32(*(uint32_t*)&world_pos.z);
+
+            send(client.client_socket, &packet, sizeof(packet), 0);
+        }
+
+        void placeBlock(glm::ivec3 world_pos, BlockType blocktype)
+        {
+            // Send server block update
+            struct __attribute__ ((packed)) moveEntityPacket {
+                uint8_t id;
+                uint8_t blockType;
+                int x, y, z;
+            } packet;
+
+            packet.id = 0x01; // update block //
+            packet.blockType = (int)blocktype;
+            packet.x = htobe32(*(uint32_t*)&world_pos.x);
+            packet.y = htobe32(*(uint32_t*)&world_pos.y);
+            packet.z = htobe32(*(uint32_t*)&world_pos.z);
+
+            send(client.client_socket, &packet, sizeof(packet), 0);
         }
 
         void onKeyPress(int key)
@@ -250,6 +327,14 @@ class GameView: public View {
 
         void onKeyRelease(int key)
         {
+        }
+
+        void onMousePress(int x, int y, int button) {
+            if (button == GLFW_MOUSE_BUTTON_LEFT) {
+                breakBlock(raycastWorldPos);
+            } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+                placeBlock(raycastWorldPos + glm::ivec3(raycastNormal), BlockType::Stone);
+            }
         }
 
         void onMouseDrag(int x, int y, int dx, int dy)
@@ -296,5 +381,9 @@ class GameView: public View {
 
         int _cursorEnable = false;
 
-        BlockType inventoryBlock;
+        // std::deque<>
+
+        BlockType raycastBlocktype;
+        glm::vec3 raycastNormal;
+        glm::ivec3 raycastWorldPos;
 };
