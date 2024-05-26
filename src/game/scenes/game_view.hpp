@@ -324,6 +324,13 @@ class GameView: public View {
                 else
                     glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
             }
+
+            if (key == GLFW_KEY_F11) {
+                // GLFWmonitor* monitor = glfwGetWindowMonitor(ctx.window);
+                // GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+                // const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+                // glfwSetWindowMonitor(ctx.window, monitor, 0, 0, mode->width, mode->height, 0);
+            }
         }
 
         void onKeyRelease(int key)

@@ -31,7 +31,7 @@ int recv_full(int fd, uint8_t *buffer, size_t size)
     return bytes_received;
 }
 
-Chunk readChunk(uint8_t *buffer)
+Chunk readChunkPacket(uint8_t *buffer)
 {
     uint8_t *head = &buffer[0];
     int x, y, z;
@@ -58,12 +58,13 @@ Chunk readChunk(uint8_t *buffer)
         head += sizeof(uint8_t);
 
         /* convert to BlackoutBurst indexing -_- */
-        int x = i % 16;
-        int y = (i / 16) % 16;
-        int z = i / (16 * 16);
-        int index = x * 16*16 + y * 16 + z;
+        // int x = i % 16;
+        // int y = (i / 16) % 16;
+        // int z = i / (16 * 16);
+        // int index = x * 16*16 + y * 16 + z;
+        // chunk.blocks[index] = (BlockType)byte;
 
-        chunk.blocks[index] = (BlockType)byte;
+        chunk.blocks[i] = (BlockType)byte;
     }
 
     // chunk.computeChunckVAO(texture_manager);
@@ -245,7 +246,7 @@ void Client::client_thread_func()
                     recv_full(client_socket, buffer, 4108);
                     {
                         world->chunks_mutex.lock();
-                        Chunk c = readChunk(buffer);
+                        Chunk c = readChunkPacket(buffer);
                         world->chunks[c.pos] = c;
                         world->chunks_mutex.unlock();
 
