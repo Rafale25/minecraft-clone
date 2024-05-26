@@ -14,8 +14,8 @@ class View {
         virtual void onHideView() {}
         virtual void onShowView() {}
 
-        virtual void onUpdate(float time_since_start, float dt) = 0;
-        virtual void onDraw(float time_since_start, float dt) = 0;
+        virtual void onUpdate(double time_since_start, float dt) = 0;
+        virtual void onDraw(double time_since_start, float dt) = 0;
 
         virtual void onKeyPress(int key) {}
         virtual void onKeyRelease(int key) {}
@@ -35,12 +35,12 @@ class DefaultView: public View {
     public:
         DefaultView(Context& ctx): View(ctx) {}
 
-        void onUpdate(float time_since_start, float dt)
+        void onUpdate(double time_since_start, float dt)
         {
             // physic, logic ...
         }
 
-        void onDraw(float time_since_start, float dt)
+        void onDraw(double time_since_start, float dt)
         {
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);

@@ -14,15 +14,21 @@
 
 #include "texture_manager.hpp"
 #include "chunk.hpp"
-#include "enums.hpp"
 #include "client.hpp"
+#include "entity.hpp"
+#include "world.hpp"
 
 #include "imgui.h"
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#include <endian.h>
 
 Chunk generateChunk(glm::ivec3 pos, FastNoiseLite &noise, TextureManager &texture_manager)
 {
     Chunk chunk;
-
     chunk.pos = pos;
 
     glm::vec3 chunkPosWorld = pos * 16;
@@ -55,6 +61,21 @@ Chunk generateChunk(glm::ivec3 pos, FastNoiseLite &noise, TextureManager &textur
     return chunk;
 }
 
+static float reverseFloat(float inFloat )
+{
+    float retVal;
+    char *floatToConvert = ( char* ) & inFloat;
+    char *returnFloat = ( char* ) & retVal;
+
+    // swap the bytes into a temporary buffer
+    returnFloat[0] = floatToConvert[3];
+    returnFloat[1] = floatToConvert[2];
+    returnFloat[2] = floatToConvert[1];
+    returnFloat[3] = floatToConvert[0];
+
+    return retVal;
+}
+
 static void print_buf(const char *title, const unsigned char *buf, size_t buf_len)
 {
     size_t i = 0;
@@ -76,17 +97,17 @@ class GameView: public View {
                 60.0f, (float)width / (float)height, 0.1f, 1000.0f
             );
 
-            noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
-
             texture_manager.loadAllTextures();
 
             cube_shader = new Program("./assets/shaders/cube.vs", "./assets/shaders/cube.fs");
+            mesh_shader = new Program("./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs");
 
-            client = Client(&chunks, chunks_mutex);
             client.Start();
 
-
             #if 0
+                FastNoiseLite noise;
+                noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+
                 int SIZE_X = 4;
                 int SIZE_Y = 1;
                 int SIZE_Z = 4;
@@ -101,19 +122,61 @@ class GameView: public View {
             #endif
         }
 
-        void onUpdate(float time_since_start, float dt)
+        void onUpdate(double time_since_start, float dt)
         {
-            for (auto& [key, chunk] : chunks)
+            for (auto& [key, chunk] : world.chunks)
             {
                 if (chunk.vao_initialized == false) {
-                    chunks_mutex.lock();
+                    world.chunks_mutex.lock();
                     chunk.computeChunckVAO(texture_manager);
-                    chunks_mutex.unlock();
+                    world.chunks_mutex.unlock();
                 }
+            }
+
+            // client task_queue //
+            client.task_queue_mutex.lock();
+            for (auto &task: client.task_queue) {
+                task();
+            }
+            client.task_queue.clear();
+            client.task_queue_mutex.unlock();
+
+
+            network_timer -= dt;
+            if (network_timer <= 0.0f) {
+                network_timer = 1.0f / 5.0f;
+                networkUpdate();
             }
         }
 
-        void onDraw(float time_since_start, float dt)
+        void networkUpdate()
+        {
+            if (client.client_id == -1) return;
+
+            struct __attribute__ ((packed)) moveEntityPacket {
+                uint8_t id;
+                int entityId;
+                int x, y, z, yaw, pitch; // float encoded in int
+            } packet;
+
+            packet.id = 0x00; // update entity
+            packet.entityId = htobe32(client.client_id);
+            glm::vec3 pos = camera->getPosition();
+            float yaw = camera->getYaw();
+            float pitch = camera->getPitch();
+
+            printf("yaw pitch: %f %f\n", yaw, pitch);
+
+            packet.x = htobe32(*(uint32_t*)&pos.x);
+            packet.y = htobe32(*(uint32_t*)&pos.y);
+            packet.z = htobe32(*(uint32_t*)&pos.z);
+            packet.yaw = htobe32(*(uint32_t*)&yaw);
+            packet.pitch = htobe32(*(uint32_t*)&pitch);
+
+            send(client.client_socket, &packet, sizeof(packet), 0);
+        }
+
+        void onDraw(double time_since_start, float dt)
         {
             glEnable(GL_DEPTH_TEST);
             glDepthFunc(GL_LESS);
@@ -130,12 +193,24 @@ class GameView: public View {
             cube_shader->setMat4("u_viewMatrix", camera->getView());
             cube_shader->setVec3("u_view_position", camera->getPosition());
 
-            for (const auto& [key, chunk] : chunks)
+            world.chunks_mutex.lock();
+            for (const auto& [key, chunk] : world.chunks)
             {
                 cube_shader->setVec3("u_chunkPos", chunk.pos * 16);
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk.ssbo_texture_handles);
                 glBindVertexArray(chunk.VAO);
                 glDrawArrays(GL_TRIANGLES, 0, chunk.vertices_count);
+            }
+            world.chunks_mutex.unlock();
+
+            mesh_shader->use();
+            mesh_shader->setMat4("u_projectionMatrix", camera->getProjection());
+            mesh_shader->setMat4("u_viewMatrix", camera->getView());
+
+            for (auto& entity : world.entities)
+            {
+                mesh_shader->setMat4("u_modelMatrix", entity.transform.getMatrix());
+                entity.draw();
             }
 
             gui(dt);
@@ -191,13 +266,12 @@ class GameView: public View {
     private:
         OrbitCamera* camera;
         Program* cube_shader;
+        Program* mesh_shader;
 
-        std::unordered_map<glm::ivec3, Chunk> chunks;
-        std::mutex chunks_mutex;
+        World world;
+        Client client{world};
 
-        FastNoiseLite noise;
+        float network_timer = 0;
+
         TextureManager texture_manager;
-
-        Client client;
-        // std::queue
 };

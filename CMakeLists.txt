@@ -21,6 +21,8 @@ set(SRC_FILES
     ./src/game/chunk.cpp
     ./src/game/client.cpp
     ./src/game/texture_manager.cpp
+    ./src/game/entity.cpp
+    ./src/game/world.cpp
     ./src/main.cpp
 )
 
