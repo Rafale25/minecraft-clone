@@ -5,6 +5,8 @@
 #include <mutex>
 
 #include "glm/gtx/hash.hpp"
+#include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 #include "FastNoiseLite.h"
 
@@ -61,21 +63,6 @@ Chunk generateChunk(glm::ivec3 pos, FastNoiseLite &noise, TextureManager &textur
     return chunk;
 }
 
-static float reverseFloat(float inFloat )
-{
-    float retVal;
-    char *floatToConvert = ( char* ) & inFloat;
-    char *returnFloat = ( char* ) & retVal;
-
-    // swap the bytes into a temporary buffer
-    returnFloat[0] = floatToConvert[3];
-    returnFloat[1] = floatToConvert[2];
-    returnFloat[2] = floatToConvert[1];
-    returnFloat[3] = floatToConvert[0];
-
-    return retVal;
-}
-
 static void print_buf(const char *title, const unsigned char *buf, size_t buf_len)
 {
     size_t i = 0;
@@ -89,13 +76,19 @@ class GameView: public View {
     public:
         GameView(Context& ctx): View(ctx)
         {
+            glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
             int width, height;
             glfwGetWindowSize(ctx.window, &width, &height);
 
-            camera = new OrbitCamera(
-                glm::vec3(0.0f), M_PI/4, M_PI/4, 50.0f,
-                60.0f, (float)width / (float)height, 0.1f, 1000.0f
-            );
+            // camera = new OrbitCamera(
+            //     glm::vec3(0.0f), M_PI/4, M_PI/4, 50.0f,
+            //     60.0f, (float)width / (float)height, 0.1f, 1000.0f
+            // );
+            camera = FPSCamera{
+                glm::vec3(0.0f, 30.0, 0.0f), 0.0f, 0.0f,
+                60.0f, (float)width / (float)height, 0.01f, 1000.0f
+            };
 
             texture_manager.loadAllTextures();
 
@@ -108,14 +101,14 @@ class GameView: public View {
                 FastNoiseLite noise;
                 noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 
-                int SIZE_X = 4;
+                int SIZE_X = 8;
                 int SIZE_Y = 1;
-                int SIZE_Z = 4;
+                int SIZE_Z = 8;
                 for (int x = -SIZE_X ; x < SIZE_X ; ++x) {
                 for (int y = -SIZE_Y ; y < SIZE_Y ; ++y) {
                 for (int z = -SIZE_Z ; z < SIZE_Z ; ++z) {
                     Chunk c = generateChunk({x, y, z}, noise, texture_manager);
-                    chunks[c.pos] = c;
+                    world.chunks[c.pos] = c;
                 }
                 }
                 }
@@ -124,6 +117,13 @@ class GameView: public View {
 
         void onUpdate(double time_since_start, float dt)
         {
+            float dx = ctx.keyState[GLFW_KEY_A] - ctx.keyState[GLFW_KEY_D];
+            float dy = ctx.keyState[GLFW_KEY_LEFT_CONTROL] - ctx.keyState[GLFW_KEY_SPACE];
+            float dz = ctx.keyState[GLFW_KEY_W] - ctx.keyState[GLFW_KEY_S];
+
+            camera.move(glm::vec3(dx, dy, dz));
+            camera.update(dt);
+
             for (auto& [key, chunk] : world.chunks)
             {
                 if (chunk.vao_initialized == false) {
@@ -131,6 +131,12 @@ class GameView: public View {
                     chunk.computeChunckVAO(texture_manager);
                     world.chunks_mutex.unlock();
                 }
+            }
+
+            for (auto& entity : world.entities)
+            {
+                entity.smooth_transform.position = glm::mix(entity.smooth_transform.position, entity.transform.position, 0.075f);
+                entity.smooth_transform.rotation = glm::mix(entity.smooth_transform.rotation, entity.transform.rotation, 0.075f);
             }
 
             // client task_queue //
@@ -141,10 +147,9 @@ class GameView: public View {
             client.task_queue.clear();
             client.task_queue_mutex.unlock();
 
-
             network_timer -= dt;
             if (network_timer <= 0.0f) {
-                network_timer = 1.0f / 5.0f;
+                network_timer = 1.0f / 20.0f;
                 networkUpdate();
             }
         }
@@ -159,14 +164,12 @@ class GameView: public View {
                 int x, y, z, yaw, pitch; // float encoded in int
             } packet;
 
-            packet.id = 0x00; // update entity
+            glm::vec3 pos = camera.getPosition();
+            float yaw = camera.getYaw();
+            float pitch = camera.getPitch();
+
+            packet.id = 0x00; // update entity //
             packet.entityId = htobe32(client.client_id);
-            glm::vec3 pos = camera->getPosition();
-            float yaw = camera->getYaw();
-            float pitch = camera->getPitch();
-
-            printf("yaw pitch: %f %f\n", yaw, pitch);
-
             packet.x = htobe32(*(uint32_t*)&pos.x);
             packet.y = htobe32(*(uint32_t*)&pos.y);
             packet.z = htobe32(*(uint32_t*)&pos.z);
@@ -189,9 +192,9 @@ class GameView: public View {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             cube_shader->use();
-            cube_shader->setMat4("u_projectionMatrix", camera->getProjection());
-            cube_shader->setMat4("u_viewMatrix", camera->getView());
-            cube_shader->setVec3("u_view_position", camera->getPosition());
+            cube_shader->setMat4("u_projectionMatrix", camera.getProjection());
+            cube_shader->setMat4("u_viewMatrix", camera.getView());
+            cube_shader->setVec3("u_view_position", camera.getPosition());
 
             world.chunks_mutex.lock();
             for (const auto& [key, chunk] : world.chunks)
@@ -204,12 +207,12 @@ class GameView: public View {
             world.chunks_mutex.unlock();
 
             mesh_shader->use();
-            mesh_shader->setMat4("u_projectionMatrix", camera->getProjection());
-            mesh_shader->setMat4("u_viewMatrix", camera->getView());
+            mesh_shader->setMat4("u_projectionMatrix", camera.getProjection());
+            mesh_shader->setMat4("u_viewMatrix", camera.getView());
 
             for (auto& entity : world.entities)
             {
-                mesh_shader->setMat4("u_modelMatrix", entity.transform.getMatrix());
+                mesh_shader->setMat4("u_modelMatrix", entity.smooth_transform.getMatrix());
                 entity.draw();
             }
 
@@ -224,10 +227,10 @@ class GameView: public View {
             ImGui::Text("%.4f ms", dt);
             ImGui::Text("%.2f fps", 1.0f / dt);
 
-            glm::vec3 camera_pos = camera->getPosition();
+            glm::vec3 camera_pos = camera.getPosition();
             ImGui::Text("center: %.2f, %.2f, %.2f", camera_pos.x, camera_pos.y, camera_pos.z);
-            ImGui::Text("yaw: %.2f", camera->getYaw());
-            ImGui::Text("pitch: %.2f", camera->getPitch());
+            // ImGui::Text("yaw: %.2f", camera.getYaw());
+            // ImGui::Text("pitch: %.2f", camera.getPitch());
 
             ImGui::End();
             ctx.imguiRender();
@@ -235,6 +238,14 @@ class GameView: public View {
 
         void onKeyPress(int key)
         {
+            if (key == GLFW_KEY_C) {
+                _cursorEnable = !_cursorEnable;
+
+                if (_cursorEnable)
+                    glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                else
+                    glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            }
         }
 
         void onKeyRelease(int key)
@@ -245,8 +256,8 @@ class GameView: public View {
         {
             if (ImGui::GetIO().WantCaptureMouse) return;
 
-            camera->setYaw( camera->getYaw() - (dx * 0.005f) );
-            camera->setPitch( camera->getPitch() + (dy * 0.005f) );
+            // camera.setYaw( camera.getYaw() - (dx * 0.005f) );
+            // camera.setPitch( camera.getPitch() + (dy * 0.005f) );
         }
 
         void onMouseScroll(int scroll_x, int scroll_y)
@@ -255,7 +266,13 @@ class GameView: public View {
             if (ctx.keyState[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS)
                 scale = 8.0f;
 
-            camera->setDistance( camera->getDistance() - (scroll_y * scale) );
+            // camera.setDistance( camera.getDistance() - (scroll_y * scale) );
+        }
+
+        void onMouseMotion(int x, int y, int dx, int dy)
+        {
+            if (!_cursorEnable)
+                camera.onMouseMotion(x, y, dx, dy);
         }
 
         void onResize(int width, int height)
@@ -264,14 +281,20 @@ class GameView: public View {
         }
 
     private:
-        OrbitCamera* camera;
+        // OrbitCamera* camera;
+        FPSCamera camera;
+
         Program* cube_shader;
         Program* mesh_shader;
 
         World world;
         Client client{world};
 
-        float network_timer = 0;
+        float network_timer = 1.0f;
 
         TextureManager texture_manager;
+
+        int _cursorEnable = false;
+
+        BlockType inventoryBlock;
 };

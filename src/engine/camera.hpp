@@ -141,14 +141,22 @@ class FPSCamera: public Camera {
         glm::mat4 getView()
         {
             _updateVectors();
-            // return glm::lookAt(_position, _position + _forward, _up);
             return glm::lookAt(_smoothPosition, _smoothPosition + forward, _up);
+        }
+
+        float getYaw()
+        {
+            return glm::radians(_smoothYaw - 90.0f);
+        }
+
+        float getPitch()
+        {
+            return glm::radians(_smoothPitch);
         }
 
         glm::vec3 getPosition()
         {
             return _smoothPosition;
-            // return _position;
         }
 
         void update(float dt)
@@ -156,17 +164,16 @@ class FPSCamera: public Camera {
             _position += _movement * _speed * dt;
             _movement = glm::vec3(0.0f);
 
-            _smoothYaw = glm::mix(_smoothYaw, _yaw, 0.2f);
-            _smoothPitch = glm::mix(_smoothPitch, _pitch, 0.2f);
-            _smoothRoll = glm::mix(_smoothRoll, _roll, 0.2f);
+            _smoothYaw = glm::mix(_smoothYaw, _yaw, 0.5f);
+            _smoothPitch = glm::mix(_smoothPitch, _pitch, 0.5f);
+            _smoothRoll = glm::mix(_smoothRoll, _roll, 0.5f);
 
-            _smoothPosition = glm::mix(_smoothPosition, _position, 0.15f);
+            _smoothPosition = glm::mix(_smoothPosition, _position, 0.3f);
         }
 
         void move(glm::vec3 direction)
         {
             _movement += -glm::inverse(glm::mat3(getView())) * direction;
-            // _position += -glm::inverse(glm::mat3(getView())) * direction * _speed;
         }
 
         void onMouseMotion(int x, int y, int dx, int dy)
@@ -197,7 +204,7 @@ class FPSCamera: public Camera {
         }
 
     private:
-        float _speed = 4.0f;
+        float _speed = 10.0f;
         float _mouseSensitivity = 0.1f;
 
         glm::vec3 _movement = glm::vec3(0.0f, 0.0f, 0.0); // reset each frame

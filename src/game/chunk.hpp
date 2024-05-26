@@ -18,6 +18,6 @@ struct Chunk
     // Note: this is not a pointer, it gets copied
     BlockType blocks[4096]; // 16x16x16
 
-
+    static int XYZtoIndex(int x, int y, int z);
     void computeChunckVAO(TextureManager&);
 };

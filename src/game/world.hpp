@@ -8,6 +8,7 @@
 #include "glm/gtx/hash.hpp"
 
 #include "entity.hpp"
+#include "enums.hpp"
 
 struct Chunk;
 class TextureManager;
@@ -22,6 +23,8 @@ public:
     void remove_entity(int id);
     void update_entity(int id, glm::vec3 pos, float yaw, float pitch);
     Entity* get_entity(int id);
+
+    BlockType get_block(glm::ivec3 pos);
 
 public:
     std::unordered_map<glm::ivec3, Chunk> chunks;

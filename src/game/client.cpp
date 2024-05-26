@@ -208,8 +208,7 @@ void Client::client_thread_func()
                     recv_full(client_socket, buffer, 24);
                     {
                         auto [id, pos] = readAddEntityPacket(buffer);
-                        printf("Server sent 'add entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
-
+                        // printf("Server sent 'add entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
                         task_queue_mutex.lock();
                         task_queue.push_front([this, id, pos]() {
                             Entity e{id};
@@ -222,7 +221,7 @@ void Client::client_thread_func()
                 case 0x02: // remove entity
                     recv_full(client_socket, buffer, 4);
                     {
-                        printf("Server sent 'remove entity' packet: %d.\n", id);
+                        // printf("Server sent 'remove entity' packet: %d.\n", id);
                         task_queue_mutex.lock();
                         task_queue.push_front([this, id]() {
                             world->remove_entity(id);
@@ -234,7 +233,7 @@ void Client::client_thread_func()
                     recv_full(client_socket, buffer, 24);
                     {
                         auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
-                        printf("Server sent 'move entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
+                        // printf("Server sent 'move entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
                         task_queue_mutex.lock();
                         task_queue.push_front([this, id, pos, yaw, pitch]() {
                             world->update_entity(id, pos, yaw, pitch);
@@ -250,7 +249,7 @@ void Client::client_thread_func()
                         world->chunks[c.pos] = c;
                         world->chunks_mutex.unlock();
 
-                        printf("Server sent 'chunk' packet: %d %d %d.\n", id, c.pos.x, c.pos.y, c.pos.z);
+                        // printf("Server sent 'chunk' packet: %d %d %d.\n", id, c.pos.x, c.pos.y, c.pos.z);
                     }
                     break;
                 default:
