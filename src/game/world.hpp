@@ -30,9 +30,8 @@ public:
     BlockType get_block(glm::ivec3 pos);
 
 public:
-    std::unordered_map<glm::ivec3, Chunk> chunks;
+    std::unordered_map<glm::ivec3, Chunk> chunks; //Note: do not access synchronously
     std::vector<Entity> entities;
 
-    std::mutex chunks_mutex;
-    std::mutex entities_mutex;
+    // std::mutex entities_mutex;
 };

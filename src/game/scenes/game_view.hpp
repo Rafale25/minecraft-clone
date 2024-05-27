@@ -168,26 +168,29 @@ class GameView: public View {
             raycastNormal = normal;
             // printf("Blocktype: %d, worldpos: %d %d %d, normal: %f %f %f\n", (int)blocktype, world_pos.x, world_pos.y, world_pos.z, normal.x, normal.y, normal.z);
 
-            for (auto& [key, chunk] : world.chunks)
+            client.new_chunks_mutex.lock();
+            while (client.new_chunks.size() > 0)
             {
-                if (chunk.vao_initialized == false) {
-                    world.chunks_mutex.lock();
+                Chunk c = client.new_chunks.back();
+                client.new_chunks.pop_back();
 
-                    chunk.computeChunckVAO(world, texture_manager);
+                world.chunks[c.pos] = c;
+                world.chunks[c.pos].computeChunckVAO(world, texture_manager);
 
-                    // for (int x = -1 ; x <= 1 ; ++x) {
-                    // for (int y = -1 ; y <= 1 ; ++y) {
-                    // for (int z = -1 ; z <= 1 ; ++z) {
-                    //     glm::ivec3 cpos = chunk.pos + glm::ivec3(x, y, z);
-                    //     if (x == 0 && y == 0 && z == 0) continue;
-                    //     if (world.chunks.count(cpos) > 0)
-                    //         world.chunks[cpos]->computeChunckVAO(world, texture_manager);
-                    // }
-                    // }
-                    // }
-                    world.chunks_mutex.unlock();
+                // recompute neighbours chunks VAO //
+                for (int x = -1 ; x <= 1 ; ++x) {
+                for (int y = -1 ; y <= 1 ; ++y) {
+                for (int z = -1 ; z <= 1 ; ++z) {
+                    glm::ivec3 cpos = c.pos + glm::ivec3(x, y, z);
+                    if (x == 0 && y == 0 && z == 0) continue;
+                    if (world.chunks.count(cpos) > 0)
+                        world.chunks[cpos].computeChunckVAO(world, texture_manager);
                 }
+                }
+                }
+                // -- //
             }
+            client.new_chunks_mutex.unlock();
 
             for (auto& entity : world.entities)
             {
@@ -244,7 +247,8 @@ class GameView: public View {
             glCullFace(GL_BACK);
             glFrontFace(GL_CW);
 
-            glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+            glClearColor(135.0f/255.0f, 206.0f/255.0f, 250.0f/255.0f, 1.0f);
+
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             cube_shader->use();
@@ -252,17 +256,15 @@ class GameView: public View {
             cube_shader->setMat4("u_viewMatrix", camera.getView());
             cube_shader->setVec3("u_view_position", camera.getPosition());
 
-            world.chunks_mutex.lock();
             for (const auto& [key, chunk] : world.chunks)
             {
-                if (chunk.vao_initialized == false) continue;
+                // if (chunk.vao_initialized == false) continue;
 
                 cube_shader->setVec3("u_chunkPos", chunk.pos * 16);
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk.ssbo_texture_handles);
                 glBindVertexArray(chunk.VAO);
                 glDrawArrays(GL_TRIANGLES, 0, chunk.vertices_count);
             }
-            world.chunks_mutex.unlock();
 
             mesh_shader->use();
             mesh_shader->setMat4("u_projectionMatrix", camera.getProjection());

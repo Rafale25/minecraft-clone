@@ -25,8 +25,8 @@ public:
 
     // TODO: have list of new chunks with VAO not yet computed
     // NOTE: new chunk need to be assigned to the chunks list only when the VAO is computed
-    // std::vector<Chunk> new_chunks;
-
+    std::deque<Chunk> new_chunks;
+    std::mutex new_chunks_mutex;
 
     std::mutex task_queue_mutex;
     int client_id = -1;

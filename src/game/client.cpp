@@ -248,16 +248,9 @@ void Client::client_thread_func()
                     recv_full(client_socket, buffer, 4108);
                     {
                         Chunk c = readChunkPacket(buffer);
-                        world->chunks_mutex.lock();
-                        world->chunks[c.pos] = c;
-                        world->chunks_mutex.unlock();
-
-                        // task_queue_mutex.lock();
-                        // task_queue.push_front([this, c]() mutable {
-                        //     world->chunks[c.pos] = c;
-                        //     c.computeChunckVAO(*world, *texture_manager);
-                        // } );
-                        // task_queue_mutex.unlock();
+                        new_chunks_mutex.lock();
+                        new_chunks.push_front(c);
+                        new_chunks_mutex.unlock();
 
                         // printf("Server sent 'chunk' packet: %d %d %d.\n", id, c.pos.x, c.pos.y, c.pos.z);
                     }

@@ -9,7 +9,7 @@ int Chunk::XYZtoIndex(int x, int y, int z) {
 
 void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
 {
-    vao_initialized = true;
+    // vao_initialized = true;
 
     GLuint VBO;
     glCreateVertexArrays(1, &VAO);
