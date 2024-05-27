@@ -405,7 +405,7 @@ class GameView: public View {
         TextureManager texture_manager;
 
         World world;
-        Client client{world, texture_manager};
+        Client client{world, texture_manager, "51.77.194.124"};
 
         float network_timer = 1.0f;
 

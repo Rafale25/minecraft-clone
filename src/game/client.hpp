@@ -15,7 +15,7 @@ class Client
 {
 public:
     Client() {};
-    Client(World& world, TextureManager& texture_manager);
+    Client(World& world, TextureManager& texture_manager, const char* ip);
 
     void Start();
     void client_thread_func();

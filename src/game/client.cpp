@@ -70,15 +70,14 @@ Chunk readChunkPacket(uint8_t *buffer)
     return chunk;
 }
 
-Client::Client(World &world, TextureManager& texture_manager):
+Client::Client(World &world, TextureManager& texture_manager, const char* ip):
     world(&world), texture_manager(&texture_manager)
 {
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
 
     sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
-    // serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
-    serverAddress.sin_addr.s_addr = inet_addr("51.77.194.124");
+    serverAddress.sin_addr.s_addr = inet_addr(ip);
     serverAddress.sin_port = htons(15000);
 
     connect(client_socket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
@@ -266,7 +265,6 @@ void Client::client_thread_func()
                 default:
                     break;
             }
-
         }
 
         // check queue for info to send to server
