@@ -67,13 +67,11 @@ Chunk readChunkPacket(uint8_t *buffer)
         chunk.blocks[i] = (BlockType)byte;
     }
 
-    // chunk.computeChunckVAO(texture_manager);
-
     return chunk;
 }
 
-Client::Client(World &world):
-    world(&world)
+Client::Client(World &world, TextureManager& texture_manager):
+    world(&world), texture_manager(&texture_manager)
 {
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -164,6 +162,8 @@ std::tuple<int, glm::vec3, float, float> readUpdateEntityPacket(uint8_t *buffer)
     return std::tuple<int, glm::vec3, float, float>({htonl(entityId), glm::vec3(x, y, z), yaw, pitch});
 }
 
+// #include <unistd.h>
+
 void Client::client_thread_func()
 {
     struct pollfd fds;
@@ -174,6 +174,8 @@ void Client::client_thread_func()
 
     while (true)
     {
+        // usleep(100'000);
+
         // poll (check if server sent anything)
         int rv = poll(&fds, 1, 0);
         if (rv > 0 && (fds.revents & POLLIN)) {
@@ -223,9 +225,10 @@ void Client::client_thread_func()
                     recv_full(client_socket, buffer, 4);
                     {
                         // printf("Server sent 'remove entity' packet: %d.\n", id);
+                        int entityId = be32toh(*(int*)(&buffer[0]));
                         task_queue_mutex.lock();
-                        task_queue.push_front([this, id]() {
-                            world->remove_entity(id);
+                        task_queue.push_front([this, entityId]() {
+                            world->remove_entity(entityId);
                         } );
                         task_queue_mutex.unlock();
                     }
@@ -234,21 +237,28 @@ void Client::client_thread_func()
                     recv_full(client_socket, buffer, 24);
                     {
                         auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
-                        // printf("Server sent 'move entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
                         task_queue_mutex.lock();
                         task_queue.push_front([this, id, pos, yaw, pitch]() {
                             world->update_entity(id, pos, yaw, pitch);
                         } );
                         task_queue_mutex.unlock();
+                        // printf("Server sent 'move entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
                     }
                     break;
                 case 0x04: // Send Chunk
                     recv_full(client_socket, buffer, 4108);
                     {
-                        world->chunks_mutex.lock();
                         Chunk c = readChunkPacket(buffer);
+                        world->chunks_mutex.lock();
                         world->chunks[c.pos] = c;
                         world->chunks_mutex.unlock();
+
+                        // task_queue_mutex.lock();
+                        // task_queue.push_front([this, c]() mutable {
+                        //     world->chunks[c.pos] = c;
+                        //     c.computeChunckVAO(*world, *texture_manager);
+                        // } );
+                        // task_queue_mutex.unlock();
 
                         // printf("Server sent 'chunk' packet: %d %d %d.\n", id, c.pos.x, c.pos.y, c.pos.z);
                     }

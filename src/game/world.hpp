@@ -24,6 +24,9 @@ public:
     void update_entity(int id, glm::vec3 pos, float yaw, float pitch);
     Entity* get_entity(int id);
 
+    // Chunk* create_chunk();
+    // void delete_chunk();
+
     BlockType get_block(glm::ivec3 pos);
 
 public:
@@ -32,5 +35,4 @@ public:
 
     std::mutex chunks_mutex;
     std::mutex entities_mutex;
-
 };

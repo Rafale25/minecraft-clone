@@ -187,6 +187,11 @@ class FPSCamera: public Camera {
                 _pitch = -89.0f;
         }
 
+        void setSpeed(float value)
+        {
+            _speed = value;
+        }
+
     private:
         void _updateVectors()
         {

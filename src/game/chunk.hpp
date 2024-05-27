@@ -6,6 +6,7 @@
 #include "enums.hpp"
 
 class TextureManager;
+class World;
 
 struct Chunk
 {
@@ -19,5 +20,5 @@ struct Chunk
     BlockType blocks[4096]; // 16x16x16
 
     static int XYZtoIndex(int x, int y, int z);
-    void computeChunckVAO(TextureManager&);
+    void computeChunckVAO(World& world, TextureManager& texture_manager);
 };

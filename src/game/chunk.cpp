@@ -1,12 +1,13 @@
 #include "chunk.hpp"
 #include "texture_manager.hpp"
+#include "world.hpp"
 
 int Chunk::XYZtoIndex(int x, int y, int z) {
     if (x < 0 || x > 15 || y < 0 || y > 15 || z < 0 || z > 15) return -1;
     return z * 16*16 + y * 16 + x;
 }
 
-void Chunk::computeChunckVAO(TextureManager &texture_manager)
+void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
 {
     vao_initialized = true;
 
@@ -30,14 +31,14 @@ void Chunk::computeChunckVAO(TextureManager &texture_manager)
     for (int z = 0 ; z < 16 ; ++z) {
     for (int y = 0 ; y < 16 ; ++y) {
     for (int x = 0 ; x < 16 ; ++x) {
+        glm::ivec3 world_pos = (pos * 16) + glm::ivec3(x, y, z);
         int index = z * 16*16 + y * 16 + x;
         if (blocks[index] == BlockType::Air) continue;
 
         auto [texture_top_handle, texture_side_handle, texture_bot_handle] = texture_manager.block_textures_handles[blocks[index]];
 
         // front
-        i = XYZtoIndex(x, y, z-1);
-        if (i == -1 || blocks[i] == BlockType::Air) {
+        if (world.get_block(world_pos + glm::ivec3(0, 0, -1)) == BlockType::Air) {
             v.insert(v.end(), {
                 x+0.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Front,
                 x+1.f, y+0.f, z+0.f, 1.f, 0.f, Orientation::Front,
@@ -51,8 +52,7 @@ void Chunk::computeChunckVAO(TextureManager &texture_manager)
         }
 
         // back
-        i = XYZtoIndex(x, y, z+1);
-        if (i == -1 || blocks[i] == BlockType::Air) {
+        if (world.get_block(world_pos + glm::ivec3(0, 0, 1)) == BlockType::Air) {
             v.insert(v.end(), {
                 x+0.f, y+0.f, z+1.f, 0.f, 0.f, Orientation::Back,
                 x+1.f, y+1.f, z+1.f, 1.f, 1.f, Orientation::Back,
@@ -66,8 +66,7 @@ void Chunk::computeChunckVAO(TextureManager &texture_manager)
         }
 
         // down
-        i = XYZtoIndex(x, y-1, z);
-        if (i == -1 || blocks[i] == BlockType::Air) {
+        if (world.get_block(world_pos + glm::ivec3(0, -1, 0)) == BlockType::Air) {
             v.insert(v.end(), {
                 x+0.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Bottom,
                 x+1.f, y+0.f, z+1.f, 1.f, 1.f, Orientation::Bottom,
@@ -81,8 +80,7 @@ void Chunk::computeChunckVAO(TextureManager &texture_manager)
         }
 
         // top
-        i = XYZtoIndex(x, y+1, z);
-        if (i == -1 || blocks[i] == BlockType::Air) {
+        if (world.get_block(world_pos + glm::ivec3(0, 1, 0)) == BlockType::Air) {
             v.insert(v.end(), {
                 x+0.f, y+1.f, z+0.f, 0.f, 0.f, Orientation::Top,
                 x+1.f, y+1.f, z+0.f, 1.f, 0.f, Orientation::Top,
@@ -97,8 +95,7 @@ void Chunk::computeChunckVAO(TextureManager &texture_manager)
 
 
         // left
-        i = XYZtoIndex(x-1, y, z);
-        if (i == -1 || blocks[i] == BlockType::Air) {
+        if (world.get_block(world_pos + glm::ivec3(-1, 0, 0)) == BlockType::Air) {
             v.insert(v.end(), {
                 x+0.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Left,
                 x+0.f, y+1.f, z+1.f, 1.f, 1.f, Orientation::Left,
@@ -112,8 +109,7 @@ void Chunk::computeChunckVAO(TextureManager &texture_manager)
         }
 
         // right
-        i = XYZtoIndex(x+1, y, z);
-        if (i == -1 || blocks[i] == BlockType::Air) {
+        if (world.get_block(world_pos + glm::ivec3(1, 0, 0)) == BlockType::Air) {
             v.insert(v.end(), {
                 x+1.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Right,
                 x+1.f, y+0.f, z+1.f, 1.f, 0.f, Orientation::Right,

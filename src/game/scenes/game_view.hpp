@@ -31,7 +31,7 @@
 #include <endian.h>
 
 
-Chunk generateChunk(glm::ivec3 pos, FastNoiseLite &noise, TextureManager &texture_manager)
+Chunk generateChunkWithNoise(glm::ivec3 pos, FastNoiseLite &noise, World &world, TextureManager &texture_manager)
 {
     Chunk chunk;
     chunk.pos = pos;
@@ -61,7 +61,7 @@ Chunk generateChunk(glm::ivec3 pos, FastNoiseLite &noise, TextureManager &textur
     }
     }
 
-    chunk.computeChunckVAO(texture_manager);
+    chunk.computeChunckVAO(world, texture_manager);
 
     return chunk;
 }
@@ -141,7 +141,7 @@ class GameView: public View {
                 for (int x = -SIZE_X ; x < SIZE_X ; ++x) {
                 for (int y = -SIZE_Y ; y < SIZE_Y ; ++y) {
                 for (int z = -SIZE_Z ; z < SIZE_Z ; ++z) {
-                    Chunk c = generateChunk({x, y, z}, noise, texture_manager);
+                    Chunk c = generateChunkWithNoise({x, y, z}, noise, world, texture_manager);
                     world.chunks[c.pos] = c;
                 }
                 }
@@ -154,6 +154,10 @@ class GameView: public View {
             float dx = ctx.keyState[GLFW_KEY_A] - ctx.keyState[GLFW_KEY_D];
             float dy = ctx.keyState[GLFW_KEY_LEFT_CONTROL] - ctx.keyState[GLFW_KEY_SPACE];
             float dz = ctx.keyState[GLFW_KEY_W] - ctx.keyState[GLFW_KEY_S];
+
+            camera.setSpeed(
+                ctx.keyState[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS ? 30.0f : 10.0f
+            );
 
             camera.move(glm::vec3(dx, dy, dz));
             camera.update(dt);
@@ -168,7 +172,19 @@ class GameView: public View {
             {
                 if (chunk.vao_initialized == false) {
                     world.chunks_mutex.lock();
-                    chunk.computeChunckVAO(texture_manager);
+
+                    chunk.computeChunckVAO(world, texture_manager);
+
+                    // for (int x = -1 ; x <= 1 ; ++x) {
+                    // for (int y = -1 ; y <= 1 ; ++y) {
+                    // for (int z = -1 ; z <= 1 ; ++z) {
+                    //     glm::ivec3 cpos = chunk.pos + glm::ivec3(x, y, z);
+                    //     if (x == 0 && y == 0 && z == 0) continue;
+                    //     if (world.chunks.count(cpos) > 0)
+                    //         world.chunks[cpos]->computeChunckVAO(world, texture_manager);
+                    // }
+                    // }
+                    // }
                     world.chunks_mutex.unlock();
                 }
             }
@@ -239,6 +255,8 @@ class GameView: public View {
             world.chunks_mutex.lock();
             for (const auto& [key, chunk] : world.chunks)
             {
+                if (chunk.vao_initialized == false) continue;
+
                 cube_shader->setVec3("u_chunkPos", chunk.pos * 16);
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk.ssbo_texture_handles);
                 glBindVertexArray(chunk.VAO);
@@ -384,12 +402,13 @@ class GameView: public View {
         Program* cube_shader;
         Program* mesh_shader;
 
+        TextureManager texture_manager;
+
         World world;
-        Client client{world};
+        Client client{world, texture_manager};
 
         float network_timer = 1.0f;
 
-        TextureManager texture_manager;
 
         int _cursorEnable = false;
 
