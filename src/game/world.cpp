@@ -23,6 +23,16 @@ Entity* World::get_entity(int id)
     return nullptr;
 }
 
+void World::update_entities()
+{
+    const float smoothness = 0.075f;
+    for (auto& entity : entities)
+    {
+        entity.smooth_transform.position = glm::mix(entity.smooth_transform.position, entity.transform.position, smoothness);
+        entity.smooth_transform.rotation = glm::mix(entity.smooth_transform.rotation, entity.transform.rotation, smoothness);
+    }
+}
+
 void World::add_entity(Entity e)
 {
     entities.push_back(e);
@@ -39,7 +49,7 @@ void World::remove_entity(int id)
     }
 }
 
-void World::update_entity(int id, glm::vec3 pos, float yaw, float pitch)
+void World::set_entity_transform(int id, glm::vec3 pos, float yaw, float pitch)
 {
     Entity* e = get_entity(id);
     if (e == nullptr) return;

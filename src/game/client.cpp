@@ -238,7 +238,7 @@ void Client::client_thread_func()
                         auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
                         task_queue_mutex.lock();
                         task_queue.push_front([this, id, pos, yaw, pitch]() {
-                            world->update_entity(id, pos, yaw, pitch);
+                            world->set_entity_transform(id, pos, yaw, pitch);
                         } );
                         task_queue_mutex.unlock();
                         // printf("Server sent 'move entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);

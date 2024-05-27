@@ -30,6 +30,10 @@
 
 #include <endian.h>
 
+/*
+class PlayerController
+
+*/
 
 Chunk generateChunkWithNoise(glm::ivec3 pos, FastNoiseLite &noise, World &world, TextureManager &texture_manager)
 {
@@ -120,7 +124,7 @@ class GameView: public View {
             //     60.0f, (float)width / (float)height, 0.1f, 1000.0f
             // );
             camera = FPSCamera{
-                glm::vec3(0.0f, 30.0, 0.0f), 0.0f, 0.0f,
+                glm::vec3(0.0f, 20.0, 0.0f), 0.0f, 0.0f,
                 60.0f, (float)width / (float)height, 0.01f, 1000.0f
             };
 
@@ -162,12 +166,26 @@ class GameView: public View {
             camera.move(glm::vec3(dx, dy, dz));
             camera.update(dt);
 
+            consume_task_queue();
+            consume_new_chunks();
+
+            world.update_entities();
+
             auto [blocktype, world_pos, normal] = BlockRaycast(world, camera.getPosition(), camera.forward);
             raycastBlocktype = blocktype;
             raycastWorldPos = world_pos;
             raycastNormal = normal;
-            // printf("Blocktype: %d, worldpos: %d %d %d, normal: %f %f %f\n", (int)blocktype, world_pos.x, world_pos.y, world_pos.z, normal.x, normal.y, normal.z);
 
+
+            network_timer -= dt;
+            if (network_timer <= 0.0f) {
+                network_timer = 1.0f / 20.0f;
+                networkUpdate();
+            }
+        }
+
+        void consume_new_chunks()
+        {
             client.new_chunks_mutex.lock();
             while (client.new_chunks.size() > 0)
             {
@@ -191,26 +209,16 @@ class GameView: public View {
                 // -- //
             }
             client.new_chunks_mutex.unlock();
+        }
 
-            for (auto& entity : world.entities)
-            {
-                entity.smooth_transform.position = glm::mix(entity.smooth_transform.position, entity.transform.position, 0.075f);
-                entity.smooth_transform.rotation = glm::mix(entity.smooth_transform.rotation, entity.transform.rotation, 0.075f);
-            }
-
-            // client task_queue //
+        void consume_task_queue()
+        {
             client.task_queue_mutex.lock();
             for (auto &task: client.task_queue) {
                 task();
             }
             client.task_queue.clear();
             client.task_queue_mutex.unlock();
-
-            network_timer -= dt;
-            if (network_timer <= 0.0f) {
-                network_timer = 1.0f / 20.0f;
-                networkUpdate();
-            }
         }
 
         void networkUpdate()

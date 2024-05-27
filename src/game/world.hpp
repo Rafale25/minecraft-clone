@@ -21,8 +21,10 @@ public:
 
     void add_entity(Entity e);
     void remove_entity(int id);
-    void update_entity(int id, glm::vec3 pos, float yaw, float pitch);
+    void set_entity_transform(int id, glm::vec3 pos, float yaw, float pitch);
     Entity* get_entity(int id);
+
+    void update_entities();
 
     // Chunk* create_chunk();
     // void delete_chunk();
