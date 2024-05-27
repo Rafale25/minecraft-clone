@@ -1,17 +1,5 @@
 #pragma once
 
-#include <unordered_map>
-#include <math.h>
-#include <mutex>
-
-// #define GLM_SWIZZLE
-#include "glm/gtx/hash.hpp"
-#include <glm/gtx/euler_angles.hpp>
-#include <glm/gtx/quaternion.hpp>
-// #include <glm/gtx/vec_swizzle.hpp>
-
-#include "FastNoiseLite.h"
-
 #include "view.hpp"
 #include "camera.hpp"
 #include "program.h"
@@ -30,86 +18,6 @@
 
 #include <endian.h>
 
-/*
-class PlayerController
-
-*/
-
-Chunk generateChunkWithNoise(glm::ivec3 pos, FastNoiseLite &noise, World &world, TextureManager &texture_manager)
-{
-    Chunk chunk;
-    chunk.pos = pos;
-
-    glm::vec3 chunkPosWorld = pos * 16;
-
-    for (int z = 0 ; z < 16 ; ++z) {
-    for (int x = 0 ; x < 16 ; ++x) {
-        int height = 1.0f + (noise.GetNoise(chunkPosWorld.x + x, chunkPosWorld.z + z) * 0.5f + 0.5f) * 15.0f;
-
-        for (int y = 0 ; y < 16 ; ++y) {
-            int index = z * 16*16 + y * 16 + x;
-
-            float world_y = chunkPosWorld.y + y;
-
-            if (world_y == height)
-                chunk.blocks[index] = BlockType::Grass;
-            else if (world_y < height)
-                chunk.blocks[index] = BlockType::Dirt;
-            else
-                chunk.blocks[index] = BlockType::Air;
-
-            // chunk.blocks[index] = BlockType::Grass;
-            // chunk.blocks[index] = chunkPosWorld.y + y < height ? BlockType::Grass : BlockType::Air;
-            // chunk.blocks[index] = rand() % 3 == 0 ? BlockType::Grass : BlockType::Air;
-        }
-    }
-    }
-
-    chunk.computeChunckVAO(world, texture_manager);
-
-    return chunk;
-}
-
-static void print_buf(const char *title, const unsigned char *buf, size_t buf_len)
-{
-    size_t i = 0;
-    fprintf(stdout, "%s [ ", title);
-    for(i = 0; i < buf_len; ++i)
-    fprintf(stdout, "%02X%s", buf[i], ( i + 1 ) % 16 == 0 ? "\r\n" : " " );
-    std::cout << ']' <<  std::endl;
-}
-
-std::tuple<BlockType, glm::ivec3, glm::vec3> BlockRaycast(World& world, glm::vec3 origin, glm::vec3 direction, int maxSteps=16)
-{
-    glm::vec3 rayPos = origin;
-    glm::vec3 mapPos = glm::ivec3(glm::floor(rayPos));
-
-    glm::vec3 deltaDist = abs(glm::vec3(glm::length(direction)) / direction);
-	glm::vec3 rayStep = sign(direction);
-	glm::vec3 sideDist = (sign(direction) * (mapPos - rayPos) + (sign(direction) * 0.5f) + 0.5f) * deltaDist;
-
-	glm::vec3 mask;
-    glm::vec3 normal;
-
-	for (int i = 0; i < maxSteps; i++) {
-        auto block = world.get_block(mapPos);
-        normal = -mask * rayStep;
-
-        if (block != BlockType::Air) {
-            // printf("mapPos: %f %f %f\n", mapPos.x, mapPos.y, mapPos.z);
-            return std::tuple<BlockType, glm::ivec3, glm::vec3>({block, mapPos, normal});
-        };
-
-		mask = glm::step(sideDist, glm::vec3(sideDist.y, sideDist.z, sideDist.x)) * glm::step(sideDist, glm::vec3(sideDist.z, sideDist.x, sideDist.y));
-		sideDist += mask * deltaDist;
-		mapPos += mask * rayStep;
-
-        // printf("mapPos: %f %f %f\n", mapPos.x, mapPos.y, mapPos.z);
-	}
-
-    return std::tuple<BlockType, glm::ivec3, glm::vec3>({BlockType::Air, mapPos, normal});
-}
-
 class GameView: public View {
     public:
         GameView(Context& ctx): View(ctx)
@@ -123,6 +31,7 @@ class GameView: public View {
             //     glm::vec3(0.0f), M_PI/4, M_PI/4, 50.0f,
             //     60.0f, (float)width / (float)height, 0.1f, 1000.0f
             // );
+
             camera = FPSCamera{
                 glm::vec3(0.0f, 20.0, 0.0f), 0.0f, 0.0f,
                 60.0f, (float)width / (float)height, 0.01f, 1000.0f
@@ -134,23 +43,6 @@ class GameView: public View {
             mesh_shader = new Program("./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs");
 
             client.Start();
-
-            #if 0
-                FastNoiseLite noise;
-                noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
-
-                int SIZE_X = 8;
-                int SIZE_Y = 1;
-                int SIZE_Z = 8;
-                for (int x = -SIZE_X ; x < SIZE_X ; ++x) {
-                for (int y = -SIZE_Y ; y < SIZE_Y ; ++y) {
-                for (int z = -SIZE_Z ; z < SIZE_Z ; ++z) {
-                    Chunk c = generateChunkWithNoise({x, y, z}, noise, world, texture_manager);
-                    world.chunks[c.pos] = c;
-                }
-                }
-                }
-            #endif
         }
 
         void onUpdate(double time_since_start, float dt)
@@ -171,11 +63,10 @@ class GameView: public View {
 
             world.update_entities();
 
-            auto [blocktype, world_pos, normal] = BlockRaycast(world, camera.getPosition(), camera.forward);
+            auto [blocktype, world_pos, normal] = world.BlockRaycast(camera.getPosition(), camera.forward, 16);
             raycastBlocktype = blocktype;
             raycastWorldPos = world_pos;
             raycastNormal = normal;
-
 
             network_timer -= dt;
             if (network_timer <= 0.0f) {
@@ -187,7 +78,13 @@ class GameView: public View {
         void consume_new_chunks()
         {
             client.new_chunks_mutex.lock();
-            while (client.new_chunks.size() > 0)
+
+            const int MAX_NEW_CHUNKS_PER_FRAME = 2;
+            int i = 0;
+
+            // TODO: make a third thread to compute VBO and then do OpenGL calls on main thread
+
+            while (client.new_chunks.size() > 0 && i++ < MAX_NEW_CHUNKS_PER_FRAME)
             {
                 Chunk c = client.new_chunks.back();
                 client.new_chunks.pop_back();
@@ -225,25 +122,11 @@ class GameView: public View {
         {
             if (client.client_id == -1) return;
 
-            struct __attribute__ ((packed)) moveEntityPacket {
-                uint8_t id;
-                int entityId;
-                int x, y, z, yaw, pitch; // float encoded in int
-            } packet;
-
             glm::vec3 pos = camera.getPosition();
             float yaw = camera.getYaw();
             float pitch = camera.getPitch();
 
-            packet.id = 0x00; // update entity //
-            packet.entityId = htobe32(client.client_id);
-            packet.x = htobe32(*(uint32_t*)&pos.x);
-            packet.y = htobe32(*(uint32_t*)&pos.y);
-            packet.z = htobe32(*(uint32_t*)&pos.z);
-            packet.yaw = htobe32(*(uint32_t*)&yaw);
-            packet.pitch = htobe32(*(uint32_t*)&pitch);
-
-            send(client.client_socket, &packet, sizeof(packet), 0);
+            client.sendUpdateEntityPacket(client.client_id, pos, yaw, pitch);
         }
 
         void onDraw(double time_since_start, float dt)
@@ -266,8 +149,6 @@ class GameView: public View {
 
             for (const auto& [key, chunk] : world.chunks)
             {
-                // if (chunk.vao_initialized == false) continue;
-
                 cube_shader->setVec3("u_chunkPos", chunk.pos * 16);
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk.ssbo_texture_handles);
                 glBindVertexArray(chunk.VAO);
@@ -306,42 +187,6 @@ class GameView: public View {
             ctx.imguiRender();
         }
 
-        void breakBlock(glm::ivec3 world_pos)
-        {
-            // Send server block update
-            struct __attribute__ ((packed)) moveEntityPacket {
-                uint8_t id;
-                uint8_t blockType;
-                int x, y, z;
-            } packet;
-
-            packet.id = 0x01; // update block //
-            packet.blockType = 0;
-            packet.x = htobe32(*(uint32_t*)&world_pos.x);
-            packet.y = htobe32(*(uint32_t*)&world_pos.y);
-            packet.z = htobe32(*(uint32_t*)&world_pos.z);
-
-            send(client.client_socket, &packet, sizeof(packet), 0);
-        }
-
-        void placeBlock(glm::ivec3 world_pos, BlockType blocktype)
-        {
-            // Send server block update
-            struct __attribute__ ((packed)) moveEntityPacket {
-                uint8_t id;
-                uint8_t blockType;
-                int x, y, z;
-            } packet;
-
-            packet.id = 0x01; // update block //
-            packet.blockType = (int)blocktype;
-            packet.x = htobe32(*(uint32_t*)&world_pos.x);
-            packet.y = htobe32(*(uint32_t*)&world_pos.y);
-            packet.z = htobe32(*(uint32_t*)&world_pos.z);
-
-            send(client.client_socket, &packet, sizeof(packet), 0);
-        }
-
         void onKeyPress(int key)
         {
             if (key == GLFW_KEY_C) {
@@ -367,9 +212,9 @@ class GameView: public View {
 
         void onMousePress(int x, int y, int button) {
             if (button == GLFW_MOUSE_BUTTON_LEFT) {
-                breakBlock(raycastWorldPos);
+                client.sendBreakBlockPacket(raycastWorldPos);
             } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-                placeBlock(raycastWorldPos + glm::ivec3(raycastNormal), blockInHand);
+                client.sendPlaceBlockPacket(raycastWorldPos + glm::ivec3(raycastNormal), blockInHand);
             }
         }
 
@@ -418,11 +263,7 @@ class GameView: public View {
         Client client{world, texture_manager, "51.77.194.124"};
 
         float network_timer = 1.0f;
-
-
         int _cursorEnable = false;
-
-        // std::deque<>
 
         BlockType blockInHand = BlockType::Grass;
 
@@ -430,3 +271,62 @@ class GameView: public View {
         glm::vec3 raycastNormal;
         glm::ivec3 raycastWorldPos;
 };
+
+/*
+#if 0
+    FastNoiseLite noise;
+    noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+
+    int SIZE_X = 8;
+    int SIZE_Y = 1;
+    int SIZE_Z = 8;
+    for (int x = -SIZE_X ; x < SIZE_X ; ++x) {
+    for (int y = -SIZE_Y ; y < SIZE_Y ; ++y) {
+    for (int z = -SIZE_Z ; z < SIZE_Z ; ++z) {
+        Chunk c = generateChunkWithNoise({x, y, z}, noise, world, texture_manager);
+        world.chunks[c.pos] = c;
+    }
+    }
+    }
+#endif
+
+
+#include "FastNoiseLite.h"
+
+Chunk generateChunkWithNoise(glm::ivec3 pos, FastNoiseLite &noise, World &world, TextureManager &texture_manager)
+{
+    Chunk chunk;
+    chunk.pos = pos;
+
+    glm::vec3 chunkPosWorld = pos * 16;
+
+    for (int z = 0 ; z < 16 ; ++z) {
+    for (int x = 0 ; x < 16 ; ++x) {
+        int height = 1.0f + (noise.GetNoise(chunkPosWorld.x + x, chunkPosWorld.z + z) * 0.5f + 0.5f) * 15.0f;
+
+        for (int y = 0 ; y < 16 ; ++y) {
+            int index = z * 16*16 + y * 16 + x;
+
+            float world_y = chunkPosWorld.y + y;
+
+            if (world_y == height)
+                chunk.blocks[index] = BlockType::Grass;
+            else if (world_y < height)
+                chunk.blocks[index] = BlockType::Dirt;
+            else
+                chunk.blocks[index] = BlockType::Air;
+
+            // chunk.blocks[index] = BlockType::Grass;
+            // chunk.blocks[index] = chunkPosWorld.y + y < height ? BlockType::Grass : BlockType::Air;
+            // chunk.blocks[index] = rand() % 3 == 0 ? BlockType::Grass : BlockType::Air;
+        }
+    }
+    }
+
+    chunk.computeChunckVAO(world, texture_manager);
+
+    return chunk;
+}
+
+
+*/

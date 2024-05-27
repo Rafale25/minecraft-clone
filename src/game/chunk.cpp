@@ -93,7 +93,6 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
             textures_handles.push_back(texture_top_handle);
         }
 
-
         // left
         if (world.get_block(world_pos + glm::ivec3(-1, 0, 0)) == BlockType::Air) {
             v.insert(v.end(), {

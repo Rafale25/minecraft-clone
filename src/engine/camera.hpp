@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include <math.h>
+#include <cmath>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/rotate_vector.hpp>

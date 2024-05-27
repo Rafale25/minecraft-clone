@@ -72,3 +72,32 @@ BlockType World::get_block(glm::ivec3 pos)
     int index = Chunk::XYZtoIndex(local_pos.x, local_pos.y, local_pos.z);
     return chunks[chunk_pos].blocks[index];
 }
+
+
+std::tuple<BlockType, glm::ivec3, glm::vec3> World::BlockRaycast(glm::vec3 origin, glm::vec3 direction, int maxSteps)
+{
+    glm::vec3 rayPos = origin;
+    glm::vec3 mapPos = glm::ivec3(glm::floor(rayPos));
+
+    glm::vec3 deltaDist = abs(glm::vec3(glm::length(direction)) / direction);
+	glm::vec3 rayStep = sign(direction);
+	glm::vec3 sideDist = (sign(direction) * (mapPos - rayPos) + (sign(direction) * 0.5f) + 0.5f) * deltaDist;
+
+	glm::vec3 mask;
+    glm::vec3 normal;
+
+	for (int i = 0; i < maxSteps; i++) {
+        auto block = get_block(mapPos);
+        normal = -mask * rayStep;
+
+        if (block != BlockType::Air) {
+            return std::tuple<BlockType, glm::ivec3, glm::vec3>({block, mapPos, normal});
+        };
+
+		mask = glm::step(sideDist, glm::vec3(sideDist.y, sideDist.z, sideDist.x)) * glm::step(sideDist, glm::vec3(sideDist.z, sideDist.x, sideDist.y));
+		sideDist += mask * deltaDist;
+		mapPos += mask * rayStep;
+	}
+
+    return std::tuple<BlockType, glm::ivec3, glm::vec3>({BlockType::Air, mapPos, normal});
+}

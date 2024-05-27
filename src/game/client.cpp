@@ -173,7 +173,7 @@ void Client::client_thread_func()
 
     while (true)
     {
-        // usleep(100'000);
+        // usleep(10'000);
 
         // poll (check if server sent anything)
         int rv = poll(&fds, 1, 0);
@@ -260,7 +260,46 @@ void Client::client_thread_func()
             }
         }
 
-        // check queue for info to send to server
-
     }
+}
+
+void Client::sendBreakBlockPacket(glm::ivec3 world_pos)
+{
+    struct updateBlockPacket packet;
+
+    packet.id = 0x01; // update block //
+    packet.blockType = 0;
+    packet.x = htobe32(*(uint32_t*)&world_pos.x);
+    packet.y = htobe32(*(uint32_t*)&world_pos.y);
+    packet.z = htobe32(*(uint32_t*)&world_pos.z);
+
+    send(client_socket, &packet, sizeof(packet), 0);
+}
+
+void Client::sendPlaceBlockPacket(glm::ivec3 world_pos, BlockType blocktype)
+{
+    struct updateBlockPacket packet;
+
+    packet.id = 0x01; // update block //
+    packet.blockType = (int)blocktype;
+    packet.x = htobe32(*(uint32_t*)&world_pos.x);
+    packet.y = htobe32(*(uint32_t*)&world_pos.y);
+    packet.z = htobe32(*(uint32_t*)&world_pos.z);
+
+    send(client_socket, &packet, sizeof(packet), 0);
+}
+
+void Client::sendUpdateEntityPacket(int entityId, glm::vec3 pos, float yaw, float pitch)
+{
+    struct updateEntityPacket packet;
+
+    packet.id = 0x00; // update entity //
+    packet.entityId = htobe32(entityId);
+    packet.x = htobe32(*(uint32_t*)&pos.x);
+    packet.y = htobe32(*(uint32_t*)&pos.y);
+    packet.z = htobe32(*(uint32_t*)&pos.z);
+    packet.yaw = htobe32(*(uint32_t*)&yaw);
+    packet.pitch = htobe32(*(uint32_t*)&pitch);
+
+    send(client_socket, &packet, sizeof(packet), 0);
 }

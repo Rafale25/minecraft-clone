@@ -23,17 +23,18 @@ public:
     void remove_entity(int id);
     void set_entity_transform(int id, glm::vec3 pos, float yaw, float pitch);
     Entity* get_entity(int id);
-
     void update_entities();
+
+    // TODO: change maxsteps by a maxDistance
+    std::tuple<BlockType, glm::ivec3, glm::vec3> BlockRaycast(glm::vec3 origin, glm::vec3 direction, int maxSteps);
+    BlockType get_block(glm::ivec3 pos);
 
     // Chunk* create_chunk();
     // void delete_chunk();
-
-    BlockType get_block(glm::ivec3 pos);
 
 public:
     std::unordered_map<glm::ivec3, Chunk> chunks; //Note: do not access synchronously
     std::vector<Entity> entities;
 
-    // std::mutex entities_mutex;
+    GLuint ssbo_texture_handles;
 };
