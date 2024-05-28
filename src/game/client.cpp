@@ -249,7 +249,28 @@ void Client::client_thread_func()
                     {
                         Chunk c = readChunkPacket(buffer);
                         new_chunks_mutex.lock();
-                        new_chunks.push_front(c);
+
+                        // Replace chunk if already in new chunk list to reduce charge on mainthread //
+                        {
+                        // find if this chunks is already in the list
+                            int index_of_existing_chunk_pos = -1;
+                            for (uint i = 0 ; i < new_chunks.size() ; ++i) {
+                                if (new_chunks[i].pos == c.pos) {
+                                    index_of_existing_chunk_pos = i;
+                                    break;
+                                }
+                            }
+
+                            if (index_of_existing_chunk_pos != -1)
+                            {
+                                new_chunks[index_of_existing_chunk_pos] = c;
+                            } else {
+                                new_chunks.push_front(c);
+                            }
+                        }
+
+                        // new_chunks.push_front(c);
+
                         new_chunks_mutex.unlock();
 
                         // printf("Server sent 'chunk' packet: %d %d %d.\n", id, c.pos.x, c.pos.y, c.pos.z);

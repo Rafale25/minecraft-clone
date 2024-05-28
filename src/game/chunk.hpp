@@ -14,7 +14,7 @@ struct Chunk
     GLuint VAO;
     // bool vao_initialized = false;
     GLuint ssbo_texture_handles;
-    uint vertices_count;
+    uint vertex_count;
 
     // Note: this is not a pointer, it gets copied
     BlockType blocks[4096]; // 16x16x16

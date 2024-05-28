@@ -122,7 +122,7 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
     }
     }
 
-    vertices_count = v.size() / 6;
+    vertex_count = v.size() / 6;
 
     // std::cout << _vertices_count << std::endl;
 
