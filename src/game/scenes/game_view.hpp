@@ -79,7 +79,7 @@ class GameView: public View {
         {
             client.new_chunks_mutex.lock();
 
-            const int MAX_NEW_CHUNKS_PER_FRAME = 1;
+            const int MAX_NEW_CHUNKS_PER_FRAME = 2;
             int i = 0;
 
             // TODO: make a third thread to compute VBO and then do OpenGL calls on main thread
@@ -152,7 +152,7 @@ class GameView: public View {
                 cube_shader->setVec3("u_chunkPos", chunk.pos * 16);
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk.ssbo_texture_handles);
                 glBindVertexArray(chunk.VAO);
-                glDrawArrays(GL_TRIANGLES, 0, chunk.vertices_count);
+                glDrawArrays(GL_TRIANGLES, 0, chunk.vertex_count);
             }
 
             mesh_shader->use();
@@ -210,9 +210,30 @@ class GameView: public View {
         {
         }
 
+        void breakSphere(glm::ivec3 pos, float radius)
+        {
+            int iradius = int(radius);
+            for (int x = -iradius ; x <= iradius ; ++x) {
+            for (int y = -iradius ; y <= iradius ; ++y) {
+            for (int z = -iradius ; z <= iradius ; ++z) {
+                glm::ivec3 wpos = pos + glm::ivec3{x, y, z};
+                // printf("%d %d %d\n", wpos.x, wpos.y, wpos.z);
+                if (glm::distance(glm::vec3(pos), glm::vec3(wpos)) > radius) continue;
+                client.sendBreakBlockPacket(wpos);
+            }
+            }
+            }
+        }
+
         void onMousePress(int x, int y, int button) {
             if (button == GLFW_MOUSE_BUTTON_LEFT) {
-                client.sendBreakBlockPacket(raycastWorldPos);
+
+                if (ctx.keyState[GLFW_KEY_LEFT_ALT])
+                {
+                    breakSphere(raycastWorldPos, 7);
+                } else {
+                    client.sendBreakBlockPacket(raycastWorldPos);
+                }
             } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
                 client.sendPlaceBlockPacket(raycastWorldPos + glm::ivec3(raycastNormal), blockInHand);
             }
