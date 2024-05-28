@@ -79,7 +79,7 @@ class GameView: public View {
         {
             client.new_chunks_mutex.lock();
 
-            const int MAX_NEW_CHUNKS_PER_FRAME = 2;
+            const int MAX_NEW_CHUNKS_PER_FRAME = 1;
             int i = 0;
 
             // TODO: make a third thread to compute VBO and then do OpenGL calls on main thread
@@ -96,8 +96,8 @@ class GameView: public View {
                 for (int x = -1 ; x <= 1 ; ++x) {
                 for (int y = -1 ; y <= 1 ; ++y) {
                 for (int z = -1 ; z <= 1 ; ++z) {
-                    glm::ivec3 cpos = c.pos + glm::ivec3(x, y, z);
                     if (x == 0 && y == 0 && z == 0) continue;
+                    glm::ivec3 cpos = c.pos + glm::ivec3(x, y, z);
                     if (world.chunks.count(cpos) > 0)
                         world.chunks[cpos].computeChunckVAO(world, texture_manager);
                 }
@@ -179,9 +179,9 @@ class GameView: public View {
             glm::vec3 camera_pos = camera.getPosition();
             ImGui::Text("center: %.2f, %.2f, %.2f", camera_pos.x, camera_pos.y, camera_pos.z);
             ImGui::Text("forward: %.2f, %.2f, %.2f", camera.forward.x, camera.forward.y, camera.forward.z);
-            // ImGui::Text("yaw: %.2f", camera.getYaw());
             ImGui::Text("block in hand: %d", (int)blockInHand);
-            // ImGui::Text("pitch: %.2f", camera.getPitch());
+            ImGui::Text("yaw: %.2f", camera.getYaw());
+            ImGui::Text("pitch: %.2f", camera.getPitch());
 
             ImGui::End();
             ctx.imguiRender();

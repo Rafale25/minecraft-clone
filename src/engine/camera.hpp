@@ -146,12 +146,12 @@ class FPSCamera: public Camera {
 
         float getYaw()
         {
-            return glm::radians(_smoothYaw - 90.0f);
+            return (_smoothYaw - M_PI_2);
         }
 
         float getPitch()
         {
-            return glm::radians(_smoothPitch);
+            return (_smoothPitch);
         }
 
         glm::vec3 getPosition()
@@ -173,18 +173,22 @@ class FPSCamera: public Camera {
 
         void move(glm::vec3 direction)
         {
-            _movement += -glm::inverse(glm::mat3(getView())) * direction;
+            // _movement += -glm::inverse(glm::mat3(getView())) * direction;
+
+            glm::mat4 rotateM = glm::rotate(glm::mat4(1.0f), -getYaw(), {0.0f, 1.0f, 0.0f});
+            direction = glm::vec3(rotateM * glm::vec4(direction, 1.0f));
+            direction.y = -direction.y;
+
+            _movement += direction;
         }
 
         void onMouseMotion(int x, int y, int dx, int dy)
         {
-            _yaw += (float)dx * _mouseSensitivity;
+            _yaw += (float)dx * _mouseSensitivity; // TODO: Do modulo on this value
             _pitch += -(float)dy * _mouseSensitivity;
 
-            if (_pitch > 89.0f)
-                _pitch = 89.0f;
-            if (_pitch < -89.0f)
-                _pitch = -89.0f;
+            const float epsilon = 0.001f;
+            _pitch = std::clamp(_pitch, (float)-M_PI_2 + epsilon, (float)M_PI_2 - epsilon);
         }
 
         void setSpeed(float value)
@@ -195,22 +199,17 @@ class FPSCamera: public Camera {
     private:
         void _updateVectors()
         {
-            // _forward.x = glm::cos(glm::radians(_yaw)) * glm::cos(glm::radians(_pitch));
-            // _forward.y = glm::sin(glm::radians(_pitch));
-            // _forward.z = glm::sin(glm::radians(_yaw)) * glm::cos(glm::radians(_pitch));
-
-            forward.x = glm::cos(glm::radians(_smoothYaw)) * glm::cos(glm::radians(_smoothPitch));
-            forward.y = glm::sin(glm::radians(_smoothPitch));
-            forward.z = glm::sin(glm::radians(_smoothYaw)) * glm::cos(glm::radians(_smoothPitch));
+            forward.x = glm::cos(_smoothYaw) * glm::cos(_smoothPitch);
+            forward.y = glm::sin(_smoothPitch);
+            forward.z = glm::sin(_smoothYaw) * glm::cos(_smoothPitch);
 
             forward = glm::normalize(forward);
             _right = glm::normalize(glm::cross(forward, _up));
-            // _up = glm::normalize(glm::cross(_right, _forward));
         }
 
     private:
         float _speed = 10.0f;
-        float _mouseSensitivity = 0.1f;
+        float _mouseSensitivity = 0.002f;
 
         glm::vec3 _movement = glm::vec3(0.0f, 0.0f, 0.0); // reset each frame
 
