@@ -79,7 +79,7 @@ class GameView: public View {
         {
             client.new_chunks_mutex.lock();
 
-            const int MAX_NEW_CHUNKS_PER_FRAME = 2;
+            const int MAX_NEW_CHUNKS_PER_FRAME = 128;
             int i = 0;
 
             // TODO: make a third thread to compute VBO and then do OpenGL calls on main thread
@@ -93,16 +93,16 @@ class GameView: public View {
                 world.chunks[c.pos].computeChunckVAO(world, texture_manager);
 
                 // recompute neighbours chunks VAO //
-                for (int x = -1 ; x <= 1 ; ++x) {
-                for (int y = -1 ; y <= 1 ; ++y) {
-                for (int z = -1 ; z <= 1 ; ++z) {
-                    if (x == 0 && y == 0 && z == 0) continue;
-                    glm::ivec3 cpos = c.pos + glm::ivec3(x, y, z);
-                    if (world.chunks.count(cpos) > 0)
-                        world.chunks[cpos].computeChunckVAO(world, texture_manager);
-                }
-                }
-                }
+                // for (int x = -1 ; x <= 1 ; ++x) {
+                // for (int y = -1 ; y <= 1 ; ++y) {
+                // for (int z = -1 ; z <= 1 ; ++z) {
+                //     if (x == 0 && y == 0 && z == 0) continue;
+                //     glm::ivec3 cpos = c.pos + glm::ivec3(x, y, z);
+                //     if (world.chunks.count(cpos) > 0)
+                //         world.chunks[cpos].computeChunckVAO(world, texture_manager);
+                // }
+                // }
+                // }
                 // -- //
             }
             client.new_chunks_mutex.unlock();

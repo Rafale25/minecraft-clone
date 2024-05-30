@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "context.hpp"
 #include "game_view.hpp"
 
