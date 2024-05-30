@@ -12,12 +12,6 @@
 
 #include "imgui.h"
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-#include <endian.h>
-
 class GameView: public View {
     public:
         GameView(Context& ctx): View(ctx)
