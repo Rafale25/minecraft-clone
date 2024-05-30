@@ -26,6 +26,18 @@ set(SRC_FILES
     ./src/main.cpp
 )
 
+set(GLFW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/glfw)
+
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+# set(GLFW_BUILD_INSTALL OFF CACHE BOOL "GLFW lib only")
+
+include_directories("submodules/glfw/include")
+
+add_subdirectory(${GLFW_DIR})
+
+
 set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/imgui)
 add_library(imgui STATIC)
 target_sources(imgui
@@ -38,10 +50,7 @@ target_sources(imgui
         ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
         ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
 )
-target_include_directories(imgui
-    PUBLIC
-        ${IMGUI_DIR}
-)
+target_include_directories(imgui PUBLIC ${IMGUI_DIR})
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 target_compile_options(${PROJECT_NAME} PRIVATE -W) # -Wall -Wextra) # -g3
@@ -57,9 +66,11 @@ target_include_directories(${PROJECT_NAME}
         ./src/utils/
         ${IMGUI_DIR}
         ${IMGUI_DIR}/backends
+        # ${GLFW_DIR}
 )
-target_link_libraries(${PROJECT_NAME} PRIVATE -lglfw -lGL -lX11 -lpthread -lXrandr -ldl) # -lXi
-target_link_libraries(${PROJECT_NAME} PRIVATE imgui)
+
+# target_link_libraries(${PROJECT_NAME} PRIVATE -lGL -lX11 -lpthread -lXrandr -ldl) # -lXi
+target_link_libraries(${PROJECT_NAME} PRIVATE imgui glfw)
 
 add_definitions(-D GLM_ENABLE_EXPERIMENTAL) ## for GLM
 
