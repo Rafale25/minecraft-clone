@@ -16,6 +16,8 @@ enum class BlockType : uint8_t {
     Grass = 1,
     Dirt = 2,
     Stone = 3,
+    OakLog = 4,
+    OakLeaves = 5,
     LAST, // do not use as block
 };
 
@@ -24,4 +26,7 @@ enum class Texture : int {
     GrassSide,
     Dirt,
     Stone,
+    OakLog,
+    OakLogTop,
+    OakLeaves
 };

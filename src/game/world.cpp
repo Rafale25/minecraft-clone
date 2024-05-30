@@ -68,6 +68,7 @@ BlockType World::get_block(glm::ivec3 pos)
     // printf("chunck pos: %d %d %d\n", chunk_pos.x, chunk_pos.y, chunk_pos.z);
     // printf("local_pos: %d %d %d\n", local_pos.x, local_pos.y, local_pos.z);
     if (chunks.count(chunk_pos) == 0) return BlockType::Air; // chunk doesn't exist //
+    if (chunks[chunk_pos].isPlaceHolder) return BlockType::Stone; // can't know what block it is, only that's it full //
 
     int index = Chunk::XYZtoIndex(local_pos.x, local_pos.y, local_pos.z);
     return chunks[chunk_pos].blocks[index];

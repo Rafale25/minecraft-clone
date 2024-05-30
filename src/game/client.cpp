@@ -36,9 +36,6 @@ Chunk readChunkPacket(uint8_t *buffer)
     uint8_t *head = &buffer[0];
     int x, y, z;
 
-    // skip packet id
-    // head += sizeof(uint8_t);
-
     x = *(int*)&head[0];
     head += sizeof(int);
 
@@ -66,6 +63,27 @@ Chunk readChunkPacket(uint8_t *buffer)
 
         chunk.blocks[i] = (BlockType)byte;
     }
+
+    return chunk;
+}
+
+Chunk readPlaceholderChunkPacket(uint8_t *buffer)
+{
+    uint8_t *head = &buffer[0];
+    int x, y, z;
+
+    x = *(int*)&head[0];
+    head += sizeof(int);
+
+    y = *(int*)&head[0];
+    head += sizeof(int);
+
+    z = *(int*)&head[0];
+    head += sizeof(int);
+
+    Chunk chunk;
+    chunk.pos = glm::ivec3(htonl(x), htonl(y), htonl(z)) / 16;
+    chunk.isPlaceHolder = true;
 
     return chunk;
 }
@@ -244,36 +262,36 @@ void Client::client_thread_func()
                         // printf("Server sent 'move entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
                     }
                     break;
-                case 0x04: // Send Chunk
+                case 0x04: // Chunk
                     recv_full(client_socket, buffer, 4108);
                     {
                         Chunk c = readChunkPacket(buffer);
                         new_chunks_mutex.lock();
 
                         // Replace chunk if already in new chunk list to reduce charge on mainthread //
-                        {
-                        // find if this chunks is already in the list
-                            int index_of_existing_chunk_pos = -1;
-                            for (uint i = 0 ; i < new_chunks.size() ; ++i) {
-                                if (new_chunks[i].pos == c.pos) {
-                                    index_of_existing_chunk_pos = i;
-                                    break;
-                                }
-                            }
-
-                            if (index_of_existing_chunk_pos != -1)
-                            {
-                                new_chunks[index_of_existing_chunk_pos] = c;
-                            } else {
-                                new_chunks.push_front(c);
+                        int index_of_existing_chunk_pos = -1;
+                        for (uint i = 0 ; i < new_chunks.size() ; ++i) {
+                            if (new_chunks[i].pos == c.pos) {
+                                index_of_existing_chunk_pos = i;
+                                break;
                             }
                         }
-
-                        // new_chunks.push_front(c);
+                        if (index_of_existing_chunk_pos != -1)
+                            new_chunks[index_of_existing_chunk_pos] = c;
+                        else
+                            new_chunks.push_front(c);
 
                         new_chunks_mutex.unlock();
-
                         // printf("Server sent 'chunk' packet: %d %d %d.\n", id, c.pos.x, c.pos.y, c.pos.z);
+                    }
+                    break;
+                case 0x05: // placeholder chunk
+                    recv_full(client_socket, buffer, 4*3);
+                    {
+                        Chunk c = readPlaceholderChunkPacket(buffer);
+                        new_chunks_mutex.lock();
+                        new_chunks.push_front(c);
+                        new_chunks_mutex.unlock();
                     }
                     break;
                 default:

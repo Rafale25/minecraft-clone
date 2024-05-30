@@ -9,6 +9,8 @@ int Chunk::XYZtoIndex(int x, int y, int z) {
 
 void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
 {
+    if (isPlaceHolder) return;
+
     GLuint VBO;
     glCreateVertexArrays(1, &VAO);
     glCreateBuffers(1, &VBO);
@@ -36,7 +38,7 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         auto [texture_top_handle, texture_side_handle, texture_bot_handle] = texture_manager.block_textures_handles[blocks[index]];
 
         // front
-        if (world.get_block(world_pos + glm::ivec3(0, 0, -1)) == BlockType::Air) {
+        if (world.get_block(world_pos + glm::ivec3(0, 0, -1)) == BlockType::Air || blocks[index] == BlockType::OakLeaves) {
             v.insert(v.end(), {
                 x+0.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Front,
                 x+1.f, y+0.f, z+0.f, 1.f, 0.f, Orientation::Front,
@@ -50,7 +52,7 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         }
 
         // back
-        if (world.get_block(world_pos + glm::ivec3(0, 0, 1)) == BlockType::Air) {
+        if (world.get_block(world_pos + glm::ivec3(0, 0, 1)) == BlockType::Air || blocks[index] == BlockType::OakLeaves) {
             v.insert(v.end(), {
                 x+0.f, y+0.f, z+1.f, 0.f, 0.f, Orientation::Back,
                 x+1.f, y+1.f, z+1.f, 1.f, 1.f, Orientation::Back,
@@ -64,7 +66,7 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         }
 
         // down
-        if (world.get_block(world_pos + glm::ivec3(0, -1, 0)) == BlockType::Air) {
+        if (world.get_block(world_pos + glm::ivec3(0, -1, 0)) == BlockType::Air || blocks[index] == BlockType::OakLeaves) {
             v.insert(v.end(), {
                 x+0.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Bottom,
                 x+1.f, y+0.f, z+1.f, 1.f, 1.f, Orientation::Bottom,
@@ -78,7 +80,7 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         }
 
         // top
-        if (world.get_block(world_pos + glm::ivec3(0, 1, 0)) == BlockType::Air) {
+        if (world.get_block(world_pos + glm::ivec3(0, 1, 0)) == BlockType::Air || blocks[index] == BlockType::OakLeaves) {
             v.insert(v.end(), {
                 x+0.f, y+1.f, z+0.f, 0.f, 0.f, Orientation::Top,
                 x+1.f, y+1.f, z+0.f, 1.f, 0.f, Orientation::Top,
@@ -92,7 +94,7 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         }
 
         // left
-        if (world.get_block(world_pos + glm::ivec3(-1, 0, 0)) == BlockType::Air) {
+        if (world.get_block(world_pos + glm::ivec3(-1, 0, 0)) == BlockType::Air || blocks[index] == BlockType::OakLeaves) {
             v.insert(v.end(), {
                 x+0.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Left,
                 x+0.f, y+1.f, z+1.f, 1.f, 1.f, Orientation::Left,
@@ -106,7 +108,7 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         }
 
         // right
-        if (world.get_block(world_pos + glm::ivec3(1, 0, 0)) == BlockType::Air) {
+        if (world.get_block(world_pos + glm::ivec3(1, 0, 0)) == BlockType::Air || blocks[index] == BlockType::OakLeaves) {
             v.insert(v.end(), {
                 x+1.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Right,
                 x+1.f, y+0.f, z+1.f, 1.f, 0.f, Orientation::Right,

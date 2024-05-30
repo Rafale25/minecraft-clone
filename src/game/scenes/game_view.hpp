@@ -79,7 +79,7 @@ class GameView: public View {
         {
             client.new_chunks_mutex.lock();
 
-            const int MAX_NEW_CHUNKS_PER_FRAME = 128;
+            const int MAX_NEW_CHUNKS_PER_FRAME = 8;
             int i = 0;
 
             // TODO: make a third thread to compute VBO and then do OpenGL calls on main thread
