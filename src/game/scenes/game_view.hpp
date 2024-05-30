@@ -93,17 +93,15 @@ class GameView: public View {
                 world.chunks[c.pos].computeChunckVAO(world, texture_manager);
 
                 // recompute neighbours chunks VAO //
-                // for (int x = -1 ; x <= 1 ; ++x) {
-                // for (int y = -1 ; y <= 1 ; ++y) {
-                // for (int z = -1 ; z <= 1 ; ++z) {
-                //     if (x == 0 && y == 0 && z == 0) continue;
-                //     glm::ivec3 cpos = c.pos + glm::ivec3(x, y, z);
-                //     if (world.chunks.count(cpos) > 0)
-                //         world.chunks[cpos].computeChunckVAO(world, texture_manager);
-                // }
-                // }
-                // }
-                // -- //
+                const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
+
+                for (const glm::ivec3 &offset: offsets)
+                {
+                    glm::ivec3 cpos = c.pos + offset;
+                    if (world.chunks.count(cpos) > 0)
+                        world.chunks[cpos].computeChunckVAO(world, texture_manager);
+                }
+
             }
             client.new_chunks_mutex.unlock();
         }
@@ -149,6 +147,8 @@ class GameView: public View {
 
             for (const auto& [key, chunk] : world.chunks)
             {
+                if (chunk.isPlaceHolder) continue;
+
                 cube_shader->setVec3("u_chunkPos", chunk.pos * 16);
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk.ssbo_texture_handles);
                 glBindVertexArray(chunk.VAO);
