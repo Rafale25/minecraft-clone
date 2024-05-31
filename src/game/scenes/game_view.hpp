@@ -124,6 +124,8 @@ class GameView: public View {
         {
             glEnable(GL_MULTISAMPLE); // enabled by default
 
+            glPolygonMode(GL_FRONT_AND_BACK, _wireframe ? GL_LINE : GL_FILL);
+
             glEnable(GL_DEPTH_TEST);
             glDepthFunc(GL_LESS);
 
@@ -165,7 +167,7 @@ class GameView: public View {
             ctx.imguiNewFrame();
             ImGui::Begin("Debug");
 
-            ImGui::Text("%.4f ms", dt);
+            ImGui::Text("%.4f secs", dt);
             ImGui::Text("%.2f fps", 1.0f / dt);
 
             glm::vec3 camera_pos = camera.getPosition();
@@ -176,7 +178,7 @@ class GameView: public View {
             ImGui::Text("pitch: %.2f", camera.getPitch());
 
             ImGui::SliderFloat("Bulk Edit Radius: ", &bulkEditRadius, 1.0f, 32.0f, "%.2f");
-
+            ImGui::Checkbox("Wireframe", &_wireframe);
 
             ImGui::End();
             ctx.imguiRender();
@@ -276,7 +278,9 @@ class GameView: public View {
         Client client{world, texture_manager, "51.77.194.124"};
 
         float network_timer = 1.0f;
-        int _cursorEnable = false;
+        bool _cursorEnable = false;
+
+        bool _wireframe = false;
 
         // Player
         FPSCamera camera;
