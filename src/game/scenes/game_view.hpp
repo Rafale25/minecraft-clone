@@ -33,9 +33,6 @@ class GameView: public View {
 
             texture_manager.loadAllTextures();
 
-            cube_shader = new Program("./assets/shaders/cube.vs", "./assets/shaders/cube.fs");
-            mesh_shader = new Program("./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs");
-
             client.Start();
         }
 
@@ -135,26 +132,26 @@ class GameView: public View {
             glClearColor(135.0f/255.0f, 206.0f/255.0f, 250.0f/255.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            cube_shader->use();
-            cube_shader->setMat4("u_projectionMatrix", camera.getProjection());
-            cube_shader->setMat4("u_viewMatrix", camera.getView());
-            cube_shader->setVec3("u_view_position", camera.getPosition());
+            cube_shader.use();
+            cube_shader.setMat4("u_projectionMatrix", camera.getProjection());
+            cube_shader.setMat4("u_viewMatrix", camera.getView());
+            cube_shader.setVec3("u_view_position", camera.getPosition());
 
             for (const auto& [key, chunk] : world.chunks)
             {
-                cube_shader->setVec3("u_chunkPos", chunk.pos * 16);
+                cube_shader.setVec3("u_chunkPos", chunk.pos * 16);
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk.ssbo_texture_handles);
                 glBindVertexArray(chunk.VAO);
                 glDrawArrays(GL_TRIANGLES, 0, chunk.vertex_count);
             }
 
-            mesh_shader->use();
-            mesh_shader->setMat4("u_projectionMatrix", camera.getProjection());
-            mesh_shader->setMat4("u_viewMatrix", camera.getView());
+            mesh_shader.use();
+            mesh_shader.setMat4("u_projectionMatrix", camera.getProjection());
+            mesh_shader.setMat4("u_viewMatrix", camera.getView());
 
             for (auto& entity : world.entities)
             {
-                mesh_shader->setMat4("u_modelMatrix", entity.smooth_transform.getMatrix());
+                mesh_shader.setMat4("u_modelMatrix", entity.smooth_transform.getMatrix());
                 entity.draw();
             }
 
@@ -263,11 +260,8 @@ class GameView: public View {
         }
 
     private:
-        // OrbitCamera* camera;
-        FPSCamera camera;
-
-        Program* cube_shader;
-        Program* mesh_shader;
+        Program cube_shader{"./assets/shaders/cube.vs", "./assets/shaders/cube.fs"};
+        Program mesh_shader{"./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs"};
 
         TextureManager texture_manager;
 
@@ -277,12 +271,16 @@ class GameView: public View {
         float network_timer = 1.0f;
         int _cursorEnable = false;
 
+        // Player
+        FPSCamera camera;
+
         BlockType blockInHand = BlockType::Grass;
         float bulkEditRadius = 32.0f;
 
         BlockType raycastBlocktype;
         glm::vec3 raycastNormal;
         glm::ivec3 raycastWorldPos;
+        // -- //
 };
 
 /*
