@@ -12,7 +12,6 @@ struct Chunk
 {
     glm::ivec3 pos;
     GLuint VAO;
-    // bool vao_initialized = false;
     GLuint ssbo_texture_handles;
     uint vertex_count;
 
