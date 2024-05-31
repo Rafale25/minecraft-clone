@@ -89,7 +89,9 @@ class GameView: public View {
                 for (const glm::ivec3 &offset: offsets)
                 {
                     glm::ivec3 cpos = c.pos + offset;
-                    if (world.chunks.count(cpos) > 0)
+
+                    // if (world.chunks.count(cpos) > 0)
+                    if (world.chunks.find(cpos) != world.chunks.end())
                         world.chunks[cpos].computeChunckVAO(world, texture_manager);
                 }
 
@@ -173,6 +175,9 @@ class GameView: public View {
             ImGui::Text("yaw: %.2f", camera.getYaw());
             ImGui::Text("pitch: %.2f", camera.getPitch());
 
+            ImGui::SliderFloat("Bulk Edit Radius: ", &bulkEditRadius, 1.0f, 32.0f, "%.2f");
+
+
             ImGui::End();
             ctx.imguiRender();
         }
@@ -214,6 +219,8 @@ class GameView: public View {
         }
 
         void onMousePress(int x, int y, int button) {
+            if (ImGui::GetIO().WantCaptureMouse) return;
+
             if (button == GLFW_MOUSE_BUTTON_LEFT) {
                 if (ctx.keyState[GLFW_KEY_LEFT_ALT])
                     placeSphere(raycastWorldPos, bulkEditRadius, BlockType::Air);
@@ -275,7 +282,7 @@ class GameView: public View {
         FPSCamera camera;
 
         BlockType blockInHand = BlockType::Grass;
-        float bulkEditRadius = 32.0f;
+        float bulkEditRadius = 4.0f;
 
         BlockType raycastBlocktype;
         glm::vec3 raycastNormal;
