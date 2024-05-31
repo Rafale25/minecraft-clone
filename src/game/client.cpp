@@ -13,6 +13,8 @@
 #include <cstring>
 #include <endian.h>
 
+#include "utils/print_buffer.hpp"
+
 int recv_full(int fd, uint8_t *buffer, size_t size)
 {
     size_t bytes_received = 0;
@@ -48,8 +50,6 @@ Chunk readChunkPacket(uint8_t *buffer)
     Chunk chunk;
     chunk.pos = glm::ivec3(htonl(x), htonl(y), htonl(z)) / 16;
 
-    glm::vec3 chunkPosWorld = chunk.pos * 16;
-
     for (int i = 0 ; i < 16*16*16 ; ++i) {
         uint8_t byte = *(uint8_t*)&head[0];
         head += sizeof(uint8_t);
@@ -67,10 +67,11 @@ Chunk readChunkPacket(uint8_t *buffer)
     return chunk;
 }
 
-Chunk readPlaceholderChunkPacket(uint8_t *buffer)
+Chunk readFullMonoChunkPacket(uint8_t *buffer)
 {
     uint8_t *head = &buffer[0];
     int x, y, z;
+    uint8_t blockType;
 
     x = *(int*)&head[0];
     head += sizeof(int);
@@ -81,9 +82,12 @@ Chunk readPlaceholderChunkPacket(uint8_t *buffer)
     z = *(int*)&head[0];
     head += sizeof(int);
 
+    blockType = head[0];
+
     Chunk chunk;
     chunk.pos = glm::ivec3(htonl(x), htonl(y), htonl(z)) / 16;
-    chunk.isPlaceHolder = true;
+
+    memset(chunk.blocks, blockType, 16*16*16);
 
     return chunk;
 }
@@ -118,8 +122,8 @@ static float load_floatbe(const unsigned char *buf)
     uint32_t i = load_u32be(buf);
     float f;
 
-    f = *(float*)&i;
-    // memcpy(&f, &i, 4);
+    // f = *(float*)&i;
+    memcpy(&f, &i, 4);
 
     return f;
 }
@@ -285,10 +289,10 @@ void Client::client_thread_func()
                         // printf("Server sent 'chunk' packet: %d %d %d.\n", id, c.pos.x, c.pos.y, c.pos.z);
                     }
                     break;
-                case 0x05: // placeholder chunk
-                    recv_full(client_socket, buffer, 4*3);
+                case 0x05: // full of same block chunk
+                    recv_full(client_socket, buffer, 4*3+1);
                     {
-                        Chunk c = readPlaceholderChunkPacket(buffer);
+                        Chunk c = readFullMonoChunkPacket(buffer);
                         new_chunks_mutex.lock();
                         new_chunks.push_front(c);
                         new_chunks_mutex.unlock();
@@ -315,12 +319,58 @@ void Client::sendBreakBlockPacket(glm::ivec3 world_pos)
     send(client_socket, &packet, sizeof(packet), 0);
 }
 
+void putIntBe(uint8_t *buffer, int value)
+{
+    buffer[0] = (value >> 24) & 0xFF;
+    buffer[1] = (value >> 16) & 0xFF;
+    buffer[2] = (value >> 8) & 0xFF;
+    buffer[3] = (value >> 0) & 0xFF;
+}
+
+void Client::sendBulkBreakBlockPacket(std::vector<glm::ivec3> world_pos)
+{
+    size_t size_in_bytes = sizeof(uint8_t) +
+                            sizeof(uint32_t) +
+                            world_pos.size() * (sizeof(uint8_t) + 3*sizeof(int32_t));
+
+    uint8_t *buffer = new uint8_t[size_in_bytes];
+    uint8_t *head = buffer;
+
+    memset(buffer, 0, size_in_bytes);
+
+    // id
+    head[0] = 0x02;
+    head += sizeof(uint8_t);
+
+    // blockCount
+    putIntBe(head, world_pos.size());
+    head += sizeof(int32_t);
+
+    for (size_t i = 0 ; i < world_pos.size() ; ++i)
+    {
+        printf("%d %d %d\n", world_pos[i].x, world_pos[i].y, world_pos[i].z);
+        head[0] = 0;
+        head += sizeof(uint8_t);
+
+        putIntBe(head, world_pos[i].x);
+        head += sizeof(int32_t);
+
+        putIntBe(head, world_pos[i].y);
+        head += sizeof(int32_t);
+
+        putIntBe(head, world_pos[i].z);
+        head += sizeof(int32_t);
+    }
+
+    send(client_socket, buffer, size_in_bytes, 0);
+}
+
 void Client::sendPlaceBlockPacket(glm::ivec3 world_pos, BlockType blocktype)
 {
     struct updateBlockPacket packet;
 
     packet.id = 0x01; // update block //
-    packet.blockType = (int)blocktype;
+    packet.blockType = (uint8_t)blocktype;
     packet.x = htobe32(*(uint32_t*)&world_pos.x);
     packet.y = htobe32(*(uint32_t*)&world_pos.y);
     packet.z = htobe32(*(uint32_t*)&world_pos.z);

@@ -53,8 +53,7 @@ target_sources(imgui
 target_include_directories(imgui PUBLIC ${IMGUI_DIR})
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
-target_compile_options(${PROJECT_NAME} PRIVATE -W) # -Wall -Wextra) # -g3
-# target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+target_compile_options(${PROJECT_NAME} PRIVATE -W -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter) # -g3
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE

@@ -27,7 +27,7 @@ class GameView: public View {
             // );
 
             camera = FPSCamera{
-                glm::vec3(0.0f, 20.0, 0.0f), 0.0f, 0.0f,
+                glm::vec3(10.0f, 20.0, 12.0f), 0.0f, 0.0f,
                 60.0f, (float)width / (float)height, 0.01f, 1000.0f
             };
 
@@ -73,7 +73,7 @@ class GameView: public View {
         {
             client.new_chunks_mutex.lock();
 
-            const int MAX_NEW_CHUNKS_PER_FRAME = 8;
+            const int MAX_NEW_CHUNKS_PER_FRAME = 16;
             int i = 0;
 
             // TODO: make a third thread to compute VBO and then do OpenGL calls on main thread
@@ -141,8 +141,6 @@ class GameView: public View {
 
             for (const auto& [key, chunk] : world.chunks)
             {
-                if (chunk.isPlaceHolder) continue;
-
                 cube_shader->setVec3("u_chunkPos", chunk.pos * 16);
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk.ssbo_texture_handles);
                 glBindVertexArray(chunk.VAO);
@@ -206,17 +204,19 @@ class GameView: public View {
 
         void breakSphere(glm::ivec3 pos, float radius)
         {
+            std::vector<glm::ivec3> positions;
+
             int iradius = int(radius);
             for (int x = -iradius ; x <= iradius ; ++x) {
             for (int y = -iradius ; y <= iradius ; ++y) {
             for (int z = -iradius ; z <= iradius ; ++z) {
                 glm::ivec3 wpos = pos + glm::ivec3{x, y, z};
-                // printf("%d %d %d\n", wpos.x, wpos.y, wpos.z);
                 if (glm::distance(glm::vec3(pos), glm::vec3(wpos)) > radius) continue;
-                client.sendBreakBlockPacket(wpos);
+                positions.push_back(wpos);
             }
             }
             }
+            client.sendBulkBreakBlockPacket(positions);
         }
 
         void onMousePress(int x, int y, int button) {
@@ -224,7 +224,7 @@ class GameView: public View {
 
                 if (ctx.keyState[GLFW_KEY_LEFT_ALT])
                 {
-                    breakSphere(raycastWorldPos, 7);
+                    breakSphere(raycastWorldPos, 16);
                 } else {
                     client.sendBreakBlockPacket(raycastWorldPos);
                 }

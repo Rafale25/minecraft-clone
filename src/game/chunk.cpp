@@ -9,8 +9,6 @@ int Chunk::XYZtoIndex(int x, int y, int z) {
 
 void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
 {
-    if (isPlaceHolder) return;
-
     GLuint VBO;
     glCreateVertexArrays(1, &VAO);
     glCreateBuffers(1, &VBO);
