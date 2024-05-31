@@ -348,7 +348,6 @@ void Client::sendBulkBreakBlockPacket(std::vector<glm::ivec3> world_pos)
 
     for (size_t i = 0 ; i < world_pos.size() ; ++i)
     {
-        printf("%d %d %d\n", world_pos[i].x, world_pos[i].y, world_pos[i].z);
         head[0] = 0;
         head += sizeof(uint8_t);
 
