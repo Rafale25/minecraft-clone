@@ -327,7 +327,7 @@ void putIntBe(uint8_t *buffer, int value)
     buffer[3] = (value >> 0) & 0xFF;
 }
 
-void Client::sendBlockBulkEditPacket(std::vector<glm::ivec3> world_pos, BlockType blocktype)
+void Client::sendBlockBulkEditPacket(std::vector<glm::ivec3> &world_pos, BlockType blocktype)
 {
     size_t size_in_bytes = sizeof(uint8_t) +
                             sizeof(uint32_t) +

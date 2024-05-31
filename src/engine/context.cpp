@@ -6,13 +6,14 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-Context::Context(int width, int height, const char *title)
+Context::Context(int width, int height, const char *title, int maximized, int samples)
 {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_MAXIMIZED , GL_TRUE);
+    glfwWindowHint(GLFW_MAXIMIZED , maximized);
+    glfwWindowHint(GLFW_SAMPLES, samples);
 
     window = glfwCreateWindow(width, height, title, NULL, NULL);
     if (window == NULL)

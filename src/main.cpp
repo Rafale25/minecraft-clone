@@ -8,7 +8,7 @@ const int VSYNC = 1;
 
 int main()
 {
-    Context ctx(SCR_WIDTH, SCR_HEIGHT, TITLE);
+    Context ctx(SCR_WIDTH, SCR_HEIGHT, TITLE, 0, 4);
     View* view = new GameView(ctx);
 
     ctx.setVsync(VSYNC);

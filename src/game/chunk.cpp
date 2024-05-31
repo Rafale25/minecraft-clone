@@ -33,7 +33,7 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
 
         if (block == BlockType::Air) continue;
 
-        const BlockMetadata block_metadata = blocksMetadata[(int)block];
+        // const BlockMetadata block_metadata = blocksMetadata[(int)block];
         const glm::ivec3 world_pos = (pos * 16) + glm::ivec3(x, y, z);
         auto [texture_top_handle, texture_side_handle, texture_bot_handle] = texture_manager.block_textures_handles[block];
 

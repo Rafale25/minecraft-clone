@@ -73,7 +73,7 @@ class GameView: public View {
         {
             client.new_chunks_mutex.lock();
 
-            const int MAX_NEW_CHUNKS_PER_FRAME = 32;
+            const int MAX_NEW_CHUNKS_PER_FRAME = 16;
             int i = 0;
 
             // TODO: make a third thread to compute VBO and then do OpenGL calls on main thread
@@ -123,6 +123,8 @@ class GameView: public View {
 
         void onDraw(double time_since_start, float dt)
         {
+            glEnable(GL_MULTISAMPLE); // enabled by default
+
             glEnable(GL_DEPTH_TEST);
             glDepthFunc(GL_LESS);
 
@@ -195,10 +197,6 @@ class GameView: public View {
                 // const GLFWvidmode* mode = glfwGetVideoMode(monitor);
                 // glfwSetWindowMonitor(ctx.window, monitor, 0, 0, mode->width, mode->height, 0);
             }
-        }
-
-        void onKeyRelease(int key)
-        {
         }
 
         void placeSphere(glm::ivec3 pos, float radius, BlockType blocktype)

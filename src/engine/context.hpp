@@ -7,7 +7,7 @@ class View;
 
 class Context {
     public:
-        Context(int width, int height, const char *title);
+        Context(int width, int height, const char *title, int maximized=GL_FALSE, int samples=4);
         ~Context();
 
         void run();
