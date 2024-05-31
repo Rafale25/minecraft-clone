@@ -210,7 +210,7 @@ class GameView: public View {
             for (int y = -iradius ; y <= iradius ; ++y) {
             for (int z = -iradius ; z <= iradius ; ++z) {
                 glm::ivec3 wpos = pos + glm::ivec3{x, y, z};
-                if (glm::distance(glm::vec3(pos), glm::vec3(wpos)) > radius) continue;
+                if (glm::distance2(glm::vec3(pos), glm::vec3(wpos)) > radius*radius) continue;
                 positions.push_back(wpos);
             }
             }
@@ -221,12 +221,12 @@ class GameView: public View {
         void onMousePress(int x, int y, int button) {
             if (button == GLFW_MOUSE_BUTTON_LEFT) {
                 if (ctx.keyState[GLFW_KEY_LEFT_ALT])
-                    placeSphere(raycastWorldPos, 8, BlockType::Air);
+                    placeSphere(raycastWorldPos, bulkEditRadius, BlockType::Air);
                 else
                     client.sendBreakBlockPacket(raycastWorldPos);
             } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
                 if (ctx.keyState[GLFW_KEY_LEFT_ALT])
-                    placeSphere(raycastWorldPos, 8, blockInHand);
+                    placeSphere(raycastWorldPos, bulkEditRadius, blockInHand);
                 else
                     client.sendPlaceBlockPacket(raycastWorldPos + glm::ivec3(raycastNormal), blockInHand);
             }
@@ -280,6 +280,7 @@ class GameView: public View {
         int _cursorEnable = false;
 
         BlockType blockInHand = BlockType::Grass;
+        float bulkEditRadius = 32.0f;
 
         BlockType raycastBlocktype;
         glm::vec3 raycastNormal;
