@@ -9,13 +9,6 @@ int Chunk::XYZtoIndex(int x, int y, int z) {
 
 void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
 {
-    GLuint VBO;
-    glCreateVertexArrays(1, &VAO);
-    glCreateBuffers(1, &VBO);
-
-    std::vector<GLuint64> textures_handles;
-    glCreateBuffers(1, &ssbo_texture_handles);
-
     /*
         position         float  32-bit  x 3
         uv               float  32-bit  x 2
@@ -23,6 +16,7 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         texture handle   float  32-bit  x 2
     */
 
+    std::vector<GLuint64> textures_handles;
     std::vector<float> v;
 
     for (int z = 0 ; z < 16 ; ++z) {
@@ -141,8 +135,13 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
 
     vertex_count = v.size() / 6;
     if (vertex_count == 0) return;
-
     // std::cout << vertex_count << std::endl;
+
+    GLuint VBO;
+    glCreateVertexArrays(1, &VAO);
+    glCreateBuffers(1, &VBO);
+
+    glCreateBuffers(1, &ssbo_texture_handles);
 
     glNamedBufferData(VBO, v.size() * sizeof(GL_FLOAT), &v[0], GL_STATIC_DRAW);
 
