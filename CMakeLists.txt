@@ -23,6 +23,7 @@ set(SRC_FILES
     ./src/game/texture_manager.cpp
     ./src/game/entity.cpp
     ./src/game/world.cpp
+    ./src/game/enums.cpp
     ./src/main.cpp
 )
 

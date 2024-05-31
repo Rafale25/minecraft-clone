@@ -28,14 +28,22 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
     for (int z = 0 ; z < 16 ; ++z) {
     for (int y = 0 ; y < 16 ; ++y) {
     for (int x = 0 ; x < 16 ; ++x) {
-        glm::ivec3 world_pos = (pos * 16) + glm::ivec3(x, y, z);
-        int index = z * 16*16 + y * 16 + x;
-        if (blocks[index] == BlockType::Air) continue;
+        const int index = z * 16*16 + y * 16 + x;
+        const BlockType block = blocks[index];
 
-        auto [texture_top_handle, texture_side_handle, texture_bot_handle] = texture_manager.block_textures_handles[blocks[index]];
+        if (block == BlockType::Air) continue;
+
+        const BlockMetadata block_metadata = blocksMetadata[(int)block];
+        const glm::ivec3 world_pos = (pos * 16) + glm::ivec3(x, y, z);
+        auto [texture_top_handle, texture_side_handle, texture_bot_handle] = texture_manager.block_textures_handles[block];
+
+        BlockType nb; // neighbour block
+        BlockMetadata nbmtd; // neighbour block metadata
 
         // front
-        if (world.get_block(world_pos + glm::ivec3(0, 0, -1)) == BlockType::Air || blocks[index] == BlockType::OakLeaves) {
+        nb = world.get_block(world_pos + glm::ivec3(0, 0, -1));
+        nbmtd = blocksMetadata[(int)nb];
+        if (nbmtd.transparent) {
             v.insert(v.end(), {
                 x+0.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Front,
                 x+1.f, y+0.f, z+0.f, 1.f, 0.f, Orientation::Front,
@@ -49,7 +57,9 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         }
 
         // back
-        if (world.get_block(world_pos + glm::ivec3(0, 0, 1)) == BlockType::Air || blocks[index] == BlockType::OakLeaves) {
+        nb = world.get_block(world_pos + glm::ivec3(0, 0, 1));
+        nbmtd = blocksMetadata[(int)nb];
+        if (nbmtd.transparent) {
             v.insert(v.end(), {
                 x+0.f, y+0.f, z+1.f, 0.f, 0.f, Orientation::Back,
                 x+1.f, y+1.f, z+1.f, 1.f, 1.f, Orientation::Back,
@@ -63,7 +73,9 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         }
 
         // down
-        if (world.get_block(world_pos + glm::ivec3(0, -1, 0)) == BlockType::Air || blocks[index] == BlockType::OakLeaves) {
+        nb = world.get_block(world_pos + glm::ivec3(0, -1, 0));
+        nbmtd = blocksMetadata[(int)nb];
+        if (nbmtd.transparent) {
             v.insert(v.end(), {
                 x+0.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Bottom,
                 x+1.f, y+0.f, z+1.f, 1.f, 1.f, Orientation::Bottom,
@@ -77,7 +89,9 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         }
 
         // top
-        if (world.get_block(world_pos + glm::ivec3(0, 1, 0)) == BlockType::Air || blocks[index] == BlockType::OakLeaves) {
+        nb = world.get_block(world_pos + glm::ivec3(0, 1, 0));
+        nbmtd = blocksMetadata[(int)nb];
+        if (nbmtd.transparent) {
             v.insert(v.end(), {
                 x+0.f, y+1.f, z+0.f, 0.f, 0.f, Orientation::Top,
                 x+1.f, y+1.f, z+0.f, 1.f, 0.f, Orientation::Top,
@@ -91,7 +105,9 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         }
 
         // left
-        if (world.get_block(world_pos + glm::ivec3(-1, 0, 0)) == BlockType::Air || blocks[index] == BlockType::OakLeaves) {
+        nb = world.get_block(world_pos + glm::ivec3(-1, 0, 0));
+        nbmtd = blocksMetadata[(int)nb];
+        if (nbmtd.transparent) {
             v.insert(v.end(), {
                 x+0.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Left,
                 x+0.f, y+1.f, z+1.f, 1.f, 1.f, Orientation::Left,
@@ -105,7 +121,9 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         }
 
         // right
-        if (world.get_block(world_pos + glm::ivec3(1, 0, 0)) == BlockType::Air || blocks[index] == BlockType::OakLeaves) {
+        nb = world.get_block(world_pos + glm::ivec3(1, 0, 0));
+        nbmtd = blocksMetadata[(int)nb];
+        if (nbmtd.transparent) {
             v.insert(v.end(), {
                 x+1.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Right,
                 x+1.f, y+0.f, z+1.f, 1.f, 0.f, Orientation::Right,

@@ -11,6 +11,7 @@ enum Orientation : int {
     Right = 5,
 };
 
+// https://stackoverflow.com/questions/45860069/enum-with-struct-as-values
 enum class BlockType : uint8_t {
     Air = 0,
     Grass = 1,
@@ -20,6 +21,14 @@ enum class BlockType : uint8_t {
     OakLeaves = 5,
     LAST, // do not use as block
 };
+
+struct BlockMetadata
+{
+    bool transparent;
+    // ...
+};
+
+extern const BlockMetadata blocksMetadata[];
 
 enum class Texture : int {
     GrassTop,
