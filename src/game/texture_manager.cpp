@@ -21,6 +21,7 @@ void TextureManager::loadAllTextures()
                 format = GL_RGBA;
                 break;
             default:
+                format = GL_RGB;
                 break;
         }
 

@@ -73,7 +73,7 @@ class GameView: public View {
         {
             client.new_chunks_mutex.lock();
 
-            const int MAX_NEW_CHUNKS_PER_FRAME = 16;
+            const int MAX_NEW_CHUNKS_PER_FRAME = 32;
             int i = 0;
 
             // TODO: make a third thread to compute VBO and then do OpenGL calls on main thread
@@ -131,7 +131,6 @@ class GameView: public View {
             glFrontFace(GL_CW);
 
             glClearColor(135.0f/255.0f, 206.0f/255.0f, 250.0f/255.0f, 1.0f);
-
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             cube_shader->use();
@@ -202,7 +201,7 @@ class GameView: public View {
         {
         }
 
-        void breakSphere(glm::ivec3 pos, float radius)
+        void placeSphere(glm::ivec3 pos, float radius, BlockType blocktype)
         {
             std::vector<glm::ivec3> positions;
 
@@ -216,20 +215,20 @@ class GameView: public View {
             }
             }
             }
-            client.sendBulkBreakBlockPacket(positions);
+            client.sendBlockBulkEditPacket(positions, blocktype);
         }
 
         void onMousePress(int x, int y, int button) {
             if (button == GLFW_MOUSE_BUTTON_LEFT) {
-
                 if (ctx.keyState[GLFW_KEY_LEFT_ALT])
-                {
-                    breakSphere(raycastWorldPos, 16);
-                } else {
+                    placeSphere(raycastWorldPos, 8, BlockType::Air);
+                else
                     client.sendBreakBlockPacket(raycastWorldPos);
-                }
             } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-                client.sendPlaceBlockPacket(raycastWorldPos + glm::ivec3(raycastNormal), blockInHand);
+                if (ctx.keyState[GLFW_KEY_LEFT_ALT])
+                    placeSphere(raycastWorldPos, 8, blockInHand);
+                else
+                    client.sendPlaceBlockPacket(raycastWorldPos + glm::ivec3(raycastNormal), blockInHand);
             }
         }
 

@@ -1,13 +1,10 @@
 #pragma once
 
-#include <iostream>
 #include <cmath>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/rotate_vector.hpp>
-#include <glm/gtc/random.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+// #include <glm/gtc/matrix_transform.hpp>
 
 class Camera {
     public:
@@ -42,8 +39,8 @@ class OrbitCamera: public Camera {
             _center(center), _yaw(angle), _pitch(pitch), _distance(distance)
         {}
         OrbitCamera(glm::vec3 center, float angle, float pitch, float distance, float fov, float aspect_ratio, float near_plane, float far_plane):
-            _center(center), _yaw(angle), _pitch(pitch), _distance(distance),
-            Camera(fov, aspect_ratio, near_plane, far_plane)
+            Camera(fov, aspect_ratio, near_plane, far_plane),
+            _center(center), _yaw(angle), _pitch(pitch), _distance(distance)
         {}
 
         glm::mat4 getView() {
@@ -128,10 +125,10 @@ class FPSCamera: public Camera {
         FPSCamera()
         {}
         FPSCamera(glm::vec3 position, float yaw, float pitch, float fov, float aspect_ratio, float near_plane, float far_plane):
+            Camera(fov, aspect_ratio, near_plane, far_plane),
             _position(position),
             _yaw(yaw),
-            _pitch(pitch),
-            Camera(fov, aspect_ratio, near_plane, far_plane)
+            _pitch(pitch)
         {
             _smoothPosition = position;
             _smoothYaw = yaw;
@@ -213,10 +210,10 @@ class FPSCamera: public Camera {
 
         glm::vec3 _movement = glm::vec3(0.0f, 0.0f, 0.0); // reset each frame
 
+        glm::vec3 _position = glm::vec3(0.0f, 0.0f, 0.0f);
         float _yaw = 0.0f;
         float _pitch = 0.0f;
         float _roll = 0.0f;
-        glm::vec3 _position = glm::vec3(0.0f, 0.0f, 0.0f);
 
         float _smoothYaw = 0.0f;
         float _smoothPitch = 0.0f;

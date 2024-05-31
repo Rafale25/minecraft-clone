@@ -327,7 +327,7 @@ void putIntBe(uint8_t *buffer, int value)
     buffer[3] = (value >> 0) & 0xFF;
 }
 
-void Client::sendBulkBreakBlockPacket(std::vector<glm::ivec3> world_pos)
+void Client::sendBlockBulkEditPacket(std::vector<glm::ivec3> world_pos, BlockType blocktype)
 {
     size_t size_in_bytes = sizeof(uint8_t) +
                             sizeof(uint32_t) +
@@ -348,7 +348,7 @@ void Client::sendBulkBreakBlockPacket(std::vector<glm::ivec3> world_pos)
 
     for (size_t i = 0 ; i < world_pos.size() ; ++i)
     {
-        head[0] = 0;
+        head[0] = (uint8_t)blocktype;
         head += sizeof(uint8_t);
 
         putIntBe(head, world_pos[i].x);

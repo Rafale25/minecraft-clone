@@ -36,7 +36,7 @@ public:
     void client_thread_func();
 
     void sendBreakBlockPacket(glm::ivec3 world_pos);
-    void sendBulkBreakBlockPacket(std::vector<glm::ivec3> world_pos);
+    void sendBlockBulkEditPacket(std::vector<glm::ivec3> world_pos, BlockType blocktype);
 
     void sendPlaceBlockPacket(glm::ivec3 world_pos, BlockType blocktype);
     void sendUpdateEntityPacket(int entityId, glm::vec3 pos, float yaw, float pitch);

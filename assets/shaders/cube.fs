@@ -43,7 +43,7 @@ void main()
 
     vec3 result = (ambient + diffuse) * color.rgb;
 
-    if (color.a < 0.1) {
+    if (color.a < 0.65) { // magic value
         discard;
     }
 

@@ -24,7 +24,6 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
     */
 
     std::vector<float> v;
-    int i;
 
     for (int z = 0 ; z < 16 ; ++z) {
     for (int y = 0 ; y < 16 ; ++y) {
@@ -123,8 +122,9 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
     }
 
     vertex_count = v.size() / 6;
+    if (vertex_count == 0) return;
 
-    // std::cout << _vertices_count << std::endl;
+    // std::cout << vertex_count << std::endl;
 
     glNamedBufferData(VBO, v.size() * sizeof(GL_FLOAT), &v[0], GL_STATIC_DRAW);
 
