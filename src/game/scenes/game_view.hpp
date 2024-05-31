@@ -179,6 +179,9 @@ class GameView: public View {
 
             ImGui::SliderFloat("Bulk Edit Radius: ", &bulkEditRadius, 1.0f, 32.0f, "%.2f");
             ImGui::Checkbox("Wireframe", &_wireframe);
+            if (ImGui::Checkbox("VSync", &_vsync)) {
+                ctx.setVsync(_vsync);
+            }
 
             ImGui::End();
             ctx.imguiRender();
@@ -281,6 +284,7 @@ class GameView: public View {
         bool _cursorEnable = false;
 
         bool _wireframe = false;
+        bool _vsync = true;
 
         // Player
         FPSCamera camera;
