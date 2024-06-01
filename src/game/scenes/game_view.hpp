@@ -77,22 +77,23 @@ class GameView: public View {
 
             while (client.new_chunks.size() > 0 && i++ < MAX_NEW_CHUNKS_PER_FRAME)
             {
-                Chunk c = client.new_chunks.back();
+                Chunk* c = client.new_chunks.back();
                 client.new_chunks.pop_back();
 
-                world.chunks[c.pos] = c;
-                world.chunks[c.pos].computeChunckVAO(world, texture_manager);
+                world.set_chunk(c);
+                c->computeChunckVAO(world, texture_manager);
 
                 // recompute neighbours chunks VAO //
                 const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
 
                 for (const glm::ivec3 &offset: offsets)
                 {
-                    glm::ivec3 cpos = c.pos + offset;
+                    glm::ivec3 cpos = c->pos + offset;
 
-                    // if (world.chunks.count(cpos) > 0)
-                    if (world.chunks.find(cpos) != world.chunks.end())
-                        world.chunks[cpos].computeChunckVAO(world, texture_manager);
+                    Chunk* nc = world.get_chunk(cpos);
+                    if (nc != nullptr) {
+                        nc->computeChunckVAO(world, texture_manager);
+                    }
                 }
 
             }
@@ -143,10 +144,10 @@ class GameView: public View {
 
             for (const auto& [key, chunk] : world.chunks)
             {
-                cube_shader.setVec3("u_chunkPos", chunk.pos * 16);
-                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk.ssbo_texture_handles);
-                glBindVertexArray(chunk.VAO);
-                glDrawArrays(GL_TRIANGLES, 0, chunk.vertex_count);
+                cube_shader.setVec3("u_chunkPos", chunk->pos * 16);
+                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk->mesh.ssbo_texture_handles);
+                glBindVertexArray(chunk->mesh.VAO);
+                glDrawArrays(GL_TRIANGLES, 0, chunk->mesh.vertex_count);
             }
 
             mesh_shader.use();

@@ -32,8 +32,12 @@ public:
     // Chunk* create_chunk();
     // void delete_chunk();
 
+    void set_chunk(Chunk* chunk);
+    Chunk* get_chunk(glm::ivec3 pos);
+    // std::unordered_map<glm::ivec3, Chunk*>::iterator chunks_iter();
+
 public:
-    std::unordered_map<glm::ivec3, Chunk> chunks; //Note: do not access synchronously
+    std::unordered_map<glm::ivec3, Chunk*> chunks; //Note: do not access synchronously
     std::vector<Entity> entities;
 
     GLuint ssbo_texture_handles;

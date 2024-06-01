@@ -70,9 +70,8 @@ BlockType World::get_block(glm::ivec3 pos)
     if (chunks.count(chunk_pos) == 0) return BlockType::Air; // chunk doesn't exist //
 
     int index = Chunk::XYZtoIndex(local_pos.x, local_pos.y, local_pos.z);
-    return chunks[chunk_pos].blocks[index];
+    return chunks[chunk_pos]->blocks[index];
 }
-
 
 std::tuple<BlockType, glm::ivec3, glm::vec3> World::BlockRaycast(glm::vec3 origin, glm::vec3 direction, int maxSteps)
 {
@@ -101,3 +100,30 @@ std::tuple<BlockType, glm::ivec3, glm::vec3> World::BlockRaycast(glm::vec3 origi
 
     return std::tuple<BlockType, glm::ivec3, glm::vec3>({BlockType::Air, mapPos, normal});
 }
+
+void World::set_chunk(Chunk* chunk)
+{
+    if (chunks.find(chunk->pos) != chunks.end()) {
+        if (chunks[chunk->pos]->mesh.is_initialized) {
+            chunks[chunk->pos]->mesh.delete_all();
+        }
+        free(chunks[chunk->pos]);
+        // TODO: call delete_chunk() instead of free directly
+    }
+
+    chunks[chunk->pos] = chunk;
+}
+
+Chunk* World::get_chunk(glm::ivec3 pos)
+{
+    //NOTE: Maybe can return directly chunks[pos] because unordered_map will call default constructor for Chunk* which is probably 0
+    if (chunks.find(pos) != chunks.end()) {
+        return chunks[pos];
+    }
+    return nullptr;
+}
+
+// std::unordered_map<glm::ivec3, Chunk *>::iterator World::chunks_iter()
+// {
+//     return chunks.begin();
+// }
