@@ -14,15 +14,55 @@ const vec3 orientation_normal_table[] = { // Note: maybe should be done in fragm
     vec3(1.0, 0.0, 0.0), // Right = 5
 };
 
-out vec3 frag_pos;
+in vec3 f_frag_pos;
 in vec2 f_uv;
 flat in int f_orientation;
 flat in int f_faceId;
+in vec4 f_FragPosLightSpace;
 
 out vec4 FragColor;
 
 uniform vec3 u_sun_direction = normalize(vec3(0.2, -0.9, 0.5));
 uniform vec3 u_view_position;
+
+uniform sampler2D shadowMap;
+uniform vec3 u_lightPos;
+
+float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
+{
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = texture(shadowMap, projCoords.xy).r;
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    // calculate bias (based on depth map resolution and slope)
+    // vec3 normal = normalize(fs_in.Normal);
+    vec3 lightDir = normalize(u_lightPos - f_frag_pos);
+    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+    // check whether current frag pos is in shadow
+    // float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+    // PCF
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+            shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;
+        }
+    }
+    shadow /= 9.0;
+
+    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+    if(projCoords.z > 1.0)
+        shadow = 0.0;
+
+    return shadow;
+}
 
 void main()
 {
@@ -41,11 +81,16 @@ void main()
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * lightColor;
 
-    vec3 result = (ambient + diffuse) * color.rgb;
+    // vec3 result = (ambient + diffuse) * color.rgb;
 
     if (color.a < 0.65) { // magic value
         discard;
     }
 
-    FragColor = vec4(result, 1.0);
+    // calculate shadow
+    float shadow = ShadowCalculation(f_FragPosLightSpace, norm);
+    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse)) * color.rgb;
+    // vec3 lighting = (ambient + (1.0 - shadow)) * color.rgb;
+
+    FragColor = vec4(lighting, 1.0);
 }

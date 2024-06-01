@@ -18,8 +18,29 @@ class GameView: public View {
         {
             glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-            int width, height;
-            glfwGetWindowSize(ctx.window, &width, &height);
+            glfwGetWindowSize(ctx.window, &_width, &_height);
+
+            // --
+            glGenFramebuffers(1, &depthMapFBO);
+            glGenTextures(1, &_depthMap);
+            glBindTexture(GL_TEXTURE_2D, _depthMap);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+            float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+            glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthMap, 0);
+            glDrawBuffer(GL_NONE);
+            glReadBuffer(GL_NONE);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            cube_shader.use();
+            cube_shader.setInt("shadowMap", 0);
+            // --
 
             // camera = new OrbitCamera(
             //     glm::vec3(0.0f), M_PI/4, M_PI/4, 50.0f,
@@ -28,7 +49,7 @@ class GameView: public View {
 
             camera = FPSCamera{
                 glm::vec3(10.0f, 20.0, 12.0f), 0.0f, 0.0f,
-                60.0f, (float)width / (float)height, 0.01f, 1000.0f
+                60.0f, (float)_width / (float)_height, 0.01f, 1000.0f
             };
 
             texture_manager.loadAllTextures();
@@ -137,18 +158,38 @@ class GameView: public View {
             glClearColor(135.0f/255.0f, 206.0f/255.0f, 250.0f/255.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            cube_shader.use();
-            cube_shader.setMat4("u_projectionMatrix", camera.getProjection());
-            cube_shader.setMat4("u_viewMatrix", camera.getView());
-            cube_shader.setVec3("u_view_position", camera.getPosition());
 
-            for (const auto& [key, chunk] : world.chunks)
-            {
-                cube_shader.setVec3("u_chunkPos", chunk->pos * 16);
-                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk->mesh.ssbo_texture_handles);
-                glBindVertexArray(chunk->mesh.VAO);
-                glDrawArrays(GL_TRIANGLES, 0, chunk->mesh.vertex_count);
-            }
+
+            // 1. render depth of scene to texture (from light's perspective)
+            // --------------------------------------------------------------
+            glm::vec3 lightPos(-30.0f, 50.0f, -20.0f);
+            glm::mat4 lightProjection, lightView;
+            glm::mat4 lightSpaceMatrix;
+            float near_plane = 30.0f, far_plane = 100.0f;
+            //lightProjection = glm::perspective(glm::radians(45.0f), (GLfloat)SHADOW_WIDTH / (GLfloat)SHADOW_HEIGHT, near_plane, far_plane); // note that if you use a perspective projection matrix you'll have to change the light position as the current light position isn't enough to reflect the whole scene
+            lightProjection = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, near_plane, far_plane);
+            lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+            lightSpaceMatrix = lightProjection * lightView;
+            // render scene from light's point of view
+            cube_shadowmapping_shader.use();
+            cube_shadowmapping_shader.setMat4("u_lightSpaceMatrix", lightSpaceMatrix);
+
+            glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+            glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+                glClear(GL_DEPTH_BUFFER_BIT);
+                render_scene(cube_shadowmapping_shader);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            // reset viewport
+            glViewport(0, 0, _width, _height);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            cube_shader.use();
+            cube_shader.setMat4("u_lightSpaceMatrix", lightSpaceMatrix);
+            cube_shader.setVec3("u_lightPos", lightPos);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, _depthMap);
+            render_scene(cube_shader);
 
             mesh_shader.use();
             mesh_shader.setMat4("u_projectionMatrix", camera.getProjection());
@@ -161,6 +202,23 @@ class GameView: public View {
             }
 
             gui(dt);
+        }
+
+        void render_scene(Program &shader)
+        {
+            shader.use();
+            shader.setMat4("u_projectionMatrix", camera.getProjection());
+            shader.setMat4("u_viewMatrix", camera.getView());
+            shader.setVec3("u_view_position", camera.getPosition());
+
+            for (const auto& [key, chunk] : world.chunks)
+            {
+                shader.setVec3("u_chunkPos", chunk->pos * 16);
+                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk->mesh.ssbo_texture_handles);
+                glBindVertexArray(chunk->mesh.VAO);
+                glDrawArrays(GL_TRIANGLES, 0, chunk->mesh.vertex_count);
+            }
+
         }
 
         void gui(float dt)
@@ -270,11 +328,21 @@ class GameView: public View {
         void onResize(int width, int height)
         {
             glViewport(0, 0, width, height);
+            _width = width;
+            _height = height;
         }
 
     private:
         Program cube_shader{"./assets/shaders/cube.vs", "./assets/shaders/cube.fs"};
+        Program cube_shadowmapping_shader{"./assets/shaders/cube_shadowmap.vs", "./assets/shaders/cube_shadowmap.fs"};
         Program mesh_shader{"./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs"};
+
+        // Shadow map
+        const uint32_t SHADOW_WIDTH = 4096, SHADOW_HEIGHT = 4096;
+        GLuint depthMapFBO;
+        GLuint _depthMap;
+
+        // --
 
         TextureManager texture_manager;
 
@@ -297,6 +365,8 @@ class GameView: public View {
         glm::vec3 raycastNormal;
         glm::ivec3 raycastWorldPos;
         // -- //
+
+        int _width, _height;
 };
 
 /*
