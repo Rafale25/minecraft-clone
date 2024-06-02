@@ -334,6 +334,7 @@ void Client::sendBlockBulkEditPacket(std::vector<glm::ivec3> &world_pos, BlockTy
                             sizeof(uint32_t) +
                             world_pos.size() * (sizeof(uint8_t) + 3*sizeof(int32_t));
 
+    // uint8_t *buffer = new uint8_t[size_in_bytes];
     uint8_t *buffer = new uint8_t[size_in_bytes];
     uint8_t *head = buffer;
 
@@ -363,6 +364,8 @@ void Client::sendBlockBulkEditPacket(std::vector<glm::ivec3> &world_pos, BlockTy
     }
 
     send(client_socket, buffer, size_in_bytes, 0);
+
+    delete buffer;
 }
 
 void Client::sendPlaceBlockPacket(glm::ivec3 world_pos, BlockType blocktype)

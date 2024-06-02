@@ -11,16 +11,104 @@
 #include "world.hpp"
 
 #include "imgui.h"
+#include <algorithm>
+
+std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view)
+{
+    const auto inv = glm::inverse(proj * view);
+
+    std::vector<glm::vec4> frustumCorners;
+    for (unsigned int x = 0; x < 2; ++x) {
+        for (unsigned int y = 0; y < 2; ++y) {
+            for (unsigned int z = 0; z < 2; ++z) {
+                const glm::vec4 pt =
+                    inv * glm::vec4(
+                        2.0f * x - 1.0f,
+                        2.0f * y - 1.0f,
+                        2.0f * z - 1.0f,
+                        1.0f);
+                frustumCorners.push_back(pt / pt.w);
+            }
+        }
+    }
+
+    return frustumCorners;
+}
+
+glm::mat4 getLighViewMatrix(std::vector<glm::vec4> cameraFrustumCorners, glm::vec3 lightDir)
+{
+    glm::vec3 center = glm::vec3(0, 0, 0);
+    for (const auto& v : cameraFrustumCorners) {
+        center += glm::vec3(v);
+    }
+    center /= cameraFrustumCorners.size();
+
+    return glm::lookAt(
+        center + lightDir,
+        center,
+        glm::vec3(0.0f, 1.0f, 0.0f)
+    );
+}
+
+struct FrustumBounds {
+    float minX, maxX;
+    float minY, maxY;
+    float minZ, maxZ;
+};
+
+FrustumBounds computeFrustumBounds(const glm::mat4& lightView, const std::vector<glm::vec4>& corners)
+{
+    FrustumBounds b;
+
+    b.minX = std::numeric_limits<float>::max();
+    b.maxX = std::numeric_limits<float>::lowest();
+    b.minY = std::numeric_limits<float>::max();
+    b.maxY = std::numeric_limits<float>::lowest();
+    b.minZ = std::numeric_limits<float>::max();
+    b.maxZ = std::numeric_limits<float>::lowest();
+
+    for (const auto& v : corners)
+    {
+        const glm::vec4 trf = lightView * v;
+        b.minX = std::min(b.minX, trf.x);
+        b.maxX = std::max(b.maxX, trf.x);
+        b.minY = std::min(b.minY, trf.y);
+        b.maxY = std::max(b.maxY, trf.y);
+        b.minZ = std::min(b.minZ, trf.z);
+        b.maxZ = std::max(b.maxZ, trf.z);
+    }
+
+    return b;
+}
+
+glm::mat4 getLightProjectionMatrix(const glm::mat4& lightView, FrustumBounds& b)
+{
+    // Tune this parameter according to the scene
+    const float zMult = 5.0f;
+    if (b.minZ < 0)
+        b.minZ *= zMult;
+    else
+        b.minZ /= zMult;
+
+    if (b.maxZ < 0)
+        b.maxZ /= zMult;
+    else
+        b.maxZ *= zMult;
+
+    return glm::ortho(b.minX, b.maxX, b.minY, b.maxY, b.minZ, b.maxZ);
+}
 
 class GameView: public View {
     public:
         GameView(Context& ctx): View(ctx)
         {
             glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
             glfwGetWindowSize(ctx.window, &_width, &_height);
+            onResize(_width, _height);
 
-            // --
+            texture_manager.loadAllTextures();
+
+            // -- Depth FBO
             glGenFramebuffers(1, &depthMapFBO);
             glGenTextures(1, &_depthMap);
             glBindTexture(GL_TEXTURE_2D, _depthMap);
@@ -42,17 +130,26 @@ class GameView: public View {
             cube_shader.setInt("shadowMap", 0);
             // --
 
-            // camera = new OrbitCamera(
-            //     glm::vec3(0.0f), M_PI/4, M_PI/4, 50.0f,
-            //     60.0f, (float)width / (float)height, 0.1f, 1000.0f
-            // );
-
-            camera = FPSCamera{
-                glm::vec3(10.0f, 20.0, 12.0f), 0.0f, 0.0f,
-                60.0f, (float)_width / (float)_height, 0.01f, 1000.0f
+            // renderQuad() renders a 1x1 XY quad in NDC
+            // -----------------------------------------
+            float quadVertices[] = {
+                // positions        // texture Coords
+                -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+                -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+                1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+                1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
             };
-
-            texture_manager.loadAllTextures();
+            // setup plane VAO
+            glGenVertexArrays(1, &_quadVAO);
+            glGenBuffers(1, &_quadVBO);
+            glBindVertexArray(_quadVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, _quadVBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+            // -----------------------------------------
 
             client.Start();
         }
@@ -158,26 +255,27 @@ class GameView: public View {
             glClearColor(135.0f/255.0f, 206.0f/255.0f, 250.0f/255.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-
             // 1. render depth of scene to texture (from light's perspective)
             // --------------------------------------------------------------
-            glm::vec3 lightPos(-30.0f, 50.0f, -20.0f);
-            glm::mat4 lightProjection, lightView;
-            glm::mat4 lightSpaceMatrix;
-            float near_plane = 30.0f, far_plane = 100.0f;
-            //lightProjection = glm::perspective(glm::radians(45.0f), (GLfloat)SHADOW_WIDTH / (GLfloat)SHADOW_HEIGHT, near_plane, far_plane); // note that if you use a perspective projection matrix you'll have to change the light position as the current light position isn't enough to reflect the whole scene
-            lightProjection = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, near_plane, far_plane);
-            lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-            lightSpaceMatrix = lightProjection * lightView;
-            // render scene from light's point of view
+            // glm::mat4 cameraCustomProj = glm::perspective(camera.fov, camera.aspect_ratio, 1.0f, 20.0f);
+            // auto corners = getFrustumCornersWorldSpace(cameraCustomProj, camera.getView());
+            auto corners = getFrustumCornersWorldSpace(camera.getProjection(), camera.getView());
+
+            glm::mat4 lightViewMatrix = getLighViewMatrix(corners, sunDir);
+            FrustumBounds bounds = computeFrustumBounds(lightViewMatrix, corners);
+            glm::mat4 lightProjectionMatrix = getLightProjectionMatrix(lightViewMatrix, bounds);
+            glm::mat4 lightSpaceMatrix = lightProjectionMatrix * lightViewMatrix;
+
             cube_shadowmapping_shader.use();
             cube_shadowmapping_shader.setMat4("u_lightSpaceMatrix", lightSpaceMatrix);
-
             glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
             glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
                 glClear(GL_DEPTH_BUFFER_BIT);
+
+                // glCullFace(GL_FRONT); // fix shadow acne
                 render_scene(cube_shadowmapping_shader);
+                // glCullFace(GL_BACK); // fix shadow acne
+
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
             // reset viewport
@@ -186,7 +284,10 @@ class GameView: public View {
 
             cube_shader.use();
             cube_shader.setMat4("u_lightSpaceMatrix", lightSpaceMatrix);
-            cube_shader.setVec3("u_lightPos", lightPos);
+            cube_shader.setVec3("u_sun_direction", sunDir);
+            cube_shader.setFloat("near_plane", bounds.minZ);
+            cube_shader.setFloat("far_plane", bounds.maxZ);
+
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, _depthMap);
             render_scene(cube_shader);
@@ -200,6 +301,21 @@ class GameView: public View {
                 mesh_shader.setMat4("u_modelMatrix", entity.smooth_transform.getMatrix());
                 entity.draw();
             }
+
+
+            glViewport(_width-_width/3, _height-_height/3, _width/3, _height/3);
+
+            glDisable(GL_DEPTH_TEST);
+            glDisable(GL_CULL_FACE);
+            debugquad_shader.use();
+            debugquad_shader.setInt("depthMap", 0);
+            debugquad_shader.setFloat("near_plane", bounds.minZ);
+            debugquad_shader.setFloat("far_plane", bounds.maxZ);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, _depthMap);
+            glBindVertexArray(_quadVAO);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
 
             gui(dt);
         }
@@ -218,7 +334,6 @@ class GameView: public View {
                 glBindVertexArray(chunk->mesh.VAO);
                 glDrawArrays(GL_TRIANGLES, 0, chunk->mesh.vertex_count);
             }
-
         }
 
         void gui(float dt)
@@ -330,18 +445,24 @@ class GameView: public View {
             glViewport(0, 0, width, height);
             _width = width;
             _height = height;
+            camera.aspect_ratio = (float)width / (float)height;
         }
 
     private:
         Program cube_shader{"./assets/shaders/cube.vs", "./assets/shaders/cube.fs"};
         Program cube_shadowmapping_shader{"./assets/shaders/cube_shadowmap.vs", "./assets/shaders/cube_shadowmap.fs"};
         Program mesh_shader{"./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs"};
+        Program debugquad_shader{"./assets/shaders/debug_quad.vs", "./assets/shaders/debug_quad_depth.fs"};
 
         // Shadow map
-        const uint32_t SHADOW_WIDTH = 4096, SHADOW_HEIGHT = 4096;
+        const uint32_t SHADOW_WIDTH = 2048, SHADOW_HEIGHT = 2048;
         GLuint depthMapFBO;
         GLuint _depthMap;
 
+        GLuint _quadVAO = 0;
+        GLuint _quadVBO;
+
+        glm::vec3 sunDir = glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f));
         // --
 
         TextureManager texture_manager;
@@ -356,7 +477,10 @@ class GameView: public View {
         bool _vsync = true;
 
         // Player
-        FPSCamera camera;
+        FPSCamera camera = {
+            glm::vec3(10.0f, 20.0, 12.0f), 0.0f, 0.0f,
+            60.0f, (float)_width / (float)_height, 0.1f, 20.0f
+        };
 
         BlockType blockInHand = BlockType::Grass;
         float bulkEditRadius = 4.0f;
@@ -370,6 +494,11 @@ class GameView: public View {
 };
 
 /*
+camera = new OrbitCamera(
+    glm::vec3(0.0f), M_PI/4, M_PI/4, 50.0f,
+    60.0f, (float)width / (float)height, 0.1f, 1000.0f
+);
+
 #if 0
     FastNoiseLite noise;
     noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);

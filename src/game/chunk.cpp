@@ -141,13 +141,14 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
     if (mesh.vertex_count == 0) return;
     // std::cout << vertex_count << std::endl;
 
-    GLuint VBO;
+    mesh.is_initialized = true;
+
     glCreateVertexArrays(1, &mesh.VAO);
-    glCreateBuffers(1, &VBO);
+    glCreateBuffers(1, &mesh.VBO);
 
     glCreateBuffers(1, &mesh.ssbo_texture_handles);
 
-    glNamedBufferData(VBO, v.size() * sizeof(GL_FLOAT), &v[0], GL_STATIC_DRAW);
+    glNamedBufferData(mesh.VBO, v.size() * sizeof(GL_FLOAT), &v[0], GL_STATIC_DRAW);
 
     glEnableVertexArrayAttrib(mesh.VAO, 0);
     glVertexArrayAttribBinding(mesh.VAO, 0, 0);
@@ -161,12 +162,10 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
     glVertexArrayAttribBinding(mesh.VAO, 2, 0);
     glVertexArrayAttribFormat(mesh.VAO, 2, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT));
 
-    glVertexArrayVertexBuffer(mesh.VAO, 0, VBO, 0, 6 * sizeof(GL_FLOAT));
+    glVertexArrayVertexBuffer(mesh.VAO, 0, mesh.VBO, 0, 6 * sizeof(GL_FLOAT));
 
     glNamedBufferStorage(mesh.ssbo_texture_handles,
                             sizeof(GLuint64) * textures_handles.size(),
                             (const void *)textures_handles.data(),
                             GL_DYNAMIC_STORAGE_BIT);
-
-    mesh.is_initialized = true;
 }
