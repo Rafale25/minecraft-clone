@@ -1,6 +1,8 @@
 #version 460 core
 #extension GL_ARB_bindless_texture : require
 
+float rand(vec2 co){ return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453); }
+
 layout(binding = 0, std430) readonly buffer ssbo {
     sampler2D texture_handles[];
 };
@@ -31,8 +33,10 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
 {
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+
     // transform to [0,1] range
     projCoords = projCoords * 0.5 + 0.5;
+
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
     float closestDepth = texture(shadowMap, projCoords.xy).r;
 
@@ -41,15 +45,11 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
     if (currentDepth > 1.0) {
         return 0.0;
     }
-    currentDepth = (projCoords.z);
 
     // calculate bias (based on depth map resolution and slope)
     float cosTheta = dot(normal, u_sun_direction);
     float magic_bias_constant = 0.00035;
     float bias = magic_bias_constant*tan(acos(cosTheta));
-
-    // check whether current frag pos is in shadow
-    // float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
 
     // PCF
     float shadow = 0.0;
@@ -57,7 +57,8 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y)
         {
-            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+            vec2 offset = vec2(x, y) + rand(projCoords.xy + vec2(x, y)); // smooth out shadows by using random offsets
+            float pcfDepth = texture(shadowMap, projCoords.xy + offset * texelSize).r;
             shadow += (currentDepth - bias) > pcfDepth  ? 1.0 : 0.0;
         }
     }
@@ -91,7 +92,8 @@ void main()
     // calculate shadow
     float shadow = ShadowCalculation(f_FragPosLightSpace, normal);
 
-    if (dot(normal, u_sun_direction) < 0.0) // if cube face is not facing light, then it's in its own shadow
+    // if cube face is not facing light, then it's in its own shadow
+    if (dot(normal, u_sun_direction) < 0.0)
         shadow = 1.0;
 
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse)) * color.rgb;

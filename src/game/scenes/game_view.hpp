@@ -296,8 +296,8 @@ class GameView: public View {
             }
 
 
+            // -- Draw debug depth buffer quad -- //
             // glViewport(_width-_width/3, _height-_height/3, _width/3, _height/3);
-
             // glDisable(GL_DEPTH_TEST);
             // glDisable(GL_CULL_FACE);
             // debugquad_shader.use();
