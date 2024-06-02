@@ -188,8 +188,15 @@ class GameView: public View {
         {
             client.new_chunks_mutex.lock();
 
-            const int MAX_NEW_CHUNKS_PER_FRAME = 16;
+            const int MAX_NEW_CHUNKS_PER_FRAME = 1;
             int i = 0;
+
+            const glm::vec3 camPos = camera.getPosition();
+            std::sort(client.new_chunks.begin(), client.new_chunks.end(),
+                [this, camPos](const Chunk* l, const Chunk* r)
+                {
+                    return glm::distance2(camPos, glm::vec3(l->pos*16)) > glm::distance2(camPos, glm::vec3(r->pos*16));
+                });
 
             // TODO: make a third thread to compute VBO and then do OpenGL calls on main thread
 
@@ -298,17 +305,17 @@ class GameView: public View {
 
 
             // -- Draw debug depth buffer quad -- //
-            glViewport(_width-_width/3, _height-_height/3, _width/3, _height/3);
-            glDisable(GL_DEPTH_TEST);
-            glDisable(GL_CULL_FACE);
-            debugquad_shader.use();
-            debugquad_shader.setInt("depthMap", 0);
-            debugquad_shader.setFloat("near_plane", bounds.minZ);
-            debugquad_shader.setFloat("far_plane", bounds.maxZ);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, _depthMap);
-            glBindVertexArray(_quadVAO);
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            // glViewport(_width-_width/3, _height-_height/3, _width/3, _height/3);
+            // glDisable(GL_DEPTH_TEST);
+            // glDisable(GL_CULL_FACE);
+            // debugquad_shader.use();
+            // debugquad_shader.setInt("depthMap", 0);
+            // debugquad_shader.setFloat("near_plane", bounds.minZ);
+            // debugquad_shader.setFloat("far_plane", bounds.maxZ);
+            // glActiveTexture(GL_TEXTURE0);
+            // glBindTexture(GL_TEXTURE_2D, _depthMap);
+            // glBindVertexArray(_quadVAO);
+            // glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 
             gui(dt);
@@ -353,7 +360,6 @@ class GameView: public View {
 
             // ImGui::InputFloat3("Sun direction: ", &sunDir.x, "%.2f");
             ImGui::DragFloat3("Sun direction: ", &sunDir.x, 0.01f, -M_PI*2, M_PI*2, "%.2f");
-
             ImGui::SliderFloat("Shadow Bias: ", &_shadow_bias, 0.000001f, 0.1f, "%.6f");
             ImGui::SliderFloat("Shadow Distance: ", &_max_shadow_distance, 0.3f, 500.0f, "%.2f");
 
