@@ -26,14 +26,14 @@ uniform vec3 u_sun_direction;
 uniform vec3 u_view_position;
 
 uniform sampler2D shadowMap;
-uniform float near_plane;
-uniform float far_plane;
+// uniform float near_plane;
+// uniform float far_plane;
 
-float LinearizeDepth(float depth)
-{
-    float z = depth * 2.0 - 1.0; // Back to NDC
-    return (2.0 * near_plane * far_plane) / (far_plane + near_plane - z * (far_plane - near_plane));
-}
+// float LinearizeDepth(float depth)
+// {
+//     float z = depth * 2.0 - 1.0; // Back to NDC
+//     return (2.0 * near_plane * far_plane) / (far_plane + near_plane - z * (far_plane - near_plane));
+// }
 
 
 float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
@@ -44,7 +44,6 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
     projCoords = projCoords * 0.5 + 0.5;
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
     float closestDepth = texture(shadowMap, projCoords.xy).r;
-    closestDepth = (closestDepth);
 
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
@@ -68,7 +67,6 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
         for (int y = -1; y <= 1; ++y)
         {
             float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-            // pcfDepth = LinearizeDepth(pcfDepth);
             shadow += (currentDepth - bias) > pcfDepth  ? 1.0 : 0.0;
         }
     }
@@ -105,11 +103,11 @@ void main()
     // calculate shadow
     float shadow = ShadowCalculation(f_FragPosLightSpace, normal);
 
-    if (dot(normal, u_sun_direction) < 0.0)
+    if (dot(normal, u_sun_direction) < 0.0) // if cube face is not facing light, then it's in its own shadow
         shadow = 1.0;
 
-    // vec3 lighting = (ambient + (1.0 - shadow) * (diffuse)) * color.rgb;
-    vec3 lighting = (ambient + (1.0 - shadow)) * color.rgb;
+    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse)) * color.rgb;
+    // vec3 lighting = (ambient + (1.0 - shadow)) * color.rgb;
 
     FragColor = vec4(lighting, 1.0);
     // FragColor = vec4(normal, 1.0);

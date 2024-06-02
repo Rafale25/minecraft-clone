@@ -257,9 +257,8 @@ class GameView: public View {
 
             // 1. render depth of scene to texture (from light's perspective)
             // --------------------------------------------------------------
-            // glm::mat4 cameraCustomProj = glm::perspective(camera.fov, camera.aspect_ratio, 1.0f, 20.0f);
-            // auto corners = getFrustumCornersWorldSpace(cameraCustomProj, camera.getView());
-            auto corners = getFrustumCornersWorldSpace(camera.getProjection(), camera.getView());
+            glm::mat4 cameraCustomProj = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.3f, 50.0f);
+            auto corners = getFrustumCornersWorldSpace(cameraCustomProj, camera.getView());
 
             glm::mat4 lightViewMatrix = getLighViewMatrix(corners, sunDir);
             FrustumBounds bounds = computeFrustumBounds(lightViewMatrix, corners);
@@ -285,8 +284,8 @@ class GameView: public View {
             cube_shader.use();
             cube_shader.setMat4("u_lightSpaceMatrix", lightSpaceMatrix);
             cube_shader.setVec3("u_sun_direction", sunDir);
-            cube_shader.setFloat("near_plane", bounds.minZ);
-            cube_shader.setFloat("far_plane", bounds.maxZ);
+            // cube_shader.setFloat("near_plane", bounds.minZ);
+            // cube_shader.setFloat("far_plane", bounds.maxZ);
 
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, _depthMap);
@@ -455,7 +454,7 @@ class GameView: public View {
         Program debugquad_shader{"./assets/shaders/debug_quad.vs", "./assets/shaders/debug_quad_depth.fs"};
 
         // Shadow map
-        const uint32_t SHADOW_WIDTH = 2048, SHADOW_HEIGHT = 2048;
+        const uint32_t SHADOW_WIDTH = 4096, SHADOW_HEIGHT = 4096;
         GLuint depthMapFBO;
         GLuint _depthMap;
 
@@ -479,7 +478,7 @@ class GameView: public View {
         // Player
         FPSCamera camera = {
             glm::vec3(10.0f, 20.0, 12.0f), 0.0f, 0.0f,
-            60.0f, (float)_width / (float)_height, 0.1f, 20.0f
+            60.0f, (float)_width / (float)_height, 0.1f, 1000.0f
         };
 
         BlockType blockInHand = BlockType::Grass;
