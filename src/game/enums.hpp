@@ -30,7 +30,7 @@ struct BlockMetadata
 
 extern const BlockMetadata blocksMetadata[];
 
-enum class Texture : int {
+enum class TextureName : int {
     GrassTop,
     GrassSide,
     Dirt,
