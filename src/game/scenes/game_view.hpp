@@ -257,7 +257,7 @@ class GameView: public View {
 
             // 1. render depth of scene to texture (from light's perspective)
             // --------------------------------------------------------------
-            glm::mat4 cameraCustomProj = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.3f, 50.0f);
+            glm::mat4 cameraCustomProj = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.3f, _max_shadow_distance);
             auto corners = getFrustumCornersWorldSpace(cameraCustomProj, camera.getView());
 
             glm::mat4 lightViewMatrix = getLighViewMatrix(corners, sunDir);
@@ -355,6 +355,8 @@ class GameView: public View {
             if (ImGui::Checkbox("VSync", &_vsync)) {
                 ctx.setVsync(_vsync);
             }
+
+            ImGui::SliderFloat("Shadow Distance: ", &_max_shadow_distance, 0.3f, 500.0f, "%.2f");
 
             ImGui::End();
             ctx.imguiRender();
@@ -474,6 +476,7 @@ class GameView: public View {
 
         bool _wireframe = false;
         bool _vsync = true;
+        float _max_shadow_distance = 50.0f;
 
         // Player
         FPSCamera camera = {
