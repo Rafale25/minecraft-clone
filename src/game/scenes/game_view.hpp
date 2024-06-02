@@ -98,6 +98,60 @@ glm::mat4 getLightProjectionMatrix(const glm::mat4& lightView, FrustumBounds& b)
     return glm::ortho(b.minX, b.maxX, b.minY, b.maxY, b.minZ, b.maxZ);
 }
 
+class Texture {
+public:
+    Texture(GLsizei width, GLsizei height, GLenum format, GLenum min_filter, GLenum mag_filter, GLenum wrap) {
+        create(width, height, format, min_filter, mag_filter, wrap);
+    }
+    Texture(GLsizei width, GLsizei height, GLenum format, GLenum min_filter, GLenum mag_filter, GLenum wrap, float borderColor[4]) {
+        create(width, height, format, min_filter, mag_filter, wrap);
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+    }
+
+private:
+    void create(GLsizei width, GLsizei height, GLenum format, GLenum min_filter, GLenum mag_filter, GLenum wrap) {
+        glGenTextures(1, &_texture);
+        glBindTexture(GL_TEXTURE_2D, _texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_FLOAT, NULL); //  replace with DSA version
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
+        // don't unbind
+    }
+
+private:
+    GLuint _texture;
+};
+
+class Framebuffer {
+    public:
+        Framebuffer(GLenum draw, GLenum read) {
+            glGenFramebuffers(1, &_framebuffer);
+            glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+
+            // glNamedFramebufferDrawBuffer()
+            glDrawBuffer(GL_NONE);
+            glReadBuffer(GL_NONE);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        }
+
+        void use() {
+            glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+        }
+
+        void attachTexture(GLuint texture, GLenum attachment) {
+            glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture, 0);
+            // GL_COLOR_ATTACHMENT0 + i
+
+            // glNamedFramebufferTexture(_framebuffer, GL_DEPTH_ATTACHMENT, texture, 0); // DSA
+        }
+
+    private:
+        GLuint _framebuffer;
+};
+
 class GameView: public View {
     public:
         GameView(Context& ctx): View(ctx)
@@ -188,7 +242,7 @@ class GameView: public View {
         {
             client.new_chunks_mutex.lock();
 
-            const int MAX_NEW_CHUNKS_PER_FRAME = 1;
+            const int MAX_NEW_CHUNKS_PER_FRAME = 3;
             int i = 0;
 
             const glm::vec3 camPos = camera.getPosition();
@@ -303,7 +357,6 @@ class GameView: public View {
                 entity.draw();
             }
 
-
             // -- Draw debug depth buffer quad -- //
             // glViewport(_width-_width/3, _height-_height/3, _width/3, _height/3);
             // glDisable(GL_DEPTH_TEST);
@@ -318,7 +371,9 @@ class GameView: public View {
             // glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 
-            gui(dt);
+            if (_show_debug_gui) {
+                gui(dt);
+            }
         }
 
         void render_scene(Program &shader)
@@ -383,6 +438,10 @@ class GameView: public View {
                 // GLFWmonitor* monitor = glfwGetPrimaryMonitor();
                 // const GLFWvidmode* mode = glfwGetVideoMode(monitor);
                 // glfwSetWindowMonitor(ctx.window, monitor, 0, 0, mode->width, mode->height, 0);
+            }
+
+            if (key == GLFW_KEY_P) {
+                _show_debug_gui = !_show_debug_gui;
             }
         }
 
@@ -449,6 +508,7 @@ class GameView: public View {
         void onResize(int width, int height)
         {
             glViewport(0, 0, width, height);
+            // TODO: store width height in context
             _width = width;
             _height = height;
             camera.aspect_ratio = (float)width / (float)height;
@@ -478,8 +538,10 @@ class GameView: public View {
         Client client{world, texture_manager, "51.77.194.124"};
 
         float network_timer = 1.0f;
-        bool _cursorEnable = false;
 
+
+        bool _cursorEnable = false;
+        bool _show_debug_gui = false;
         bool _wireframe = false;
         bool _vsync = true;
         float _max_shadow_distance = 50.0f;
