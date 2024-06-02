@@ -101,51 +101,55 @@ glm::mat4 getLightProjectionMatrix(const glm::mat4& lightView, FrustumBounds& b)
 class Texture {
 public:
     Texture(GLsizei width, GLsizei height, GLenum format, GLenum min_filter, GLenum mag_filter, GLenum wrap) {
-        create(width, height, format, min_filter, mag_filter, wrap);
+        _width = width;
+        _height = height;
+
+        glCreateTextures(GL_TEXTURE_2D, 1, &_texture);
+
+        glTextureParameteri(_texture, GL_TEXTURE_MIN_FILTER, min_filter);
+        glTextureParameteri(_texture, GL_TEXTURE_MAG_FILTER, mag_filter);
+        glTextureParameteri(_texture, GL_TEXTURE_WRAP_S, wrap);
+        glTextureParameteri(_texture, GL_TEXTURE_WRAP_T, wrap);
+
+        glTextureStorage2D(_texture, 1, format, width, height);
     }
     Texture(GLsizei width, GLsizei height, GLenum format, GLenum min_filter, GLenum mag_filter, GLenum wrap, float borderColor[4]) {
-        create(width, height, format, min_filter, mag_filter, wrap);
-        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+        // create(width, height, format, min_filter, mag_filter, wrap);
+        _width = width;
+        _height = height;
+
+        glCreateTextures(GL_TEXTURE_2D, 1, &_texture);
+
+        glTextureParameteri(_texture, GL_TEXTURE_MIN_FILTER, min_filter);
+        glTextureParameteri(_texture, GL_TEXTURE_MAG_FILTER, mag_filter);
+        glTextureParameteri(_texture, GL_TEXTURE_WRAP_S, wrap);
+        glTextureParameteri(_texture, GL_TEXTURE_WRAP_T, wrap);
+        glTextureParameterfv(_texture, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+        glTextureStorage2D(_texture, 1, format, width, height);
     }
 
-private:
-    void create(GLsizei width, GLsizei height, GLenum format, GLenum min_filter, GLenum mag_filter, GLenum wrap) {
-        glGenTextures(1, &_texture);
-        glBindTexture(GL_TEXTURE_2D, _texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_FLOAT, NULL); //  replace with DSA version
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
-        // don't unbind
-    }
 
-private:
+public:
+    GLsizei _width, _height;
     GLuint _texture;
 };
 
 class Framebuffer {
     public:
-        Framebuffer(GLenum draw, GLenum read) {
-            glGenFramebuffers(1, &_framebuffer);
-            glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+        Framebuffer(GLenum draw_buffer, GLenum read_buffer) {
+            glCreateFramebuffers(1, &_framebuffer);
 
-            // glNamedFramebufferDrawBuffer()
-            glDrawBuffer(GL_NONE);
-            glReadBuffer(GL_NONE);
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glNamedFramebufferDrawBuffer(_framebuffer, draw_buffer);
+            glNamedFramebufferReadBuffer(_framebuffer, read_buffer);
         }
 
-        void use() {
+        void bind() {
             glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
         }
 
         void attachTexture(GLuint texture, GLenum attachment) {
-            glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture, 0);
-            // GL_COLOR_ATTACHMENT0 + i
-
-            // glNamedFramebufferTexture(_framebuffer, GL_DEPTH_ATTACHMENT, texture, 0); // DSA
+            glNamedFramebufferTexture(_framebuffer, attachment, texture, 0);
         }
 
     private:
@@ -162,27 +166,11 @@ class GameView: public View {
 
             texture_manager.loadAllTextures();
 
-            // -- Depth FBO
-            glGenFramebuffers(1, &depthMapFBO);
-            glGenTextures(1, &_depthMap);
-            glBindTexture(GL_TEXTURE_2D, _depthMap);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-            float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
-            glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-            glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthMap, 0);
-            glDrawBuffer(GL_NONE);
-            glReadBuffer(GL_NONE);
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            _depthFBO.attachTexture(_depthTexture._texture, GL_DEPTH_ATTACHMENT);
 
             cube_shader.use();
             cube_shader.setInt("shadowMap", 0);
-            // --
+
 
             // renderQuad() renders a 1x1 XY quad in NDC
             // -----------------------------------------
@@ -329,7 +317,7 @@ class GameView: public View {
             cube_shadowmapping_shader.use();
             cube_shadowmapping_shader.setMat4("u_lightSpaceMatrix", lightSpaceMatrix);
             glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-            glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+            _depthFBO.bind();
                 glClear(GL_DEPTH_BUFFER_BIT);
                 render_scene(cube_shadowmapping_shader);
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -343,8 +331,7 @@ class GameView: public View {
             cube_shader.setVec3("u_sun_direction", sunDir);
             cube_shader.setFloat("u_shadow_bias", _shadow_bias);
 
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, _depthMap);
+            glBindTextureUnit(0, _depthTexture._texture);
             render_scene(cube_shader);
 
             mesh_shader.use();
@@ -463,7 +450,7 @@ class GameView: public View {
         }
 
         void onMousePress(int x, int y, int button) {
-            if (ImGui::GetIO().WantCaptureMouse) return;
+            if (_show_debug_gui && ImGui::GetIO().WantCaptureMouse) return;
 
             if (button == GLFW_MOUSE_BUTTON_LEFT) {
                 if (ctx.keyState[GLFW_KEY_LEFT_ALT])
@@ -480,7 +467,7 @@ class GameView: public View {
 
         void onMouseDrag(int x, int y, int dx, int dy)
         {
-            if (ImGui::GetIO().WantCaptureMouse) return;
+            if (_show_debug_gui && ImGui::GetIO().WantCaptureMouse) return;
 
             // camera.setYaw( camera.getYaw() - (dx * 0.005f) );
             // camera.setPitch( camera.getPitch() + (dy * 0.005f) );
@@ -521,15 +508,16 @@ class GameView: public View {
         Program debugquad_shader{"./assets/shaders/debug_quad.vs", "./assets/shaders/debug_quad_depth.fs"};
 
         // Shadow map
-        const uint32_t SHADOW_WIDTH = 4096, SHADOW_HEIGHT = 4096;
-        GLuint depthMapFBO;
-        GLuint _depthMap;
+        const GLsizei SHADOW_WIDTH = 4096, SHADOW_HEIGHT = 4096;
+        float borderColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+        Framebuffer _depthFBO{GL_NONE, GL_NONE};
+        Texture _depthTexture{SHADOW_WIDTH, SHADOW_HEIGHT, GL_DEPTH_COMPONENT24, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_BORDER, borderColor};
 
         GLuint _quadVAO = 0;
         GLuint _quadVBO;
 
         glm::vec3 sunDir = glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f));
-        float _shadow_bias = 0.000175f;// 0.00035f;
+        float _shadow_bias = 0.000175f;
         // --
 
         TextureManager texture_manager;
@@ -568,61 +556,4 @@ camera = new OrbitCamera(
     glm::vec3(0.0f), M_PI/4, M_PI/4, 50.0f,
     60.0f, (float)width / (float)height, 0.1f, 1000.0f
 );
-
-#if 0
-    FastNoiseLite noise;
-    noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
-
-    int SIZE_X = 8;
-    int SIZE_Y = 1;
-    int SIZE_Z = 8;
-    for (int x = -SIZE_X ; x < SIZE_X ; ++x) {
-    for (int y = -SIZE_Y ; y < SIZE_Y ; ++y) {
-    for (int z = -SIZE_Z ; z < SIZE_Z ; ++z) {
-        Chunk c = generateChunkWithNoise({x, y, z}, noise, world, texture_manager);
-        world.chunks[c.pos] = c;
-    }
-    }
-    }
-#endif
-
-
-#include "FastNoiseLite.h"
-
-Chunk generateChunkWithNoise(glm::ivec3 pos, FastNoiseLite &noise, World &world, TextureManager &texture_manager)
-{
-    Chunk chunk;
-    chunk.pos = pos;
-
-    glm::vec3 chunkPosWorld = pos * 16;
-
-    for (int z = 0 ; z < 16 ; ++z) {
-    for (int x = 0 ; x < 16 ; ++x) {
-        int height = 1.0f + (noise.GetNoise(chunkPosWorld.x + x, chunkPosWorld.z + z) * 0.5f + 0.5f) * 15.0f;
-
-        for (int y = 0 ; y < 16 ; ++y) {
-            int index = z * 16*16 + y * 16 + x;
-
-            float world_y = chunkPosWorld.y + y;
-
-            if (world_y == height)
-                chunk.blocks[index] = BlockType::Grass;
-            else if (world_y < height)
-                chunk.blocks[index] = BlockType::Dirt;
-            else
-                chunk.blocks[index] = BlockType::Air;
-
-            // chunk.blocks[index] = BlockType::Grass;
-            // chunk.blocks[index] = chunkPosWorld.y + y < height ? BlockType::Grass : BlockType::Air;
-            // chunk.blocks[index] = rand() % 3 == 0 ? BlockType::Grass : BlockType::Air;
-        }
-    }
-    }
-
-    chunk.computeChunckVAO(world, texture_manager);
-
-    return chunk;
-}
-
-
 */
