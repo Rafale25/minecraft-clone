@@ -270,11 +270,7 @@ class GameView: public View {
             glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
             glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
                 glClear(GL_DEPTH_BUFFER_BIT);
-
-                // glCullFace(GL_FRONT); // fix shadow acne
                 render_scene(cube_shadowmapping_shader);
-                // glCullFace(GL_BACK); // fix shadow acne
-
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
             // reset viewport
@@ -300,18 +296,18 @@ class GameView: public View {
             }
 
 
-            glViewport(_width-_width/3, _height-_height/3, _width/3, _height/3);
+            // glViewport(_width-_width/3, _height-_height/3, _width/3, _height/3);
 
-            glDisable(GL_DEPTH_TEST);
-            glDisable(GL_CULL_FACE);
-            debugquad_shader.use();
-            debugquad_shader.setInt("depthMap", 0);
-            debugquad_shader.setFloat("near_plane", bounds.minZ);
-            debugquad_shader.setFloat("far_plane", bounds.maxZ);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, _depthMap);
-            glBindVertexArray(_quadVAO);
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            // glDisable(GL_DEPTH_TEST);
+            // glDisable(GL_CULL_FACE);
+            // debugquad_shader.use();
+            // debugquad_shader.setInt("depthMap", 0);
+            // debugquad_shader.setFloat("near_plane", bounds.minZ);
+            // debugquad_shader.setFloat("far_plane", bounds.maxZ);
+            // glActiveTexture(GL_TEXTURE0);
+            // glBindTexture(GL_TEXTURE_2D, _depthMap);
+            // glBindVertexArray(_quadVAO);
+            // glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 
             gui(dt);

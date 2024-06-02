@@ -74,7 +74,6 @@ void main()
 {
     vec4 color = texture(sampler2D(texture_handles[f_faceId]), f_uv).rgba;
     vec3 normal = orientation_normal_table[f_orientation];
-
     vec3 lightColor = vec3(255.0, 244.0, 196.0) / 255.0;
 
     // ambient
@@ -84,8 +83,6 @@ void main()
     // diffuse
     float diff = max(dot(normal, u_sun_direction), 0.0);
     vec3 diffuse = diff * lightColor;
-
-    // vec3 result = (ambient + diffuse) * color.rgb;
 
     if (color.a < 0.65) { // magic value
         discard;
