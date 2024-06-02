@@ -25,6 +25,6 @@ void main()
     f_frag_pos = world_pos;
     f_uv = a_uv;
     f_orientation = int(a_orientation);
-    f_faceId = gl_VertexID / 6;
+    f_faceId = gl_VertexID / 4; // TODO: don't forget to change
     gl_Position = position;
 }

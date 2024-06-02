@@ -3,18 +3,19 @@
 #include <glad/gl.h>
 
 struct ChunkMesh {
-    GLuint VAO;
-    GLuint VBO;
+    GLuint VAO, VBO, EBO;
     GLuint ssbo_texture_handles;
-    uint32_t vertex_count;
+    // uint32_t vertex_count;
+    size_t indices_count;
     bool is_initialized;
 
-    ChunkMesh(): is_initialized(false) {}
+    ChunkMesh(): indices_count(0), is_initialized(false) {}
 
     void delete_all()
     {
         glDeleteVertexArrays(1, &VAO);
         glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
         glDeleteBuffers(1, &ssbo_texture_handles);
 
         is_initialized = false;

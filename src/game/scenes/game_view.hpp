@@ -375,7 +375,8 @@ class GameView: public View {
                 shader.setVec3("u_chunkPos", chunk->pos * 16);
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk->mesh.ssbo_texture_handles);
                 glBindVertexArray(chunk->mesh.VAO);
-                glDrawArrays(GL_TRIANGLES, 0, chunk->mesh.vertex_count);
+                glDrawElements(GL_TRIANGLES, chunk->mesh.indices_count, GL_UNSIGNED_INT, 0);
+                // glDrawArrays(GL_TRIANGLES, 0, chunk->mesh.vertex_count);
             }
         }
 
