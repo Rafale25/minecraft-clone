@@ -26,6 +26,7 @@ out vec4 FragColor;
 
 uniform vec3 u_sun_direction;
 uniform vec3 u_view_position;
+uniform float u_shadow_bias;
 
 uniform sampler2D shadowMap;
 
@@ -47,8 +48,8 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
     }
 
     // calculate bias (based on depth map resolution and slope)
-    float cosTheta = dot(normal, u_sun_direction);
-    float magic_bias_constant = 0.00035;
+    float cosTheta = dot(normal, normalize(u_sun_direction));
+    float magic_bias_constant = u_shadow_bias;// 0.00035;
     float bias = magic_bias_constant*tan(acos(cosTheta));
 
     // PCF
@@ -82,7 +83,7 @@ void main()
     vec3 ambient = ambientStrength * lightColor;
 
     // diffuse
-    float diff = max(dot(normal, u_sun_direction), 0.0);
+    float diff = max(dot(normal, normalize(u_sun_direction)), 0.0);
     vec3 diffuse = diff * lightColor;
 
     if (color.a < 0.65) { // magic value
@@ -96,6 +97,7 @@ void main()
     if (dot(normal, u_sun_direction) < 0.0)
         shadow = 1.0;
 
+    // vec3 lighting = (ambient + diffuse) * color.rgb;
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse)) * color.rgb;
     // vec3 lighting = (ambient + (1.0 - shadow)) * color.rgb;
 
