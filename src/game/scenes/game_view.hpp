@@ -284,8 +284,6 @@ class GameView: public View {
             cube_shader.use();
             cube_shader.setMat4("u_lightSpaceMatrix", lightSpaceMatrix);
             cube_shader.setVec3("u_sun_direction", sunDir);
-            // cube_shader.setFloat("near_plane", bounds.minZ);
-            // cube_shader.setFloat("far_plane", bounds.maxZ);
 
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, _depthMap);
