@@ -313,6 +313,9 @@ class GameView: public View {
             FrustumBounds bounds = computeFrustumBounds(lightViewMatrix, corners);
             glm::mat4 lightProjectionMatrix = getLightProjectionMatrix(lightViewMatrix, bounds);
             glm::mat4 lightSpaceMatrix = lightProjectionMatrix * lightViewMatrix;
+            // https://learn.microsoft.com/en-us/windows/win32/dxtecharts/common-techniques-to-improve-shadow-depth-maps?redirectedfrom=MSDN
+            // https://chetanjags.wordpress.com/2015/02/05/real-time-shadows-cascaded-shadow-maps/
+            // https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering
 
             cube_shadowmapping_shader.use();
             cube_shadowmapping_shader.setMat4("u_lightSpaceMatrix", lightSpaceMatrix);
