@@ -30,6 +30,7 @@ class Context {
     public:
         GLFWwindow* window;
         int keyState[GLFW_KEY_LAST] = {0};
+        int width, height;
 
     private:
         View* _current_view;

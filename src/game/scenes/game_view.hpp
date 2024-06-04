@@ -161,8 +161,6 @@ class GameView: public View {
         GameView(Context& ctx): View(ctx)
         {
             glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            glfwGetWindowSize(ctx.window, &_width, &_height);
-            onResize(_width, _height);
 
             texture_manager.loadAllTextures();
 
@@ -326,7 +324,7 @@ class GameView: public View {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
             // reset viewport
-            glViewport(0, 0, _width, _height);
+            glViewport(0, 0, ctx.width, ctx.height);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             cube_shader.use();
@@ -379,7 +377,6 @@ class GameView: public View {
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk->mesh.ssbo_texture_handles);
                 glBindVertexArray(chunk->mesh.VAO);
                 glDrawElements(GL_TRIANGLES, chunk->mesh.indices_count, GL_UNSIGNED_INT, 0);
-                // glDrawArrays(GL_TRIANGLES, 0, chunk->mesh.vertex_count);
             }
         }
 
@@ -499,10 +496,9 @@ class GameView: public View {
         void onResize(int width, int height)
         {
             glViewport(0, 0, width, height);
-            // TODO: store width height in context
-            _width = width;
-            _height = height;
             camera.aspect_ratio = (float)width / (float)height;
+
+            printf("%d %d\n", width, height);
         }
 
     private:
@@ -541,7 +537,7 @@ class GameView: public View {
         // Player
         FPSCamera camera = {
             glm::vec3(10.0f, 20.0, 12.0f), 0.0f, 0.0f,
-            60.0f, (float)_width / (float)_height, 0.1f, 1000.0f
+            60.0f, (float)ctx.width / (float)ctx.height, 0.1f, 1000.0f
         };
 
         BlockType blockInHand = BlockType::Grass;
@@ -551,8 +547,6 @@ class GameView: public View {
         glm::vec3 raycastNormal;
         glm::ivec3 raycastWorldPos;
         // -- //
-
-        int _width, _height;
 };
 
 /*

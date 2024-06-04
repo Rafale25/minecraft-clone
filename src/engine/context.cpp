@@ -123,6 +123,10 @@ void Context::show_view(View *view)
     _current_view->onHideView();
     _current_view = view;
     view->onShowView();
+
+    // call resize callback on first frame
+    glfwGetWindowSize(window, &width, &height);
+    framebuffer_size_callback(window, width, height);
 }
 
 void Context::setVsync(int value)
@@ -194,5 +198,7 @@ void Context::framebuffer_size_callback(GLFWwindow* window, int width, int heigh
 {
     Context* ctx = (Context*)glfwGetWindowUserPointer(window);
 
+    ctx->width = width;
+    ctx->height = height;
     ctx->_current_view->onResize(width, height);
 }
