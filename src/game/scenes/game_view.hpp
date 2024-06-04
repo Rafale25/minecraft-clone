@@ -13,6 +13,103 @@
 #include "imgui.h"
 #include <algorithm>
 
+class Brush {
+    public:
+        enum Shape {
+            SPHERE,
+            CUBE,
+            RAY
+        };
+
+        enum Action {
+            PLACE = 0,
+            PAINT = 1,
+            PAINT_RANDOMIZE = 2,
+            RANDOMIZE = 3,
+        };
+
+    public:
+        Brush(World& world, Client& client): _world(world), _client(client) {};
+
+        void brush(Shape shape, Action action, BlockType blocktype, glm::vec3 center, int size) {
+            std::vector<glm::ivec3> block_pos;
+            std::vector<BlockType> block_types;
+
+            switch (shape) {
+                case SPHERE:
+                    block_pos = getBlocksSphere(center, size);
+                    break;
+                case CUBE:
+                    block_pos = getBlocksCube(center, size);
+                    break;
+                case RAY:
+                    break;
+            }
+
+            switch (action) {
+                case PLACE:
+                    block_types = std::vector<BlockType>(block_pos.size(), blocktype);
+                    break;
+                case PAINT: {
+                    std::vector<glm::ivec3> filtered_block_pos;
+                    std::copy_if (block_pos.begin(), block_pos.end(), std::back_inserter(filtered_block_pos), [this](glm::ivec3 pos) {return _world.get_block(pos) != BlockType::Air ;} );
+                    block_pos = filtered_block_pos;
+                    block_types = std::vector<BlockType>(block_pos.size(), blocktype);
+                    break;
+                }
+                case PAINT_RANDOMIZE: {
+                    std::vector<glm::ivec3> filtered_block_pos;
+                    std::copy_if (block_pos.begin(), block_pos.end(), std::back_inserter(filtered_block_pos), [this](glm::ivec3 pos) {return _world.get_block(pos) != BlockType::Air ;} );
+                    block_pos = filtered_block_pos;
+
+                    block_types = std::vector<BlockType>(block_pos.size(), BlockType::Air);
+                    for (int i = 0 ; i < block_pos.size() ; ++i) {
+                        block_types[i] = (BlockType) ((rand() % ((int)BlockType::LAST-1)) + 1);
+                    }
+                    break;
+                }
+                case RANDOMIZE:
+                    break;
+            }
+
+            _client.sendBlockBulkEditPacket(block_pos, block_types);
+        }
+
+    private:
+        std::vector<glm::ivec3> getBlocksSphere(glm::ivec3 position, int size) {
+            std::vector<glm::ivec3> positions;
+
+            int iradius = int(size);
+            for (int x = -iradius ; x <= iradius ; ++x) {
+            for (int y = -iradius ; y <= iradius ; ++y) {
+            for (int z = -iradius ; z <= iradius ; ++z) {
+                glm::ivec3 wpos = position + glm::ivec3{x, y, z};
+                if (glm::distance2(glm::vec3(position), glm::vec3(wpos)) > size*size) continue;
+                positions.push_back(wpos);
+            }}}
+
+            return positions;
+        }
+
+        std::vector<glm::ivec3> getBlocksCube(glm::ivec3 position, int size) {
+            std::vector<glm::ivec3> positions;
+
+            for (int x = -size ; x <= size ; ++x) {
+            for (int y = -size ; y <= size ; ++y) {
+            for (int z = -size ; z <= size ; ++z) {
+                glm::ivec3 wpos = position + glm::ivec3{x, y, z};
+                positions.push_back(wpos);
+            }}}
+
+            return positions;
+        }
+
+    private:
+        World& _world;
+        Client& _client;
+};
+
+
 std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view)
 {
     const auto inv = glm::inverse(proj * view);
@@ -228,7 +325,7 @@ class GameView: public View {
         {
             client.new_chunks_mutex.lock();
 
-            const int MAX_NEW_CHUNKS_PER_FRAME = 3;
+            const int MAX_NEW_CHUNKS_PER_FRAME = 1;
             int i = 0;
 
             const glm::vec3 camPos = camera.getPosition();
@@ -406,6 +503,12 @@ class GameView: public View {
             ImGui::SliderFloat("Shadow Bias: ", &_shadow_bias, 0.000001f, 0.1f, "%.6f");
             ImGui::SliderFloat("Shadow Distance: ", &_max_shadow_distance, 0.3f, 500.0f, "%.2f");
 
+            const char* const shapes[] {"Sphere", "Cube"};
+            ImGui::Combo("Block Shapes: ", (int*)&current_brush_shape, shapes, 2);
+
+            const char* const actions[] {"Place", "Paint", "Paint Randomize"};
+            ImGui::Combo("Block Action: ", (int*)&current_brush_action, actions, 3);
+
             ImGui::End();
             ctx.imguiRender();
         }
@@ -433,34 +536,36 @@ class GameView: public View {
             }
         }
 
-        void placeSphere(glm::ivec3 pos, float radius, BlockType blocktype)
-        {
-            std::vector<glm::ivec3> positions;
+        // void placeSphere(glm::ivec3 pos, float radius, BlockType blocktype)
+        // {
+        //     std::vector<glm::ivec3> positions;
 
-            int iradius = int(radius);
-            for (int x = -iradius ; x <= iradius ; ++x) {
-            for (int y = -iradius ; y <= iradius ; ++y) {
-            for (int z = -iradius ; z <= iradius ; ++z) {
-                glm::ivec3 wpos = pos + glm::ivec3{x, y, z};
-                if (glm::distance2(glm::vec3(pos), glm::vec3(wpos)) > radius*radius) continue;
-                positions.push_back(wpos);
-            }
-            }
-            }
-            client.sendBlockBulkEditPacket(positions, blocktype);
-        }
+        //     int iradius = int(radius);
+        //     for (int x = -iradius ; x <= iradius ; ++x) {
+        //     for (int y = -iradius ; y <= iradius ; ++y) {
+        //     for (int z = -iradius ; z <= iradius ; ++z) {
+        //         glm::ivec3 wpos = pos + glm::ivec3{x, y, z};
+        //         if (glm::distance2(glm::vec3(pos), glm::vec3(wpos)) > radius*radius) continue;
+        //         positions.push_back(wpos);
+        //     }
+        //     }
+        //     }
+        //     client.sendBlockBulkEditPacket(positions, blocktype);
+        // }
+
+
 
         void onMousePress(int x, int y, int button) {
             if (_show_debug_gui && ImGui::GetIO().WantCaptureMouse) return;
 
             if (button == GLFW_MOUSE_BUTTON_LEFT) {
                 if (ctx.keyState[GLFW_KEY_LEFT_ALT])
-                    placeSphere(raycastWorldPos, bulkEditRadius, BlockType::Air);
+                    brush.brush(current_brush_shape, current_brush_action, BlockType::Air, raycastWorldPos, bulkEditRadius);
                 else
                     client.sendBreakBlockPacket(raycastWorldPos);
             } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
                 if (ctx.keyState[GLFW_KEY_LEFT_ALT])
-                    placeSphere(raycastWorldPos, bulkEditRadius, blockInHand);
+                    brush.brush(current_brush_shape, current_brush_action, blockInHand, raycastWorldPos, bulkEditRadius);
                 else
                     client.sendPlaceBlockPacket(raycastWorldPos + glm::ivec3(raycastNormal), blockInHand);
             }
@@ -521,6 +626,7 @@ class GameView: public View {
         TextureManager texture_manager;
 
         World world;
+
         Client client{world, texture_manager, "51.77.194.124"};
 
         float network_timer = 1.0f;
@@ -537,6 +643,11 @@ class GameView: public View {
             glm::vec3(10.0f, 20.0, 12.0f), 0.0f, 0.0f,
             60.0f, (float)ctx.width / (float)ctx.height, 0.1f, 1000.0f
         };
+
+        Brush brush{world, client};
+
+        Brush::Shape current_brush_shape = Brush::Shape::SPHERE;
+        Brush::Action current_brush_action = Brush::Action::PLACE;
 
         BlockType blockInHand = BlockType::Grass;
         float bulkEditRadius = 4.0f;
