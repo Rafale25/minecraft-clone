@@ -497,8 +497,6 @@ class GameView: public View {
         {
             glViewport(0, 0, width, height);
             camera.aspect_ratio = (float)width / (float)height;
-
-            printf("%d %d\n", width, height);
         }
 
     private:
