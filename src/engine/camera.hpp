@@ -6,6 +6,8 @@
 #include <glm/gtx/rotate_vector.hpp>
 // #include <glm/gtc/matrix_transform.hpp>
 
+#include "lerp.hpp"
+
 class Camera {
     public:
         Camera() {}
@@ -161,11 +163,11 @@ class FPSCamera: public Camera {
             _position += _movement * _speed * dt;
             _movement = glm::vec3(0.0f);
 
-            _smoothYaw = glm::mix(_smoothYaw, _yaw, 0.5f);
-            _smoothPitch = glm::mix(_smoothPitch, _pitch, 0.5f);
-            _smoothRoll = glm::mix(_smoothRoll, _roll, 0.5f);
+            _smoothYaw = expDecay(_smoothYaw, _yaw, 50.0f, dt);
+            _smoothPitch = expDecay(_smoothPitch, _pitch, 50.0f, dt);
+            _smoothRoll = expDecay(_smoothRoll, _roll, 50.0f, dt);
 
-            _smoothPosition = glm::mix(_smoothPosition, _position, 0.3f);
+            _smoothPosition = expDecay(_smoothPosition, _position, 16.0f, dt);
         }
 
         void move(glm::vec3 direction)
