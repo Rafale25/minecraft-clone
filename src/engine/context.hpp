@@ -5,6 +5,8 @@
 
 class View;
 
+// TODO: separate view from context (make a ViewManager)
+
 class Context {
     public:
         Context(int width, int height, const char *title, int maximized=GL_FALSE, int samples=4);

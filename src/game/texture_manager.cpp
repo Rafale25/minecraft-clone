@@ -1,5 +1,5 @@
 #include "texture_manager.hpp"
-#include "texture.hpp"
+#include "loadtexture.hpp"
 
 void TextureManager::loadAllTextures()
 {

@@ -5,7 +5,6 @@
 struct ChunkMesh {
     GLuint VAO, VBO, EBO;
     GLuint ssbo_texture_handles;
-    // uint32_t vertex_count;
     size_t indices_count;
     bool is_initialized;
 

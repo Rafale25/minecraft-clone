@@ -10,6 +10,10 @@
 #include "entity.hpp"
 #include "world.hpp"
 
+#include "texture.hpp"
+#include "framebuffer.hpp"
+#include "geometry.hpp"
+
 #include "imgui.h"
 #include <algorithm>
 
@@ -98,63 +102,8 @@ glm::mat4 getLightProjectionMatrix(const glm::mat4& lightView, FrustumBounds& b)
     return glm::ortho(b.minX, b.maxX, b.minY, b.maxY, b.minZ, b.maxZ);
 }
 
-class Texture {
-public:
-    Texture(GLsizei width, GLsizei height, GLenum format, GLenum min_filter, GLenum mag_filter, GLenum wrap) {
-        _width = width;
-        _height = height;
-
-        glCreateTextures(GL_TEXTURE_2D, 1, &_texture);
-
-        glTextureParameteri(_texture, GL_TEXTURE_MIN_FILTER, min_filter);
-        glTextureParameteri(_texture, GL_TEXTURE_MAG_FILTER, mag_filter);
-        glTextureParameteri(_texture, GL_TEXTURE_WRAP_S, wrap);
-        glTextureParameteri(_texture, GL_TEXTURE_WRAP_T, wrap);
-
-        glTextureStorage2D(_texture, 1, format, width, height);
-    }
-    Texture(GLsizei width, GLsizei height, GLenum format, GLenum min_filter, GLenum mag_filter, GLenum wrap, float borderColor[4]) {
-        // create(width, height, format, min_filter, mag_filter, wrap);
-        _width = width;
-        _height = height;
-
-        glCreateTextures(GL_TEXTURE_2D, 1, &_texture);
-
-        glTextureParameteri(_texture, GL_TEXTURE_MIN_FILTER, min_filter);
-        glTextureParameteri(_texture, GL_TEXTURE_MAG_FILTER, mag_filter);
-        glTextureParameteri(_texture, GL_TEXTURE_WRAP_S, wrap);
-        glTextureParameteri(_texture, GL_TEXTURE_WRAP_T, wrap);
-        glTextureParameterfv(_texture, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-        glTextureStorage2D(_texture, 1, format, width, height);
-    }
 
 
-public:
-    GLsizei _width, _height;
-    GLuint _texture;
-};
-
-class Framebuffer {
-    public:
-        Framebuffer(GLenum draw_buffer, GLenum read_buffer) {
-            glCreateFramebuffers(1, &_framebuffer);
-
-            glNamedFramebufferDrawBuffer(_framebuffer, draw_buffer);
-            glNamedFramebufferReadBuffer(_framebuffer, read_buffer);
-        }
-
-        void bind() {
-            glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
-        }
-
-        void attachTexture(GLuint texture, GLenum attachment) {
-            glNamedFramebufferTexture(_framebuffer, attachment, texture, 0);
-        }
-
-    private:
-        GLuint _framebuffer;
-};
 
 class GameView: public View {
     public:
@@ -169,27 +118,6 @@ class GameView: public View {
             cube_shader.use();
             cube_shader.setInt("shadowMap", 0);
 
-
-            // renderQuad() renders a 1x1 XY quad in NDC
-            // -----------------------------------------
-            float quadVertices[] = {
-                // positions        // texture Coords
-                -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-                -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-                1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-                1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-            };
-            // setup plane VAO
-            glGenVertexArrays(1, &_quadVAO);
-            glGenBuffers(1, &_quadVBO);
-            glBindVertexArray(_quadVAO);
-            glBindBuffer(GL_ARRAY_BUFFER, _quadVBO);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-            // -----------------------------------------
 
             client.Start();
         }
@@ -345,23 +273,19 @@ class GameView: public View {
                 entity.draw();
             }
 
-            // -- Draw debug depth buffer quad -- //
-            // glViewport(_width-_width/3, _height-_height/3, _width/3, _height/3);
-            // glDisable(GL_DEPTH_TEST);
-            // glDisable(GL_CULL_FACE);
-            // debugquad_shader.use();
-            // debugquad_shader.setInt("depthMap", 0);
-            // debugquad_shader.setFloat("near_plane", bounds.minZ);
-            // debugquad_shader.setFloat("far_plane", bounds.maxZ);
-            // glActiveTexture(GL_TEXTURE0);
-            // glBindTexture(GL_TEXTURE_2D, _depthMap);
-            // glBindVertexArray(_quadVAO);
-            // glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            glViewport(ctx.width-ctx.width/3, ctx.height-ctx.height/3, ctx.width/3, ctx.height/3);
+            glDisable(GL_DEPTH_TEST);
+            glDisable(GL_CULL_FACE);
+            debugquad_shader.use();
+            debugquad_shader.setInt("depthMap", 0);
+            debugquad_shader.setFloat("near_plane", bounds.minZ);
+            debugquad_shader.setFloat("far_plane", bounds.maxZ);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, _depthTexture._texture);
+            _debugQuad.draw();
 
 
-            if (_show_debug_gui) {
-                gui(dt);
-            }
+            if (_show_debug_gui) gui(dt);
         }
 
         void render_scene(Program &shader)
@@ -469,18 +393,10 @@ class GameView: public View {
         void onMouseDrag(int x, int y, int dx, int dy)
         {
             if (_show_debug_gui && ImGui::GetIO().WantCaptureMouse) return;
-
-            // camera.setYaw( camera.getYaw() - (dx * 0.005f) );
-            // camera.setPitch( camera.getPitch() + (dy * 0.005f) );
         }
 
         void onMouseScroll(int scroll_x, int scroll_y)
         {
-            // float scale = 1.0f;
-            // if (ctx.keyState[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS)
-            //     scale = 8.0f;
-            // camera.setDistance( camera.getDistance() - (scroll_y * scale) );
-
             int block = ((int)blockInHand + scroll_y) % ((int)BlockType::LAST-1);
             if (block < 1)
                 block += (int)BlockType::LAST-1;
@@ -507,13 +423,11 @@ class GameView: public View {
 
         // Shadow map
         const GLsizei SHADOW_WIDTH = 4096, SHADOW_HEIGHT = 4096;
-        float borderColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+        const float borderColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
         Framebuffer _depthFBO{GL_NONE, GL_NONE};
         Texture _depthTexture{SHADOW_WIDTH, SHADOW_HEIGHT, GL_DEPTH_COMPONENT24, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_BORDER, borderColor};
 
-        GLuint _quadVAO = 0;
-        GLuint _quadVBO;
-
+        Mesh _debugQuad = Geometry::quad_2d();
         glm::vec3 sunDir = glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f));
         float _shadow_bias = 0.000175f;
         // --
@@ -530,7 +444,7 @@ class GameView: public View {
         bool _show_debug_gui = false;
         bool _wireframe = false;
         bool _vsync = true;
-        float _max_shadow_distance = 50.0f;
+        float _max_shadow_distance = 120.0f;
 
         // Player
         FPSCamera camera = {

@@ -13,9 +13,6 @@ struct Chunk
 {
     glm::ivec3 pos;
     ChunkMesh mesh;
-    // GLuint VAO;
-    // GLuint ssbo_texture_handles;
-    // uint vertex_count;
 
     // Note: this is not a pointer, it gets copied
     BlockType blocks[4096]; // 16x16x16

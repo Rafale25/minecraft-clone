@@ -18,6 +18,8 @@ set(SRC_FILES
     ./src/engine/gl.c
     ./src/engine/stb_image.cpp
     ./src/engine/context.cpp
+    ./src/engine/texture.cpp
+    ./src/engine/framebuffer.cpp
     ./src/game/chunk.cpp
     ./src/game/client.cpp
     ./src/game/texture_manager.cpp
