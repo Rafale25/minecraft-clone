@@ -158,6 +158,13 @@ class FPSCamera: public Camera {
             return _smoothPosition;
         }
 
+        void setPosition(glm::vec3 p)
+        {
+            _position = p;
+            _smoothPosition = p;
+        }
+
+
         void update(float dt)
         {
             _position += _movement * _speed * dt;
