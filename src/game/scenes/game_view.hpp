@@ -116,6 +116,8 @@ class GameView: public View {
 
             texture_manager.loadAllTextures();
 
+            GLint swizzle[4] = { GL_RED, GL_RED, GL_RED, GL_ONE };
+            glTextureParameteriv(_depthTexture._texture, GL_TEXTURE_SWIZZLE_RGBA, swizzle); // to make the texture grayscale in imgui
             _depthFBO.attachTexture(_depthTexture._texture, GL_DEPTH_ATTACHMENT);
 
             cube_shader.use();
@@ -313,6 +315,9 @@ class GameView: public View {
             ctx.imguiNewFrame();
             // ImGui::ShowDemoWindow();
 
+            ImGui::Begin("Shadow map");
+            ImGui::Image((ImTextureID)_depthTexture._texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::End();
 
             ImGui::Begin("Debug");
 
