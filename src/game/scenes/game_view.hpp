@@ -16,6 +16,9 @@
 
 #include "imgui.h"
 #include <algorithm>
+#include <string>
+
+#include "string_helpers.hpp"
 
 std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view)
 {
@@ -306,18 +309,34 @@ class GameView: public View {
 
         void gui(float dt)
         {
+
             ctx.imguiNewFrame();
+            // ImGui::ShowDemoWindow();
+
+
             ImGui::Begin("Debug");
 
             ImGui::Text("%.4f secs", dt);
             ImGui::Text("%.2f fps", 1.0f / dt);
 
             glm::vec3 camera_pos = camera.getPosition();
-            ImGui::Text("center: %.2f, %.2f, %.2f", camera_pos.x, camera_pos.y, camera_pos.z);
+            ImGui::Text("position: %.2f, %.2f, %.2f", camera_pos.x, camera_pos.y, camera_pos.z);
             ImGui::Text("forward: %.2f, %.2f, %.2f", camera.forward.x, camera.forward.y, camera.forward.z);
             ImGui::Text("block in hand: %d", (int)blockInHand);
-            ImGui::Text("yaw: %.2f", camera.getYaw());
-            ImGui::Text("pitch: %.2f", camera.getPitch());
+
+            if (ImGui::TreeNode(SC("Entities: " << world.entities.size()))) {
+                for (auto& entity : world.entities) {
+                    ImGui::PushID(entity.id);
+                    ImGui::Text("id:%d: x:%.2f y:%.2f z:%.2f", entity.id, entity.transform.position.x, entity.transform.position.y, entity.transform.position.z);
+                    ImGui::SameLine();
+                    if (ImGui::Button("teleport")) {
+                        set_player_position(entity.transform.position);
+                    }
+                    ImGui::PopID();
+                }
+                ImGui::TreePop();
+            }
+
 
             ImGui::SliderFloat("Bulk Edit Radius: ", &bulkEditRadius, 1.0f, 32.0f, "%.2f");
             ImGui::Checkbox("Wireframe", &_wireframe);
@@ -332,6 +351,27 @@ class GameView: public View {
 
             ImGui::End();
             ctx.imguiRender();
+        }
+
+        void placeSphere(glm::ivec3 pos, float radius, BlockType blocktype)
+        {
+            std::vector<glm::ivec3> positions;
+
+            int iradius = int(radius);
+            for (int x = -iradius ; x <= iradius ; ++x) {
+            for (int y = -iradius ; y <= iradius ; ++y) {
+            for (int z = -iradius ; z <= iradius ; ++z) {
+                glm::ivec3 wpos = pos + glm::ivec3{x, y, z};
+                if (glm::distance2(glm::vec3(pos), glm::vec3(wpos)) > radius*radius) continue;
+                positions.push_back(wpos);
+            }
+            }
+            }
+            client.sendBlockBulkEditPacket(positions, blocktype);
+        }
+
+        void set_player_position(glm::vec3 p) {
+            camera.setPosition(p);
         }
 
         void onKeyPress(int key)
@@ -355,23 +395,6 @@ class GameView: public View {
             if (key == GLFW_KEY_P) {
                 _show_debug_gui = !_show_debug_gui;
             }
-        }
-
-        void placeSphere(glm::ivec3 pos, float radius, BlockType blocktype)
-        {
-            std::vector<glm::ivec3> positions;
-
-            int iradius = int(radius);
-            for (int x = -iradius ; x <= iradius ; ++x) {
-            for (int y = -iradius ; y <= iradius ; ++y) {
-            for (int z = -iradius ; z <= iradius ; ++z) {
-                glm::ivec3 wpos = pos + glm::ivec3{x, y, z};
-                if (glm::distance2(glm::vec3(pos), glm::vec3(wpos)) > radius*radius) continue;
-                positions.push_back(wpos);
-            }
-            }
-            }
-            client.sendBlockBulkEditPacket(positions, blocktype);
         }
 
         void onMousePress(int x, int y, int button) {
