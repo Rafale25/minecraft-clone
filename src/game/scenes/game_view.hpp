@@ -107,7 +107,6 @@ glm::mat4 getLightProjectionMatrix(const glm::mat4& lightView, FrustumBounds& b)
 
 
 
-
 class GameView: public View {
     public:
         GameView(Context& ctx): View(ctx)
@@ -116,8 +115,7 @@ class GameView: public View {
 
             texture_manager.loadAllTextures();
 
-            GLint swizzle[4] = { GL_RED, GL_RED, GL_RED, GL_ONE };
-            glTextureParameteriv(_depthTexture._texture, GL_TEXTURE_SWIZZLE_RGBA, swizzle); // to make the texture grayscale in imgui
+            _depthTexture.setSwizzle({ GL_RED, GL_RED, GL_RED, GL_ONE });
             _depthFBO.attachTexture(_depthTexture._texture, GL_DEPTH_ATTACHMENT);
 
             cube_shader.use();
@@ -277,18 +275,6 @@ class GameView: public View {
                 mesh_shader.setMat4("u_modelMatrix", entity.smooth_transform.getMatrix());
                 entity.draw();
             }
-
-            glViewport(ctx.width-ctx.width/3, ctx.height-ctx.height/3, ctx.width/3, ctx.height/3);
-            glDisable(GL_DEPTH_TEST);
-            glDisable(GL_CULL_FACE);
-            debugquad_shader.use();
-            debugquad_shader.setInt("depthMap", 0);
-            debugquad_shader.setFloat("near_plane", bounds.minZ);
-            debugquad_shader.setFloat("far_plane", bounds.maxZ);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, _depthTexture._texture);
-            _debugQuad.draw();
-
 
             if (_show_debug_gui) gui(dt);
         }

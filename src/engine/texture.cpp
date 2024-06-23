@@ -28,3 +28,7 @@ Texture::Texture(GLsizei width, GLsizei height, GLenum format, GLenum min_filter
 
     glTextureStorage2D(_texture, 1, format, width, height);
 }
+
+void Texture::setSwizzle(RGBA rgba) {
+    glTextureParameteriv(_texture, GL_TEXTURE_SWIZZLE_RGBA, (GLint*)&rgba); // to make the texture grayscale in imgui
+}
