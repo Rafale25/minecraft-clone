@@ -13,6 +13,7 @@ Texture::Texture(GLsizei width, GLsizei height, GLenum format, GLenum min_filter
 
     glTextureStorage2D(_texture, 1, format, width, height);
 }
+
 Texture::Texture(GLsizei width, GLsizei height, GLenum format, GLenum min_filter, GLenum mag_filter, GLenum wrap, const float borderColor[4]) {
     // create(width, height, format, min_filter, mag_filter, wrap);
     _width = width;

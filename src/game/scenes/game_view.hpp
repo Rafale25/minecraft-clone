@@ -2,6 +2,7 @@
 
 #include "view.hpp"
 #include "camera.hpp"
+#include "fps_camera.hpp"
 #include "program.h"
 
 #include "texture_manager.hpp"
@@ -13,99 +14,13 @@
 #include "texture.hpp"
 #include "framebuffer.hpp"
 #include "geometry.hpp"
+#include "shadow_map.hpp"
 
 #include "imgui.h"
 #include <algorithm>
 #include <string>
 
 #include "string_helpers.hpp"
-
-std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view)
-{
-    const auto inv = glm::inverse(proj * view);
-
-    std::vector<glm::vec4> frustumCorners;
-    for (unsigned int x = 0; x < 2; ++x) {
-        for (unsigned int y = 0; y < 2; ++y) {
-            for (unsigned int z = 0; z < 2; ++z) {
-                const glm::vec4 pt =
-                    inv * glm::vec4(
-                        2.0f * x - 1.0f,
-                        2.0f * y - 1.0f,
-                        2.0f * z - 1.0f,
-                        1.0f);
-                frustumCorners.push_back(pt / pt.w);
-            }
-        }
-    }
-
-    return frustumCorners;
-}
-
-glm::mat4 getLighViewMatrix(std::vector<glm::vec4> cameraFrustumCorners, glm::vec3 lightDir)
-{
-    glm::vec3 center = glm::vec3(0, 0, 0);
-    for (const auto& v : cameraFrustumCorners) {
-        center += glm::vec3(v);
-    }
-    center /= cameraFrustumCorners.size();
-
-    return glm::lookAt(
-        center + lightDir,
-        center,
-        glm::vec3(0.0f, 1.0f, 0.0f)
-    );
-}
-
-struct FrustumBounds {
-    float minX, maxX;
-    float minY, maxY;
-    float minZ, maxZ;
-};
-
-FrustumBounds computeFrustumBounds(const glm::mat4& lightView, const std::vector<glm::vec4>& corners)
-{
-    FrustumBounds b;
-
-    b.minX = std::numeric_limits<float>::max();
-    b.maxX = std::numeric_limits<float>::lowest();
-    b.minY = std::numeric_limits<float>::max();
-    b.maxY = std::numeric_limits<float>::lowest();
-    b.minZ = std::numeric_limits<float>::max();
-    b.maxZ = std::numeric_limits<float>::lowest();
-
-    for (const auto& v : corners)
-    {
-        const glm::vec4 trf = lightView * v;
-        b.minX = std::min(b.minX, trf.x);
-        b.maxX = std::max(b.maxX, trf.x);
-        b.minY = std::min(b.minY, trf.y);
-        b.maxY = std::max(b.maxY, trf.y);
-        b.minZ = std::min(b.minZ, trf.z);
-        b.maxZ = std::max(b.maxZ, trf.z);
-    }
-
-    return b;
-}
-
-glm::mat4 getLightProjectionMatrix(const glm::mat4& lightView, FrustumBounds& b)
-{
-    // Tune this parameter according to the scene
-    const float zMult = 5.0f;
-    if (b.minZ < 0)
-        b.minZ *= zMult;
-    else
-        b.minZ /= zMult;
-
-    if (b.maxZ < 0)
-        b.maxZ /= zMult;
-    else
-        b.maxZ *= zMult;
-
-    return glm::ortho(b.minX, b.maxX, b.minY, b.maxY, b.minZ, b.maxZ);
-}
-
-
 
 class GameView: public View {
     public:
@@ -114,9 +29,6 @@ class GameView: public View {
             glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
             texture_manager.loadAllTextures();
-
-            _depthTexture.setSwizzle({ GL_RED, GL_RED, GL_RED, GL_ONE });
-            _depthFBO.attachTexture(_depthTexture._texture, GL_DEPTH_ATTACHMENT);
 
             cube_shader.use();
             cube_shader.setInt("shadowMap", 0);
@@ -233,37 +145,18 @@ class GameView: public View {
             glClearColor(135.0f/255.0f, 206.0f/255.0f, 250.0f/255.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            // 1. render depth of scene to texture (from light's perspective)
-            // --------------------------------------------------------------
-            glm::mat4 cameraCustomProj = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.3f, _max_shadow_distance);
-            auto corners = getFrustumCornersWorldSpace(cameraCustomProj, camera.getView());
+            shadowmap.setSunDir(sunDir);
 
-            glm::mat4 lightViewMatrix = getLighViewMatrix(corners, sunDir);
-            FrustumBounds bounds = computeFrustumBounds(lightViewMatrix, corners);
-            glm::mat4 lightProjectionMatrix = getLightProjectionMatrix(lightViewMatrix, bounds);
-            glm::mat4 lightSpaceMatrix = lightProjectionMatrix * lightViewMatrix;
-            // https://learn.microsoft.com/en-us/windows/win32/dxtecharts/common-techniques-to-improve-shadow-depth-maps?redirectedfrom=MSDN
-            // https://chetanjags.wordpress.com/2015/02/05/real-time-shadows-cascaded-shadow-maps/
-            // https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering
-
-            cube_shadowmapping_shader.use();
-            cube_shadowmapping_shader.setMat4("u_lightSpaceMatrix", lightSpaceMatrix);
-            glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-            _depthFBO.bind();
-                glClear(GL_DEPTH_BUFFER_BIT);
-                render_scene(cube_shadowmapping_shader);
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-            // reset viewport
-            glViewport(0, 0, ctx.width, ctx.height);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            shadowmap.begin(camera, cube_shadowmapping_shader);
+            render_scene(cube_shadowmapping_shader);
+            shadowmap.end();
 
             cube_shader.use();
-            cube_shader.setMat4("u_lightSpaceMatrix", lightSpaceMatrix);
+            cube_shader.setMat4("u_lightSpaceMatrix", shadowmap._lightSpaceMatrix);
             cube_shader.setVec3("u_sun_direction", sunDir);
-            cube_shader.setFloat("u_shadow_bias", _shadow_bias);
+            cube_shader.setFloat("u_shadow_bias", shadowmap._shadow_bias);
 
-            glBindTextureUnit(0, _depthTexture._texture);
+            glBindTextureUnit(0, shadowmap._depthTexture->_texture);
             render_scene(cube_shader);
 
             mesh_shader.use();
@@ -302,7 +195,7 @@ class GameView: public View {
             // ImGui::ShowDemoWindow();
 
             ImGui::Begin("Shadow map");
-            ImGui::Image((ImTextureID)_depthTexture._texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::Image((ImTextureID)shadowmap._depthTexture->_texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
             ImGui::End();
 
             ImGui::Begin("Debug");
@@ -335,9 +228,8 @@ class GameView: public View {
                 ctx.setVsync(_vsync);
             }
 
-            // ImGui::InputFloat3("Sun direction: ", &sunDir.x, "%.2f");
             ImGui::DragFloat3("Sun direction: ", &sunDir.x, 0.01f, -M_PI*2, M_PI*2, "%.2f");
-            ImGui::SliderFloat("Shadow Bias: ", &_shadow_bias, 0.000001f, 0.1f, "%.6f");
+            ImGui::SliderFloat("Shadow Bias: ", &shadowmap._shadow_bias, 0.000001f, 0.1f, "%.6f");
             ImGui::SliderFloat("Shadow Distance: ", &_max_shadow_distance, 0.3f, 500.0f, "%.2f");
 
             ImGui::End();
@@ -435,16 +327,9 @@ class GameView: public View {
         Program mesh_shader{"./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs"};
         Program debugquad_shader{"./assets/shaders/debug_quad.vs", "./assets/shaders/debug_quad_depth.fs"};
 
-        // Shadow map
-        const GLsizei SHADOW_WIDTH = 4096, SHADOW_HEIGHT = 4096;
-        const float borderColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-        Framebuffer _depthFBO{GL_NONE, GL_NONE};
-        Texture _depthTexture{SHADOW_WIDTH, SHADOW_HEIGHT, GL_DEPTH_COMPONENT24, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_BORDER, borderColor};
-
-        Mesh _debugQuad = Geometry::quad_2d();
+        Shadowmap shadowmap{ctx, 4096, 4096};
         glm::vec3 sunDir = glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f));
-        float _shadow_bias = 0.000175f;
-        // --
+        // Mesh _debugQuad = Geometry::quad_2d();
 
         TextureManager texture_manager;
 

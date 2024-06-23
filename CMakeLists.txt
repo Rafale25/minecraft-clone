@@ -19,13 +19,17 @@ set(SRC_FILES
     ./src/engine/stb_image.cpp
     ./src/engine/context.cpp
     ./src/engine/texture.cpp
+    ./src/engine/camera/camera.cpp
+    ./src/engine/camera/orbit_camera.cpp
+    ./src/engine/camera/fps_camera.cpp
     ./src/engine/framebuffer.cpp
     ./src/game/chunk.cpp
     ./src/game/client.cpp
     ./src/game/texture_manager.cpp
     ./src/game/entity.cpp
     ./src/game/world.cpp
-    ./src/game/world_renderer.cpp
+    # ./src/game/world_renderer.cpp
+    ./src/game/shadow_map.cpp
     ./src/game/enums.cpp
     ./src/main.cpp
 )
@@ -64,6 +68,7 @@ target_include_directories(${PROJECT_NAME}
         ./include/
         ./src/
         ./src/engine/
+        ./src/engine/camera/
         ./src/game/
         ./src/game/scenes/
         ./src/utils/
