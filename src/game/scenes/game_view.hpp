@@ -148,7 +148,7 @@ class GameView: public View {
             shadowmap.setSunDir(sunDir);
 
             shadowmap.begin(camera, cube_shadowmapping_shader);
-            render_scene(cube_shadowmapping_shader);
+            render_world(cube_shadowmapping_shader);
             shadowmap.end();
 
             cube_shader.use();
@@ -157,7 +157,7 @@ class GameView: public View {
             cube_shader.setFloat("u_shadow_bias", shadowmap._shadow_bias);
 
             glBindTextureUnit(0, shadowmap._depthTexture->_texture);
-            render_scene(cube_shader);
+            render_world(cube_shader);
 
             mesh_shader.use();
             mesh_shader.setMat4("u_projectionMatrix", camera.getProjection());
@@ -172,7 +172,7 @@ class GameView: public View {
             if (_show_debug_gui) gui(dt);
         }
 
-        void render_scene(Program &shader)
+        void render_world(Program &shader)
         {
             shader.use();
             shader.setMat4("u_projectionMatrix", camera.getProjection());
@@ -230,7 +230,7 @@ class GameView: public View {
 
             ImGui::DragFloat3("Sun direction: ", &sunDir.x, 0.01f, -M_PI*2, M_PI*2, "%.2f");
             ImGui::SliderFloat("Shadow Bias: ", &shadowmap._shadow_bias, 0.000001f, 0.1f, "%.6f");
-            ImGui::SliderFloat("Shadow Distance: ", &_max_shadow_distance, 0.3f, 500.0f, "%.2f");
+            ImGui::SliderFloat("Shadow Distance: ", &shadowmap._max_shadow_distance, 0.3f, 500.0f, "%.2f");
 
             ImGui::End();
             ctx.imguiRender();
@@ -343,7 +343,6 @@ class GameView: public View {
         bool _show_debug_gui = false;
         bool _wireframe = false;
         bool _vsync = true;
-        float _max_shadow_distance = 120.0f;
 
         // Player
         FPSCamera camera = {
