@@ -4,6 +4,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <poll.h>
+#include <fcntl.h>
+#include <sys/select.h>
 
 #include "client.hpp"
 #include "chunk.hpp"
@@ -102,7 +104,38 @@ Client::Client(World &world, TextureManager& texture_manager, const char* ip):
     serverAddress.sin_addr.s_addr = inet_addr(ip);
     serverAddress.sin_port = htons(15000);
 
-    connect(client_socket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
+    struct timeval tv;
+
+    fd_set set;
+    tv.tv_sec = 3;
+    tv.tv_usec = 0;
+    FD_ZERO(&set);
+    FD_SET(client_socket, &set);
+
+    // Set to blocking mode
+    fcntl(client_socket, F_SETFL, O_NONBLOCK); // https://stackoverflow.com/questions/2597608/c-socket-connection-timeout
+
+    printf("Connecting to %s...\n", ip);
+    int res = connect(client_socket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
+    if (errno != EINPROGRESS) {
+        printf("Connection failed.\n");
+        return;
+    }
+
+    res = select(client_socket+1, NULL, &set, NULL, &tv);
+
+    if (res < 0 && errno != EINTR) {
+        printf("Error connecting %d - %s\n", errno, strerror(errno));
+        exit(0);
+    } else if (res > 0) {
+        printf("Successfully connected to %s.\n", ip);
+    } else {
+        printf("Connection timeout.\n");
+        exit(0);
+    }
+
+    // Set blocking mode back
+    fcntl(client_socket, F_SETFL, O_NONBLOCK);
 }
 
 void Client::Start()
@@ -365,7 +398,7 @@ void Client::sendBlockBulkEditPacket(std::vector<glm::ivec3> &world_pos, BlockTy
 
     send(client_socket, buffer, size_in_bytes, 0);
 
-    delete buffer;
+    delete [] buffer;
 }
 
 void Client::sendPlaceBlockPacket(glm::ivec3 world_pos, BlockType blocktype)
