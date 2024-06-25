@@ -128,7 +128,7 @@ Client::Client(World &world, TextureManager& texture_manager, const char* ip):
         printf("Error connecting %d - %s\n", errno, strerror(errno));
         exit(0);
     } else if (res > 0) {
-        printf("Successfully connected to %s.\n", ip);
+        printf("Successfully connected to %s\n", ip);
     } else {
         printf("Connection timeout.\n");
         exit(0);

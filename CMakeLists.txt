@@ -23,6 +23,7 @@ set(SRC_FILES
     ./src/engine/camera/orbit_camera.cpp
     ./src/engine/camera/fps_camera.cpp
     ./src/engine/framebuffer.cpp
+    ./src/engine/command_line_args.cpp
     ./src/game/chunk.cpp
     ./src/game/client.cpp
     ./src/game/texture_manager.cpp
@@ -61,7 +62,8 @@ target_sources(imgui
 target_include_directories(imgui PUBLIC ${IMGUI_DIR})
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
-target_compile_options(${PROJECT_NAME} PRIVATE -W -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter) # -g3
+target_compile_options(${PROJECT_NAME} PRIVATE -W -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter)
+# target_compile_options(${PROJECT_NAME} PRIVATE -W -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -ggdb3) # -g3
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE

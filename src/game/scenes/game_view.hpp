@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <string>
 
+#include "command_line_args.h"
 #include "string_helpers.hpp"
 
 class GameView: public View {
@@ -32,7 +33,6 @@ class GameView: public View {
 
             cube_shader.use();
             cube_shader.setInt("shadowMap", 0);
-
 
             client.Start();
         }
@@ -50,8 +50,8 @@ class GameView: public View {
             camera.move(glm::vec3(dx, dy, dz));
             camera.update(dt);
 
-            consume_task_queue();
-            consume_new_chunks();
+            consumeTaskQueue();
+            consumeNewChunks();
 
             world.updateEntities();
 
@@ -67,7 +67,7 @@ class GameView: public View {
             }
         }
 
-        void consume_new_chunks()
+        void consumeNewChunks()
         {
             client.new_chunks_mutex.lock();
 
@@ -108,7 +108,7 @@ class GameView: public View {
             client.new_chunks_mutex.unlock();
         }
 
-        void consume_task_queue()
+        void consumeTaskQueue()
         {
             client.task_queue_mutex.lock();
             for (auto &task: client.task_queue) {
@@ -195,7 +195,7 @@ class GameView: public View {
             // ImGui::ShowDemoWindow();
 
             ImGui::Begin("Shadow map");
-            ImGui::Image((ImTextureID)shadowmap._depthTexture->_texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
+            // ImGui::Image((ImTextureID)(intptr_t)shadowmap._depthTexture->_texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
             ImGui::End();
 
             ImGui::Begin("Debug");
@@ -214,7 +214,7 @@ class GameView: public View {
                     ImGui::Text("id:%d: x:%.2f y:%.2f z:%.2f", entity.id, entity.transform.position.x, entity.transform.position.y, entity.transform.position.z);
                     ImGui::SameLine();
                     if (ImGui::Button("teleport")) {
-                        set_player_position(entity.transform.position);
+                        setPlayerPosition(entity.transform.position);
                     }
                     ImGui::PopID();
                 }
@@ -253,7 +253,7 @@ class GameView: public View {
             client.sendBlockBulkEditPacket(positions, blocktype);
         }
 
-        void set_player_position(glm::vec3 p) {
+        void setPlayerPosition(glm::vec3 p) {
             camera.setPosition(p);
         }
 
@@ -334,10 +334,9 @@ class GameView: public View {
         TextureManager texture_manager;
 
         World world;
-        Client client{world, texture_manager, "51.77.194.124"};
+        Client client{world, texture_manager, global_argv[1]};
 
         float network_timer = 1.0f;
-
 
         bool _cursorEnable = false;
         bool _show_debug_gui = false;
