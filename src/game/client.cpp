@@ -140,7 +140,7 @@ Client::Client(World &world, TextureManager& texture_manager, const char* ip):
 
 void Client::Start()
 {
-    client_thread = std::thread(&Client::client_thread_func, this);
+    client_thread = std::thread(&Client::clientThreadFunc, this);
 }
 
 // https://www.reddit.com/r/C_Programming/comments/s29903/how_does_endianness_work_for_floats_doubles_and/
@@ -218,7 +218,7 @@ std::tuple<int, glm::vec3, float, float> readUpdateEntityPacket(uint8_t *buffer)
 
 // #include <unistd.h>
 
-void Client::client_thread_func()
+void Client::clientThreadFunc()
 {
     struct pollfd fds;
     fds.fd = client_socket;
@@ -270,7 +270,7 @@ void Client::client_thread_func()
                         task_queue.push_front([this, id, pos]() {
                             Entity e{id};
                             e.transform.position = pos;
-                            world->add_entity(e);
+                            world->addEntity(e);
                         } );
                         task_queue_mutex.unlock();
                     }
@@ -282,7 +282,7 @@ void Client::client_thread_func()
                         int entityId = be32toh(*(int*)(&buffer[0]));
                         task_queue_mutex.lock();
                         task_queue.push_front([this, entityId]() {
-                            world->remove_entity(entityId);
+                            world->removeEntity(entityId);
                         } );
                         task_queue_mutex.unlock();
                     }
@@ -293,7 +293,7 @@ void Client::client_thread_func()
                         auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
                         task_queue_mutex.lock();
                         task_queue.push_front([this, id, pos, yaw, pitch]() {
-                            world->set_entity_transform(id, pos, yaw, pitch);
+                            world->setEntityTransform(id, pos, yaw, pitch);
                         } );
                         task_queue_mutex.unlock();
                         // printf("Server sent 'move entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);

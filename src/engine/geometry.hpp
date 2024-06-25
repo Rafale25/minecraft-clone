@@ -54,7 +54,4 @@ class Geometry {
         void quad_fs() {}
         void sphere() {}
         void bbox() {}
-
-    private:
-        GLuint VAO, VBO, EBO;
 };

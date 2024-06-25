@@ -12,7 +12,7 @@ int main()
     View* view = new GameView(ctx);
 
     ctx.setVsync(VSYNC);
-    ctx.show_view(view);
+    ctx.showView(view);
     ctx.run();
 
     return 0;

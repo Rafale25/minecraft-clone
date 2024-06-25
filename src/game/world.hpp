@@ -19,21 +19,21 @@ public:
     World();
     ~World();
 
-    void add_entity(Entity e);
-    void remove_entity(int id);
-    void set_entity_transform(int id, glm::vec3 pos, float yaw, float pitch);
-    Entity* get_entity(int id);
-    void update_entities();
+    void addEntity(Entity e);
+    void removeEntity(int id);
+    void setEntityTransform(int id, glm::vec3 pos, float yaw, float pitch);
+    Entity* getEntity(int id);
+    void updateEntities();
 
     // TODO: change maxsteps by a maxDistance
     std::tuple<BlockType, glm::ivec3, glm::vec3> BlockRaycast(glm::vec3 origin, glm::vec3 direction, int maxSteps);
-    BlockType get_block(glm::ivec3 pos);
+    BlockType getBlock(glm::ivec3 pos);
 
     // Chunk* create_chunk();
     // void delete_chunk();
 
-    void set_chunk(Chunk* chunk);
-    Chunk* get_chunk(glm::ivec3 pos);
+    void setChunk(Chunk* chunk);
+    Chunk* getChunk(glm::ivec3 pos);
     // std::unordered_map<glm::ivec3, Chunk*>::iterator chunks_iter();
 
 public:

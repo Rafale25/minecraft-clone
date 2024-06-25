@@ -53,7 +53,7 @@ class GameView: public View {
             consume_task_queue();
             consume_new_chunks();
 
-            world.update_entities();
+            world.updateEntities();
 
             auto [blocktype, world_pos, normal] = world.BlockRaycast(camera.getPosition(), camera.forward, 16);
             raycastBlocktype = blocktype;
@@ -88,7 +88,7 @@ class GameView: public View {
                 Chunk* c = client.new_chunks.back();
                 client.new_chunks.pop_back();
 
-                world.set_chunk(c);
+                world.setChunk(c);
                 c->computeChunckVAO(world, texture_manager);
 
                 // recompute neighbours chunks VAO //
@@ -98,7 +98,7 @@ class GameView: public View {
                 {
                     glm::ivec3 cpos = c->pos + offset;
 
-                    Chunk* nc = world.get_chunk(cpos);
+                    Chunk* nc = world.getChunk(cpos);
                     if (nc != nullptr) {
                         nc->computeChunckVAO(world, texture_manager);
                     }
@@ -325,7 +325,7 @@ class GameView: public View {
         Program cube_shader{"./assets/shaders/cube.vs", "./assets/shaders/cube.fs"};
         Program cube_shadowmapping_shader{"./assets/shaders/cube_shadowmap.vs", "./assets/shaders/cube_shadowmap.fs"};
         Program mesh_shader{"./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs"};
-        Program debugquad_shader{"./assets/shaders/debug_quad.vs", "./assets/shaders/debug_quad_depth.fs"};
+        // Program debugquad_shader{"./assets/shaders/debug_quad.vs", "./assets/shaders/debug_quad_depth.fs"};
 
         Shadowmap shadowmap{ctx, 4096, 4096};
         glm::vec3 sunDir = glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f));

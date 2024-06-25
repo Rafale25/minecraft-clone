@@ -19,7 +19,7 @@ class Context {
         void imguiRender();
         void imguiInit();
 
-        void show_view(View* view);
+        void showView(View* view);
         void setVsync(int value);
 
         static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);

@@ -10,7 +10,7 @@ struct ChunkMesh {
 
     ChunkMesh(): indices_count(0), is_initialized(false) {}
 
-    void delete_all()
+    void deleteAll()
     {
         glDeleteVertexArrays(1, &VAO);
         glDeleteBuffers(1, &VBO);

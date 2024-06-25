@@ -118,7 +118,7 @@ void Context::imguiInit()
     // io.FontGlobalScale = 1.85f; // Scale everything
 }
 
-void Context::show_view(View *view)
+void Context::showView(View *view)
 {
     _current_view->onHideView();
     _current_view = view;

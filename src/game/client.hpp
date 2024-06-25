@@ -33,7 +33,7 @@ public:
     Client(World& world, TextureManager& texture_manager, const char* ip);
 
     void Start();
-    void client_thread_func();
+    void clientThreadFunc();
 
     void sendBreakBlockPacket(glm::ivec3 world_pos);
     void sendBlockBulkEditPacket(std::vector<glm::ivec3> &world_pos, BlockType blocktype);

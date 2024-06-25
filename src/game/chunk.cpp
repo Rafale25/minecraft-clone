@@ -12,7 +12,7 @@ int Chunk::XYZtoIndex(int x, int y, int z) {
 void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
 {
     if (mesh.is_initialized == true) {
-        mesh.delete_all();
+        mesh.deleteAll();
     }
 
     /*
@@ -43,7 +43,7 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         BlockMetadata nbmtd; // neighbour block metadata
 
         // front
-        nb = world.get_block(world_pos + glm::ivec3(0, 0, -1));
+        nb = world.getBlock(world_pos + glm::ivec3(0, 0, -1));
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
             vertices.insert(vertices.end(), {
@@ -63,7 +63,7 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         }
 
         // back
-        nb = world.get_block(world_pos + glm::ivec3(0, 0, 1));
+        nb = world.getBlock(world_pos + glm::ivec3(0, 0, 1));
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
             vertices.insert(vertices.end(), {
@@ -83,7 +83,7 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         }
 
         // down
-        nb = world.get_block(world_pos + glm::ivec3(0, -1, 0));
+        nb = world.getBlock(world_pos + glm::ivec3(0, -1, 0));
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
             vertices.insert(vertices.end(), {
@@ -102,7 +102,7 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         }
 
         // top
-        nb = world.get_block(world_pos + glm::ivec3(0, 1, 0));
+        nb = world.getBlock(world_pos + glm::ivec3(0, 1, 0));
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
             vertices.insert(vertices.end(), {
@@ -121,7 +121,7 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         }
 
         // left
-        nb = world.get_block(world_pos + glm::ivec3(-1, 0, 0));
+        nb = world.getBlock(world_pos + glm::ivec3(-1, 0, 0));
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
             vertices.insert(vertices.end(), {
@@ -140,7 +140,7 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         }
 
         // right
-        nb = world.get_block(world_pos + glm::ivec3(1, 0, 0));
+        nb = world.getBlock(world_pos + glm::ivec3(1, 0, 0));
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
             vertices.insert(vertices.end(), {

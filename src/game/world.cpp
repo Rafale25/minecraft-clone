@@ -13,7 +13,7 @@ World::~World()
 {
 }
 
-Entity* World::get_entity(int id)
+Entity* World::getEntity(int id)
 {
     for (size_t i = 0 ; i < entities.size() ; ++i)
     {
@@ -23,7 +23,7 @@ Entity* World::get_entity(int id)
     return nullptr;
 }
 
-void World::update_entities()
+void World::updateEntities()
 {
     const float smoothness = 0.075f;
     for (auto& entity : entities)
@@ -33,12 +33,12 @@ void World::update_entities()
     }
 }
 
-void World::add_entity(Entity e)
+void World::addEntity(Entity e)
 {
     entities.push_back(e);
 }
 
-void World::remove_entity(int id)
+void World::removeEntity(int id)
 {
     for (size_t i = 0 ; i < entities.size() ; ++i)
     {
@@ -49,15 +49,15 @@ void World::remove_entity(int id)
     }
 }
 
-void World::set_entity_transform(int id, glm::vec3 pos, float yaw, float pitch)
+void World::setEntityTransform(int id, glm::vec3 pos, float yaw, float pitch)
 {
-    Entity* e = get_entity(id);
+    Entity* e = getEntity(id);
     if (e == nullptr) return;
     e->transform.position = pos;
     e->transform.rotation = glm::quat(glm::vec3(-pitch, -yaw, 0.0f));
 }
 
-BlockType World::get_block(glm::ivec3 pos)
+BlockType World::getBlock(glm::ivec3 pos)
 {
     glm::ivec3 chunk_pos = glm::floor(glm::vec3(pos) / 16.0f);
     glm::ivec3 local_pos = {pos.x % 16, pos.y % 16, pos.z % 16};
@@ -86,7 +86,7 @@ std::tuple<BlockType, glm::ivec3, glm::vec3> World::BlockRaycast(glm::vec3 origi
     glm::vec3 normal;
 
 	for (int i = 0; i < maxSteps; i++) {
-        auto block = get_block(mapPos);
+        auto block = getBlock(mapPos);
         normal = -mask * rayStep;
 
         if (block != BlockType::Air) {
@@ -101,11 +101,11 @@ std::tuple<BlockType, glm::ivec3, glm::vec3> World::BlockRaycast(glm::vec3 origi
     return std::tuple<BlockType, glm::ivec3, glm::vec3>({BlockType::Air, mapPos, normal});
 }
 
-void World::set_chunk(Chunk* chunk)
+void World::setChunk(Chunk* chunk)
 {
     if (chunks.find(chunk->pos) != chunks.end()) {
         if (chunks[chunk->pos]->mesh.is_initialized) {
-            chunks[chunk->pos]->mesh.delete_all();
+            chunks[chunk->pos]->mesh.deleteAll();
         }
         free(chunks[chunk->pos]);
         // TODO: call delete_chunk() instead of free directly
@@ -114,7 +114,7 @@ void World::set_chunk(Chunk* chunk)
     chunks[chunk->pos] = chunk;
 }
 
-Chunk* World::get_chunk(glm::ivec3 pos)
+Chunk* World::getChunk(glm::ivec3 pos)
 {
     //NOTE: Maybe can return directly chunks[pos] because unordered_map will call default constructor for Chunk* which is probably 0
     if (chunks.find(pos) != chunks.end()) {
