@@ -190,15 +190,16 @@ class GameView: public View {
 
         void gui(float dt)
         {
-
             ctx.imguiNewFrame();
             // ImGui::ShowDemoWindow();
 
-            ImGui::Begin("Shadow map");
+            // ImGui::Begin("Shadow map");
             // ImGui::Image((ImTextureID)(intptr_t)shadowmap._depthTexture->_texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
-            ImGui::End();
+            // ImGui::End();
 
             ImGui::Begin("Debug");
+
+            ImGui::Text("%ld new chunks", client.new_chunks.size());
 
             ImGui::Text("%.4f secs", dt);
             ImGui::Text("%.2f fps", 1.0f / dt);
