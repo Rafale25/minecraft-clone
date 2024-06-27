@@ -148,8 +148,21 @@ class GameView: public View {
             shadowmap.setSunDir(sunDir);
 
             shadowmap.begin(camera, cube_shadowmapping_shader);
-            render_world(cube_shadowmapping_shader);
+                render_world(cube_shadowmapping_shader);
             shadowmap.end();
+
+            glDisable(GL_DEPTH_TEST);
+
+            skybox_shader.use();
+            // printf("%d %d\n", ctx.width, ctx.height);
+
+            glm::mat4 view_rotation = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), -camera.forward, glm::vec3(0.0f, 1.0f, 0.0f)); // wtf
+
+            skybox_shader.setVec2("u_resolution", glm::vec2(ctx.width, ctx.height));
+            skybox_shader.setMat4("u_view", view_rotation);
+            skybox_quad.draw();
+
+            glEnable(GL_DEPTH_TEST);
 
             cube_shader.use();
             cube_shader.setMat4("u_lightSpaceMatrix", shadowmap._lightSpaceMatrix);
@@ -326,11 +339,12 @@ class GameView: public View {
         Program cube_shader{"./assets/shaders/cube.vs", "./assets/shaders/cube.fs"};
         Program cube_shadowmapping_shader{"./assets/shaders/cube_shadowmap.vs", "./assets/shaders/cube_shadowmap.fs"};
         Program mesh_shader{"./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs"};
+        Program skybox_shader{"./assets/shaders/skybox.vs", "./assets/shaders/skybox.fs"};
         // Program debugquad_shader{"./assets/shaders/debug_quad.vs", "./assets/shaders/debug_quad_depth.fs"};
 
         Shadowmap shadowmap{ctx, 4096, 4096};
         glm::vec3 sunDir = glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f));
-        // Mesh _debugQuad = Geometry::quad_2d();
+        Mesh skybox_quad = Geometry::quad_2d();
 
         TextureManager texture_manager;
 
@@ -358,10 +372,3 @@ class GameView: public View {
         glm::ivec3 raycastWorldPos;
         // -- //
 };
-
-/*
-camera = new OrbitCamera(
-    glm::vec3(0.0f), M_PI/4, M_PI/4, 50.0f,
-    60.0f, (float)width / (float)height, 0.1f, 1000.0f
-);
-*/
