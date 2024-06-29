@@ -113,7 +113,7 @@ Client::Client(World &world, TextureManager& texture_manager, const char* ip):
     FD_SET(client_socket, &set);
 
     // Set to blocking mode
-    fcntl(client_socket, F_SETFL, O_NONBLOCK); // https://stackoverflow.com/questions/2597608/c-socket-connection-timeout
+    int opts = fcntl(client_socket, F_SETFL, O_NONBLOCK); // https://stackoverflow.com/questions/2597608/c-socket-connection-timeout
 
     printf("Connecting to %s...\n", ip);
     int res = connect(client_socket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
@@ -135,7 +135,8 @@ Client::Client(World &world, TextureManager& texture_manager, const char* ip):
     }
 
     // Set blocking mode back
-    fcntl(client_socket, F_SETFL, O_NONBLOCK);
+    opts = opts & (~O_NONBLOCK);
+    fcntl(client_socket, F_SETFL, opts);
 }
 
 void Client::Start()
