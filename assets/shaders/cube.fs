@@ -16,11 +16,13 @@ const vec3 orientation_normal_table[] = { // Note: maybe should be done in fragm
     vec3(1.0, 0.0, 0.0), // Right = 5
 };
 
-in vec3 f_frag_pos;
-in vec2 f_uv;
-flat in int f_orientation;
-flat in int f_faceId;
-in vec4 f_FragPosLightSpace;
+in VS_OUT {
+    in vec3 frag_pos;
+    in vec2 uv;
+    flat in int orientation;
+    flat in int faceId;
+    in vec4 FragPosLightSpace;
+} fs_in;
 
 out vec4 FragColor;
 
@@ -74,8 +76,8 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
 
 void main()
 {
-    vec4 color = texture(sampler2D(texture_handles[f_faceId]), f_uv).rgba;
-    vec3 normal = orientation_normal_table[f_orientation];
+    vec4 color = texture(sampler2D(texture_handles[fs_in.faceId]), fs_in.uv).rgba;
+    vec3 normal = orientation_normal_table[fs_in.orientation];
     vec3 lightColor = vec3(255.0, 244.0, 196.0) / 255.0;
 
     // ambient
@@ -91,18 +93,17 @@ void main()
     }
 
     // calculate shadow
-    float shadow = ShadowCalculation(f_FragPosLightSpace, normal);
+    float shadow = ShadowCalculation(fs_in.FragPosLightSpace, normal);
 
     // if cube face is not facing light, then it's in its own shadow
     if (dot(normal, u_sun_direction) < 0.0)
         shadow = 1.0;
 
-    // vec3 lighting = (ambient + diffuse) * color.rgb;
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse)) * color.rgb;
-    // vec3 lighting = (ambient + (1.0 - shadow)) * color.rgb;
 
     FragColor = vec4(lighting, 1.0);
-    // FragColor = vec4(normal, 1.0);
 
-    // FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    // vec3 gammaCorrected = pow(lighting, vec3(1.0/2.2));
+    // FragColor = vec4(gammaCorrected, 1.0);
+    // FragColor = vec4(normal, 1.0);
 }
