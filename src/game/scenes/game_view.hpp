@@ -142,6 +142,8 @@ class GameView: public View {
             glCullFace(GL_BACK);
             glFrontFace(GL_CW);
 
+            // glEnable(GL_FRAMEBUFFER_SRGB);
+
             glClearColor(135.0f/255.0f, 206.0f/255.0f, 250.0f/255.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -182,6 +184,8 @@ class GameView: public View {
                 entity.draw();
             }
 
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
             if (_show_debug_gui) gui(dt);
         }
 
@@ -192,9 +196,14 @@ class GameView: public View {
             shader.setMat4("u_viewMatrix", camera.getView());
             shader.setVec3("u_view_position", camera.getPosition());
 
+            _drawcalls_count = 0;
             for (const auto& [key, chunk] : world.chunks)
             {
+                if (!chunk->mesh.is_initialized) continue;
+                ++_drawcalls_count;
+
                 shader.setVec3("u_chunkPos", chunk->pos * 16);
+
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk->mesh.ssbo_texture_handles);
                 glBindVertexArray(chunk->mesh.VAO);
                 glDrawElements(GL_TRIANGLES, chunk->mesh.indices_count, GL_UNSIGNED_INT, 0);
@@ -213,6 +222,7 @@ class GameView: public View {
             ImGui::Begin("Debug");
 
             ImGui::Text("%ld new chunks", client.new_chunks.size());
+            ImGui::Text("draw calls: %d", _drawcalls_count);
 
             ImGui::Text("%.4f secs", dt);
             ImGui::Text("%.2f fps", 1.0f / dt);
@@ -357,6 +367,8 @@ class GameView: public View {
         bool _show_debug_gui = false;
         bool _wireframe = false;
         bool _vsync = true;
+
+        int _drawcalls_count;
 
         // Player
         FPSCamera camera = {
