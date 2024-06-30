@@ -26,11 +26,12 @@ set(SRC_FILES
     ./src/engine/command_line_args.cpp
     ./src/engine/VAO.cpp
     ./src/game/chunk.cpp
+    ./src/game/chunk_mesh.cpp
     ./src/game/client.cpp
     ./src/game/texture_manager.cpp
     ./src/game/entity.cpp
     ./src/game/world.cpp
-    # ./src/game/world_renderer.cpp
+    ./src/game/world_renderer.cpp
     ./src/game/shadow_map.cpp
     ./src/game/enums.cpp
     ./src/main.cpp
