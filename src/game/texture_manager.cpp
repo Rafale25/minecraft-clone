@@ -1,5 +1,5 @@
 #include "texture_manager.hpp"
-#include "loadtexture.hpp"
+#include "load_texture.hpp"
 
 void TextureManager::loadAllTextures()
 {
@@ -16,14 +16,19 @@ void TextureManager::loadAllTextures()
         {
             case 3:
                 format = GL_RGB;
+                // format = GL_SRGB;
                 break;
             case 4:
                 format = GL_RGBA;
+                // format = GL_SRGB_ALPHA;
                 break;
             default:
                 format = GL_RGB;
+                // format = GL_SRGB;
                 break;
         }
+
+        // format = GL_RGB;
 
         GLuint texture_top = loadTexture((textures_path + textures_name[value[0]]).c_str(), format, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
         GLuint texture_side = loadTexture((textures_path + textures_name[value[1]]).c_str(), format, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);

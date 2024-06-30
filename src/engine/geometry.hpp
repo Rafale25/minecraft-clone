@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glad/gl.h>
+#include "VAO.hpp"
 
 struct Mesh {
     GLuint VAO, VBO, EBO;
@@ -34,19 +35,9 @@ class Geometry {
                 -1.0f, -1.0f,     0.0f, 0.0f,
                  1.0f, -1.0f,     1.0f, 0.0f,
             };
-            glCreateVertexArrays(1, &mesh.VAO);
-            glCreateBuffers(1, &mesh.VBO);
 
-            glEnableVertexArrayAttrib(mesh.VAO, 0);
-            glVertexArrayAttribBinding(mesh.VAO, 0, 0);
-            glVertexArrayAttribFormat(mesh.VAO, 0, 2, GL_FLOAT, GL_FALSE, 0);
-
-            glEnableVertexArrayAttrib(mesh.VAO, 1);
-            glVertexArrayAttribBinding(mesh.VAO, 1, 0);
-            glVertexArrayAttribFormat(mesh.VAO, 1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT));
-
-            glNamedBufferData(mesh.VBO, sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
-            glVertexArrayVertexBuffer(mesh.VAO, 0, mesh.VBO, 0, 4 * sizeof(GL_FLOAT));
+            mesh.VBO = createBuffer(&vertices[0], sizeof(vertices));
+            mesh.VAO = createVAO(mesh.VBO, "2f 2f");
 
             return mesh;
         }

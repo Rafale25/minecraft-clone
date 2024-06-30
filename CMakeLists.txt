@@ -15,7 +15,7 @@ set(CMAKE_CXX_STANDARD 17)
 # link_libraries(${GLFW_LIBRARY_DIRS})
 
 set(SRC_FILES
-    ./src/engine/gl.c
+    ./src/glad/gl.c
     ./src/engine/stb_image.cpp
     ./src/engine/context.cpp
     ./src/engine/texture.cpp
@@ -24,6 +24,7 @@ set(SRC_FILES
     ./src/engine/camera/fps_camera.cpp
     ./src/engine/framebuffer.cpp
     ./src/engine/command_line_args.cpp
+    ./src/engine/VAO.cpp
     ./src/game/chunk.cpp
     ./src/game/client.cpp
     ./src/game/texture_manager.cpp

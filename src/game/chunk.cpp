@@ -1,8 +1,9 @@
+#include <iostream>
+
 #include "chunk.hpp"
 #include "texture_manager.hpp"
 #include "world.hpp"
-
-#include <iostream>
+#include "VAO.hpp"
 
 int Chunk::XYZtoIndex(int x, int y, int z) {
     if (x < 0 || x > 15 || y < 0 || y > 15 || z < 0 || z > 15) return -1;
@@ -19,7 +20,6 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         position         float  32-bit  x 3
         uv               float  32-bit  x 2
         orientation      int    32-bit  x 1
-        texture handle   float  32-bit  x 2
     */
 
     std::vector<GLuint64> textures_handles;
@@ -167,12 +167,17 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
 
     mesh.is_initialized = true;
 
+    // mesh.VBO = createBuffer(&vertices[0], vertices.size() * sizeof(GL_FLOAT), GL_DYNAMIC_STORAGE_BIT);
+    // mesh.EBO = createBuffer(&ebo[0], ebo.size() * sizeof(GL_UNSIGNED_INT), GL_DYNAMIC_STORAGE_BIT);
+    // mesh.ssbo_texture_handles = createBuffer((const void *)textures_handles.data(), sizeof(GLuint64) * textures_handles.size(), GL_DYNAMIC_STORAGE_BIT);
+    // mesh.VAO = createVAO(mesh.VBO, "3f 2f 1i", mesh.EBO);
+
     glCreateVertexArrays(1, &mesh.VAO);
     glCreateBuffers(1, &mesh.VBO);
     glCreateBuffers(1, &mesh.EBO);
     glCreateBuffers(1, &mesh.ssbo_texture_handles);
 
-    glNamedBufferData(mesh.VBO, vertices.size() * sizeof(GL_FLOAT), &vertices[0], GL_STATIC_DRAW);
+    glNamedBufferStorage(mesh.VBO, vertices.size() * sizeof(GL_FLOAT), &vertices[0], GL_DYNAMIC_STORAGE_BIT);
     glNamedBufferStorage(mesh.EBO, ebo.size() * sizeof(GL_UNSIGNED_INT), &ebo[0], GL_DYNAMIC_STORAGE_BIT);
 
     glNamedBufferStorage(mesh.ssbo_texture_handles,

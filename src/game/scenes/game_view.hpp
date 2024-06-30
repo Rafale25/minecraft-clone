@@ -23,6 +23,8 @@
 #include "command_line_args.h"
 #include "string_helpers.hpp"
 
+#include "VAO.hpp"
+
 class GameView: public View {
     public:
         GameView(Context& ctx): View(ctx)
@@ -260,7 +262,7 @@ class GameView: public View {
             ctx.imguiRender();
         }
 
-        void placeSphere(glm::ivec3 pos, float radius, BlockType blocktype)
+        void placeSphere(glm::ivec3 center, float radius, BlockType blocktype)
         {
             std::vector<glm::ivec3> positions;
 
@@ -268,9 +270,9 @@ class GameView: public View {
             for (int x = -iradius ; x <= iradius ; ++x) {
             for (int y = -iradius ; y <= iradius ; ++y) {
             for (int z = -iradius ; z <= iradius ; ++z) {
-                glm::ivec3 wpos = pos + glm::ivec3{x, y, z};
-                if (glm::distance2(glm::vec3(pos), glm::vec3(wpos)) > radius*radius) continue;
-                positions.push_back(wpos);
+                glm::ivec3 p = center + glm::ivec3{x, y, z};
+                if (glm::distance2(glm::vec3(center), glm::vec3(p)) > radius*radius) continue;
+                positions.push_back(p);
             }
             }
             }
@@ -372,7 +374,7 @@ class GameView: public View {
 
         // Player
         FPSCamera camera = {
-            glm::vec3(10.0f, 20.0, 12.0f), 0.0f, 0.0f,
+            glm::vec3(10.0f, 25.0, 12.0f), 0.0f, 0.0f,
             60.0f, (float)ctx.width / (float)ctx.height, 0.1f, 1000.0f
         };
 

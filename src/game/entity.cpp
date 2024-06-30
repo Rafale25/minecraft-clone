@@ -1,6 +1,8 @@
 #include "entity.hpp"
 #include <iostream>
 
+#include "VAO.hpp"
+
 Entity::Entity(int id): id(id)
 {
     float vertices[] = {
@@ -16,7 +18,8 @@ Entity::Entity(int id): id(id)
         -0.5f,  -0.5f,  0.5f,  // front left
          0.5f,  -0.5f,  0.5f,  // front right
     };
-    uint indices[] = {  // note that we start from 0!
+
+    uint indices[] = {
         // top
         0, 1, 2,
         1, 3, 2,
@@ -44,19 +47,9 @@ Entity::Entity(int id): id(id)
 
     vertex_count = sizeof(indices) / sizeof(uint);
 
-    glCreateVertexArrays(1, &VAO);
-    glCreateBuffers(1, &VBO);
-    glCreateBuffers(1, &EBO);
-
-    glNamedBufferData(VBO, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glNamedBufferData(EBO, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    glEnableVertexArrayAttrib(VAO, 0);
-    glVertexArrayAttribBinding(VAO, 0, 0);
-    glVertexArrayAttribFormat(VAO, 0, 3, GL_FLOAT, GL_FALSE, 0 * sizeof(GL_FLOAT));
-
-    glVertexArrayVertexBuffer(VAO, 0, VBO, 0, 3 * sizeof(GL_FLOAT));
-    glVertexArrayElementBuffer(VAO, EBO);
+    VBO = createBuffer(vertices, sizeof(vertices), GL_STATIC_DRAW);
+    EBO = createBuffer(indices, sizeof(indices), GL_STATIC_DRAW);
+    VAO = createVAO(VBO, "3f", EBO);
 }
 
 void Entity::draw()
