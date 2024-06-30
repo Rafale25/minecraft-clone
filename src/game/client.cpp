@@ -105,10 +105,10 @@ Client::Client(World &world, TextureManager& texture_manager, const char* ip):
     serverAddress.sin_port = htons(15000);
 
     struct timeval tv;
-
-    fd_set set;
     tv.tv_sec = 3;
     tv.tv_usec = 0;
+
+    fd_set set;
     FD_ZERO(&set);
     FD_SET(client_socket, &set);
 

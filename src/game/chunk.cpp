@@ -16,6 +16,8 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         mesh.deleteAll();
     }
 
+    // TODO: check if chunk is only air, then remove it from world
+
     /*
         position         float  32-bit  x 3
         uv               float  32-bit  x 2

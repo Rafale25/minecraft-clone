@@ -23,8 +23,6 @@
 #include "command_line_args.h"
 #include "string_helpers.hpp"
 
-#include "VAO.hpp"
-
 class GameView: public View {
     public:
         GameView(Context& ctx): View(ctx)
