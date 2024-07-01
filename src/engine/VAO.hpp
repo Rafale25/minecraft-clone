@@ -46,5 +46,6 @@ struct FormatIterator {
     FormatNode next();
 };
 
-GLuint createBuffer(const void* data, GLsizeiptr size, GLenum usage = GL_DYNAMIC_STORAGE_BIT);
+GLuint createBufferData(const void* data, GLsizeiptr size, GLenum usage = GL_STATIC_DRAW);
+GLuint createBufferStorage(const void* data, GLsizeiptr size, GLbitfield usage = GL_DYNAMIC_STORAGE_BIT);
 GLuint createVAO(GLuint buffer, const char * const format, GLuint element_buffer_object=GL_INVALID_INDEX);

@@ -15,5 +15,5 @@ public:
     Transform transform;
     Transform smooth_transform;
     GLuint VAO, VBO, EBO;
-    int vertex_count;
+    int indices_count;
 };

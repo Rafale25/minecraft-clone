@@ -106,7 +106,15 @@ FormatNode FormatIterator::next() {
     }
 }
 
-GLuint createBuffer(const void* data, GLsizeiptr size, GLenum usage) {
+GLuint createBufferData(const void* data, GLsizeiptr size, GLenum usage) {
+    GLuint buffer;
+    glCreateBuffers(1, &buffer);
+    glNamedBufferData(buffer, size, data, usage);
+
+    return buffer;
+}
+
+GLuint createBufferStorage(const void* data, GLsizeiptr size, GLbitfield usage) {
     GLuint buffer;
     glCreateBuffers(1, &buffer);
     glNamedBufferStorage(buffer, size, data, usage);

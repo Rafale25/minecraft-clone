@@ -5,7 +5,7 @@
 
 Entity::Entity(int id): id(id)
 {
-    float vertices[] = {
+    GLfloat vertices[] = {
         // top rect
         -0.5f,  0.5f, -0.5f,  // back left
          0.5f,  0.5f, -0.5f,  // back right
@@ -19,7 +19,7 @@ Entity::Entity(int id): id(id)
          0.5f,  -0.5f,  0.5f,  // front right
     };
 
-    uint indices[] = {
+    GLuint indices[] = {
         // top
         0, 1, 2,
         1, 3, 2,
@@ -45,15 +45,15 @@ Entity::Entity(int id): id(id)
         7, 1, 5
     };
 
-    vertex_count = sizeof(indices) / sizeof(uint);
+    indices_count = sizeof(indices) / sizeof(GLuint);
 
-    VBO = createBuffer(vertices, sizeof(vertices), GL_STATIC_DRAW);
-    EBO = createBuffer(indices, sizeof(indices), GL_STATIC_DRAW);
+    VBO = createBufferStorage(vertices, sizeof(vertices), GL_DYNAMIC_STORAGE_BIT);
+    EBO = createBufferStorage(indices, sizeof(indices), GL_DYNAMIC_STORAGE_BIT);
     VAO = createVAO(VBO, "3f", EBO);
 }
 
 void Entity::draw()
 {
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, vertex_count, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, indices_count, GL_UNSIGNED_INT, 0);
 }
