@@ -36,7 +36,7 @@ class Geometry {
                  1.0f, -1.0f,     1.0f, 0.0f,
             };
 
-            mesh.VBO = createBuffer(&vertices[0], sizeof(vertices));
+            mesh.VBO = createBufferStorage(&vertices[0], sizeof(vertices));
             mesh.VAO = createVAO(mesh.VBO, "2f 2f");
 
             return mesh;

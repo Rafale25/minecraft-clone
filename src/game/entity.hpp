@@ -12,8 +12,8 @@ public:
 
 public:
     int id;
-    Transform transform;
-    Transform smooth_transform;
+    Transform transform, smooth_transform;
+
     GLuint VAO, VBO, EBO;
     int indices_count;
 };
