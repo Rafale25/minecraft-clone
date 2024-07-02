@@ -19,8 +19,8 @@ const vec3 orientation_normal_table[] = { // Note: maybe should be done in fragm
 in VS_OUT {
     in vec3 frag_pos;
     in vec2 uv;
-    flat in int orientation;
-    flat in int faceId;
+    flat in uint orientation;
+    flat in uint texture_id;
     in vec4 FragPosLightSpace;
 } fs_in;
 
@@ -76,7 +76,8 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
 
 void main()
 {
-    vec4 color = texture(sampler2D(texture_handles[fs_in.faceId]), fs_in.uv).rgba;
+    vec4 color = texture(sampler2D(texture_handles[fs_in.texture_id]), fs_in.uv).rgba;
+    // vec4 color = vec4(0.0, 0.7, 0.2, 1.0);
     vec3 normal = orientation_normal_table[fs_in.orientation];
     vec3 lightColor = vec3(255.0, 244.0, 196.0) / 255.0;
 

@@ -6,8 +6,8 @@ layout (location = 0) in uint a_packedVertex;
 out VS_OUT {
     out vec3 frag_pos;
     out vec2 uv;
-    flat out int orientation;
-    flat out int faceId;
+    flat out uint orientation;
+    flat uint texture_id;
     out vec4 FragPosLightSpace;
 } vs_out;
 
@@ -23,7 +23,8 @@ void main()
     int a_z =           int((a_packedVertex >> 10) & 31);
     int a_u =           int((a_packedVertex >> 15) & 1);
     int a_v =           int((a_packedVertex >> 16) & 1);
-    int a_orientation = int((a_packedVertex >> 17) & 7);
+    uint a_orientation =   ((a_packedVertex >> 17) & 7);
+    uint a_texture_id =    ((a_packedVertex >> 20) & 255);
 
     ivec3 a_position = ivec3(a_x, a_y, a_z);
     ivec2 a_uv = ivec2(a_u, a_v);
@@ -35,6 +36,6 @@ void main()
     vs_out.frag_pos = world_pos;
     vs_out.uv = a_uv;
     vs_out.orientation = (a_orientation);
-    vs_out.faceId = gl_VertexID / 4; // TODO: don't forget to change
+    vs_out.texture_id = a_texture_id;//gl_VertexID / 4; // TODO: don't forget to change
     gl_Position = position;
 }

@@ -9,6 +9,7 @@
 
 #include "entity.hpp"
 #include "enums.hpp"
+#include "client.hpp" // TODO: put chunk_data in its own header file
 
 struct Chunk;
 class TextureManager;
@@ -32,7 +33,7 @@ public:
     // Chunk* create_chunk();
     // void delete_chunk();
 
-    void setChunk(Chunk* chunk);
+    void setChunk(ChunkData* chunk_data, TextureManager& texture_manager);
     Chunk* getChunk(glm::ivec3 pos);
     // std::unordered_map<glm::ivec3, Chunk*>::iterator chunks_iter();
 

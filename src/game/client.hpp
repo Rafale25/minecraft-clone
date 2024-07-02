@@ -12,6 +12,11 @@ class TextureManager;
 class World;
 struct Chunk;
 
+struct ChunkData {
+    glm::ivec3 pos;
+    // BlockType* blocks;
+    BlockType blocks[4096];
+};
 
 class Client
 {
@@ -45,7 +50,7 @@ public:
     std::deque<std::function<void()>> task_queue;
 
     // NOTE: new chunk need to be assigned to the chunks list only when the VAO is computed
-    std::deque<Chunk*> new_chunks;
+    std::deque<ChunkData*> new_chunks;
     std::mutex new_chunks_mutex;
 
     std::mutex task_queue_mutex;

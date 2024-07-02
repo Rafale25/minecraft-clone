@@ -23,6 +23,21 @@
 #include "command_line_args.h"
 #include "string_helpers.hpp"
 
+void updateNeighboursChunksVaos(World& world, TextureManager& texture_manager, glm::ivec3 chunk_pos)
+{
+    const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
+
+    for (const glm::ivec3 &offset: offsets)
+    {
+        glm::ivec3 cpos = chunk_pos + offset;
+
+        Chunk* nc = world.getChunk(cpos);
+        if (nc != nullptr) {
+            nc->computeChunckVAO(world, texture_manager);
+        }
+    }
+}
+
 class GameView: public View {
     public:
         GameView(Context& ctx): View(ctx)
@@ -30,6 +45,7 @@ class GameView: public View {
             glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
             texture_manager.loadAllTextures();
+            ssbo_texture_handles = createBufferStorage(&texture_manager.textures_handles[0], texture_manager.textures_handles.size() * sizeof(GLuint64));
 
             cube_shader.use();
             cube_shader.setInt("shadowMap", 0);
@@ -76,7 +92,7 @@ class GameView: public View {
 
             const glm::vec3 camPos = camera.getPosition();
             std::sort(client.new_chunks.begin(), client.new_chunks.end(),
-                [this, camPos](const Chunk* l, const Chunk* r)
+                [this, camPos](const ChunkData* l, const ChunkData* r)
                 {
                     return glm::distance2(camPos, glm::vec3(l->pos*16)) > glm::distance2(camPos, glm::vec3(r->pos*16));
                 });
@@ -85,25 +101,16 @@ class GameView: public View {
 
             while (client.new_chunks.size() > 0 && i++ < MAX_NEW_CHUNKS_PER_FRAME)
             {
-                Chunk* c = client.new_chunks.back();
+                // Chunk* c = client.new_chunks.back();
+                ChunkData* chunk_data = client.new_chunks.back();
                 client.new_chunks.pop_back();
 
-                world.setChunk(c);
-                c->computeChunckVAO(world, texture_manager);
+                world.setChunk(chunk_data, texture_manager);
 
                 // recompute neighbours chunks VAO //
-                const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
+                updateNeighboursChunksVaos(world, texture_manager, chunk_data->pos);
 
-                for (const glm::ivec3 &offset: offsets)
-                {
-                    glm::ivec3 cpos = c->pos + offset;
-
-                    Chunk* nc = world.getChunk(cpos);
-                    if (nc != nullptr) {
-                        nc->computeChunckVAO(world, texture_manager);
-                    }
-                }
-
+                delete chunk_data;
             }
             client.new_chunks_mutex.unlock();
         }
@@ -148,7 +155,6 @@ class GameView: public View {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             shadowmap.setSunDir(sunDir);
-
             shadowmap.begin(camera, cube_shadowmapping_shader);
                 render_world(cube_shadowmapping_shader);
             shadowmap.end();
@@ -184,7 +190,7 @@ class GameView: public View {
                 entity.draw();
             }
 
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
             if (_show_debug_gui) gui(dt);
         }
@@ -195,16 +201,16 @@ class GameView: public View {
             shader.setMat4("u_projectionMatrix", camera.getProjection());
             shader.setMat4("u_viewMatrix", camera.getView());
             shader.setVec3("u_view_position", camera.getPosition());
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_texture_handles);
 
             _drawcalls_count = 0;
             for (const auto& [key, chunk] : world.chunks)
             {
-                if (!chunk->mesh.is_initialized) continue;
+                if (chunk->mesh.indices_count == 0 || chunk->mesh.VAO == 0) continue;
                 ++_drawcalls_count;
 
                 shader.setVec3("u_chunkPos", chunk->pos * 16);
 
-                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, chunk->mesh.ssbo_texture_handles);
                 glBindVertexArray(chunk->mesh.VAO);
                 glDrawElements(GL_TRIANGLES, chunk->mesh.indices_count, GL_UNSIGNED_INT, 0);
             }
@@ -351,6 +357,8 @@ class GameView: public View {
         Program mesh_shader{"./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs"};
         Program skybox_shader{"./assets/shaders/skybox.vs", "./assets/shaders/skybox.fs"};
         // Program debugquad_shader{"./assets/shaders/debug_quad.vs", "./assets/shaders/debug_quad_depth.fs"};
+
+        GLuint ssbo_texture_handles;
 
         Shadowmap shadowmap{ctx, 4096, 4096};
         glm::vec3 sunDir = glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f));

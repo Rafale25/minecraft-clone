@@ -42,6 +42,15 @@ void TextureManager::loadAllTextures()
         glMakeTextureHandleResidentARB(texture_side_handle);
         glMakeTextureHandleResidentARB(texture_bot_handle);
 
+        uint id_base_offset = textures_handles.size();
+        uint texture_top_id = id_base_offset + 0;
+        uint texture_side_id = id_base_offset + 1;
+        uint texture_bot_id = id_base_offset + 2;
+        textures_handles.push_back(texture_top_handle);
+        textures_handles.push_back(texture_side_handle);
+        textures_handles.push_back(texture_bot_handle);
+
         block_textures_handles.insert( {key, {texture_top_handle, texture_side_handle, texture_bot_handle}} );
+        block_textures_ids.insert( {key, {texture_top_id, texture_side_id, texture_bot_id}} );
     }
 }

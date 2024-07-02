@@ -35,7 +35,7 @@ int recv_full(int fd, uint8_t *buffer, size_t size)
     return bytes_received;
 }
 
-Chunk* readChunkPacket(uint8_t *buffer)
+ChunkData* readChunkPacket(uint8_t *buffer)
 {
     uint8_t *head = &buffer[0];
     int x, y, z;
@@ -49,8 +49,9 @@ Chunk* readChunkPacket(uint8_t *buffer)
     z = *(int*)&head[0];
     head += sizeof(int);
 
-    Chunk* chunk = new Chunk;
-    chunk->pos = glm::ivec3(htonl(x), htonl(y), htonl(z)) / 16;
+    ChunkData* chunk_data = new ChunkData;
+
+    chunk_data->pos = glm::ivec3(htonl(x), htonl(y), htonl(z)) / 16;
 
     for (int i = 0 ; i < 16*16*16 ; ++i) {
         uint8_t byte = *(uint8_t*)&head[0];
@@ -63,13 +64,13 @@ Chunk* readChunkPacket(uint8_t *buffer)
         // int index = x * 16*16 + y * 16 + z;
         // chunk.blocks[index] = (BlockType)byte;
 
-        chunk->blocks[i] = (BlockType)byte;
+        chunk_data->blocks[i] = (BlockType)byte;
     }
 
-    return chunk;
+    return chunk_data;
 }
 
-Chunk* readFullMonoChunkPacket(uint8_t *buffer)
+ChunkData* readFullMonoChunkPacket(uint8_t *buffer)
 {
     uint8_t *head = &buffer[0];
     int x, y, z;
@@ -86,12 +87,12 @@ Chunk* readFullMonoChunkPacket(uint8_t *buffer)
 
     blockType = head[0];
 
-    Chunk* chunk = new Chunk;
-    chunk->pos = glm::ivec3(htonl(x), htonl(y), htonl(z)) / 16;
+    ChunkData *chunk_data = new ChunkData;
+    chunk_data->pos = glm::ivec3(htonl(x), htonl(y), htonl(z)) / 16;
 
-    memset(chunk->blocks, blockType, 16*16*16);
+    memset(chunk_data->blocks, blockType, 16*16*16);
 
-    return chunk;
+    return chunk_data;
 }
 
 Client::Client(World &world, TextureManager& texture_manager, const char* ip):
@@ -303,7 +304,7 @@ void Client::clientThreadFunc()
                 case 0x04: // Chunk
                     recv_full(client_socket, buffer, 4108);
                     {
-                        Chunk* c = readChunkPacket(buffer);
+                        ChunkData* chunk_data = readChunkPacket(buffer);
                         new_chunks_mutex.lock();
 
                         // Replace chunk if already in new chunk list to reduce charge on mainthread //
@@ -319,7 +320,7 @@ void Client::clientThreadFunc()
                         // else
                         //     new_chunks.push_front(c);
 
-                        new_chunks.push_front(c);
+                        new_chunks.push_front(chunk_data);
                         new_chunks_mutex.unlock();
                         // printf("Server sent 'chunk' packet: %d %d %d.\n", id, c.pos.x, c.pos.y, c.pos.z);
                     }
@@ -327,9 +328,9 @@ void Client::clientThreadFunc()
                 case 0x05: // full of same block chunk
                     recv_full(client_socket, buffer, 4*3+1);
                     {
-                        Chunk* c = readFullMonoChunkPacket(buffer);
+                        ChunkData* chunk_data = readFullMonoChunkPacket(buffer);
                         new_chunks_mutex.lock();
-                        new_chunks.push_front(c);
+                        new_chunks.push_front(chunk_data);
                         new_chunks_mutex.unlock();
                     }
                     break;

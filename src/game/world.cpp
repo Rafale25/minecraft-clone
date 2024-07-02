@@ -4,6 +4,7 @@
 // #include "entity.hpp"
 
 #include <stdio.h>
+#include <string.h>
 
 World::World()
 {
@@ -101,17 +102,16 @@ std::tuple<BlockType, glm::ivec3, glm::vec3> World::BlockRaycast(glm::vec3 origi
     return std::tuple<BlockType, glm::ivec3, glm::vec3>({BlockType::Air, mapPos, normal});
 }
 
-void World::setChunk(Chunk* chunk)
+void World::setChunk(ChunkData* chunk_data, TextureManager& texture_manager)
 {
-    if (chunks.find(chunk->pos) != chunks.end()) {
-        if (chunks[chunk->pos]->mesh.is_initialized) {
-            chunks[chunk->pos]->mesh.deleteAll();
-        }
-        free(chunks[chunk->pos]);
-        // TODO: call delete_chunk() instead of free directly
+    if (chunks.find(chunk_data->pos) == chunks.end()) { // if not found
+        Chunk* chunk = new Chunk();
+        chunk->pos = chunk_data->pos;
+        chunks[chunk_data->pos] = chunk;
     }
+    memcpy(chunks[chunk_data->pos]->blocks, chunk_data->blocks, 4096 * sizeof(uint8_t));
 
-    chunks[chunk->pos] = chunk;
+    chunks[chunk_data->pos]->computeChunckVAO(*this, texture_manager);
 }
 
 Chunk* World::getChunk(glm::ivec3 pos)
