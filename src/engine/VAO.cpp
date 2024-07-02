@@ -114,6 +114,7 @@ GLuint createBufferData(const void* data, GLsizeiptr size, GLenum usage) {
     return buffer;
 }
 
+// Note: glNamedBufferStorage are immutable (can't be resized)
 GLuint createBufferStorage(const void* data, GLsizeiptr size, GLbitfield usage) {
     GLuint buffer;
     glCreateBuffers(1, &buffer);

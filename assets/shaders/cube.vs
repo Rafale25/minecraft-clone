@@ -1,9 +1,7 @@
 #version 460 core
 #extension GL_ARB_bindless_texture : require
 
-in vec3 a_position;
-in vec2 a_uv;
-in float a_orientation;
+layout (location = 0) in uint a_packedVertex;
 
 out VS_OUT {
     out vec3 frag_pos;
@@ -20,13 +18,23 @@ uniform mat4 u_lightSpaceMatrix;
 
 void main()
 {
+    int a_x =           int((a_packedVertex >> 0)  & 31);
+    int a_y =           int((a_packedVertex >> 5)  & 31);
+    int a_z =           int((a_packedVertex >> 10) & 31);
+    int a_u =           int((a_packedVertex >> 15) & 1);
+    int a_v =           int((a_packedVertex >> 16) & 1);
+    int a_orientation = int((a_packedVertex >> 17) & 7);
+
+    ivec3 a_position = ivec3(a_x, a_y, a_z);
+    ivec2 a_uv = ivec2(a_u, a_v);
+
     vec3 world_pos = u_chunkPos + a_position;
     vec4 position = u_projectionMatrix * u_viewMatrix * vec4(world_pos, 1.0);
 
     vs_out.FragPosLightSpace = u_lightSpaceMatrix * vec4(world_pos, 1.0);
     vs_out.frag_pos = world_pos;
     vs_out.uv = a_uv;
-    vs_out.orientation = int(a_orientation);
+    vs_out.orientation = (a_orientation);
     vs_out.faceId = gl_VertexID / 4; // TODO: don't forget to change
     gl_Position = position;
 }

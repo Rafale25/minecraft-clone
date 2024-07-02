@@ -10,12 +10,24 @@ int Chunk::XYZtoIndex(int x, int y, int z) {
     return z * 16*16 + y * 16 + x;
 }
 
+GLuint packVertex(int x, int y, int z, int u, int v, int o) {
+    // TODO: add texture id in there
+    // 4 bytes, 32 bits
+    // 00000000000000000000000000000000
+    //             ooouvzzzzzyyyyyxxxxx
+    GLuint p =
+        ((x & 31)   << 0)   |
+        ((y & 31)   << 5)   |
+        ((z & 31)   << 10)  |
+        ((u & 1)    << 15)  |
+        ((v & 1)    << 16)  |
+        ((o & 7)    << 17);
+
+    return p;
+}
+
 void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
 {
-    if (mesh.is_initialized == true) {
-        mesh.deleteAll();
-    }
-
     // TODO: check if chunk is only air, then remove it from world
 
     /*
@@ -25,7 +37,7 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
     */
 
     std::vector<GLuint64> textures_handles;
-    std::vector<float> vertices;
+    std::vector<GLuint> vertices;
     std::vector<GLuint> ebo;
     GLuint ebo_offset = 0;
 
@@ -49,10 +61,10 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
             vertices.insert(vertices.end(), {
-                x+0.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Front,
-                x+1.f, y+0.f, z+0.f, 1.f, 0.f, Orientation::Front,
-                x+1.f, y+1.f, z+0.f, 1.f, 1.f, Orientation::Front,
-                x+0.f, y+1.f, z+0.f, 0.f, 1.f, Orientation::Front,
+                packVertex(x+0, y+0, z+0, 0, 0, Orientation::Front),
+                packVertex(x+1, y+0, z+0, 1, 0, Orientation::Front),
+                packVertex(x+1, y+1, z+0, 1, 1, Orientation::Front),
+                packVertex(x+0, y+1, z+0, 0, 1, Orientation::Front),
             });
 
             ebo.insert(ebo.end(), {
@@ -69,10 +81,10 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
             vertices.insert(vertices.end(), {
-                x+0.f, y+0.f, z+1.f, 0.f, 0.f, Orientation::Back,
-                x+1.f, y+1.f, z+1.f, 1.f, 1.f, Orientation::Back,
-                x+1.f, y+0.f, z+1.f, 1.f, 0.f, Orientation::Back,
-                x+0.f, y+1.f, z+1.f, 0.f, 1.f, Orientation::Back,
+                packVertex(x+0, y+0, z+1, 0, 0, Orientation::Back),
+                packVertex(x+1, y+1, z+1, 1, 1, Orientation::Back),
+                packVertex(x+1, y+0, z+1, 1, 0, Orientation::Back),
+                packVertex(x+0, y+1, z+1, 0, 1, Orientation::Back),
             });
 
             ebo.insert(ebo.end(), {
@@ -89,10 +101,10 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
             vertices.insert(vertices.end(), {
-                x+0.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Bottom,
-                x+1.f, y+0.f, z+1.f, 1.f, 1.f, Orientation::Bottom,
-                x+1.f, y+0.f, z+0.f, 1.f, 0.f, Orientation::Bottom,
-                x+0.f, y+0.f, z+1.f, 0.f, 1.f, Orientation::Bottom,
+                packVertex(x+0, y+0, z+0, 0, 0, Orientation::Bottom),
+                packVertex(x+1, y+0, z+1, 1, 1, Orientation::Bottom),
+                packVertex(x+1, y+0, z+0, 1, 0, Orientation::Bottom),
+                packVertex(x+0, y+0, z+1, 0, 1, Orientation::Bottom),
             });
             textures_handles.push_back(texture_bot_handle);
 
@@ -108,10 +120,10 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
             vertices.insert(vertices.end(), {
-                x+0.f, y+1.f, z+0.f, 0.f, 0.f, Orientation::Top,
-                x+1.f, y+1.f, z+0.f, 1.f, 0.f, Orientation::Top,
-                x+1.f, y+1.f, z+1.f, 1.f, 1.f, Orientation::Top,
-                x+0.f, y+1.f, z+1.f, 0.f, 1.f, Orientation::Top,
+                packVertex(x+0, y+1, z+0, 0, 0, Orientation::Top),
+                packVertex(x+1, y+1, z+0, 1, 0, Orientation::Top),
+                packVertex(x+1, y+1, z+1, 1, 1, Orientation::Top),
+                packVertex(x+0, y+1, z+1, 0, 1, Orientation::Top),
             });
             textures_handles.push_back(texture_top_handle);
 
@@ -127,10 +139,10 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
             vertices.insert(vertices.end(), {
-                x+0.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Left,
-                x+0.f, y+1.f, z+1.f, 1.f, 1.f, Orientation::Left,
-                x+0.f, y+0.f, z+1.f, 1.f, 0.f, Orientation::Left,
-                x+0.f, y+1.f, z+0.f, 0.f, 1.f, Orientation::Left,
+                packVertex(x+0, y+0, z+0, 0, 0, Orientation::Left),
+                packVertex(x+0, y+1, z+1, 1, 1, Orientation::Left),
+                packVertex(x+0, y+0, z+1, 1, 0, Orientation::Left),
+                packVertex(x+0, y+1, z+0, 0, 1, Orientation::Left),
             });
             textures_handles.push_back(texture_side_handle);
 
@@ -146,10 +158,10 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
             vertices.insert(vertices.end(), {
-                x+1.f, y+0.f, z+0.f, 0.f, 0.f, Orientation::Right,
-                x+1.f, y+0.f, z+1.f, 1.f, 0.f, Orientation::Right,
-                x+1.f, y+1.f, z+1.f, 1.f, 1.f, Orientation::Right,
-                x+1.f, y+1.f, z+0.f, 0.f, 1.f, Orientation::Right,
+                packVertex(x+1, y+0, z+0, 0, 0, Orientation::Right),
+                packVertex(x+1, y+0, z+1, 1, 0, Orientation::Right),
+                packVertex(x+1, y+1, z+1, 1, 1, Orientation::Right),
+                packVertex(x+1, y+1, z+0, 0, 1, Orientation::Right),
             });
             textures_handles.push_back(texture_side_handle);
 
@@ -167,38 +179,40 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
     mesh.indices_count = ebo.size();
     if (mesh.indices_count == 0) return;
 
-    mesh.is_initialized = true;
-
-    // mesh.VBO = createBuffer(&vertices[0], vertices.size() * sizeof(GL_FLOAT), GL_DYNAMIC_STORAGE_BIT);
+    // mesh.VBO = createBuffer(&vertices[0], vertices.size() * sizeof(GLfloat), GL_DYNAMIC_STORAGE_BIT);
     // mesh.EBO = createBuffer(&ebo[0], ebo.size() * sizeof(GL_UNSIGNED_INT), GL_DYNAMIC_STORAGE_BIT);
     // mesh.ssbo_texture_handles = createBuffer((const void *)textures_handles.data(), sizeof(GLuint64) * textures_handles.size(), GL_DYNAMIC_STORAGE_BIT);
     // mesh.VAO = createVAO(mesh.VBO, "3f 2f 1i", mesh.EBO);
 
-    glCreateVertexArrays(1, &mesh.VAO);
-    glCreateBuffers(1, &mesh.VBO);
-    glCreateBuffers(1, &mesh.EBO);
-    glCreateBuffers(1, &mesh.ssbo_texture_handles);
+    // Note: glNamedBufferStorage are immutable (can't be resized)
+    if (mesh.VAO == 0) {
+        glCreateVertexArrays(1, &mesh.VAO);
+        glCreateBuffers(1, &mesh.VBO);
+        glCreateBuffers(1, &mesh.EBO);
+        glCreateBuffers(1, &mesh.ssbo_texture_handles);
 
-    glNamedBufferStorage(mesh.VBO, vertices.size() * sizeof(GL_FLOAT), &vertices[0], GL_DYNAMIC_STORAGE_BIT);
-    glNamedBufferStorage(mesh.EBO, ebo.size() * sizeof(GL_UNSIGNED_INT), &ebo[0], GL_DYNAMIC_STORAGE_BIT);
+        glEnableVertexArrayAttrib(mesh.VAO, 0);
+        glVertexArrayAttribBinding(mesh.VAO, 0, 0);
+        glVertexArrayAttribIFormat(mesh.VAO, 0, 1, GL_UNSIGNED_INT, 0);
 
-    glNamedBufferStorage(mesh.ssbo_texture_handles,
-                            sizeof(GLuint64) * textures_handles.size(),
-                            (const void *)textures_handles.data(),
-                            GL_DYNAMIC_STORAGE_BIT);
+        // glEnableVertexArrayAttrib(mesh.VAO, 0);
+        // glVertexArrayAttribBinding(mesh.VAO, 0, 0);
+        // glVertexArrayAttribIFormat(mesh.VAO, 0, 3, GL_INT, 0 * sizeof(GLint));
 
-    glEnableVertexArrayAttrib(mesh.VAO, 0);
-    glVertexArrayAttribBinding(mesh.VAO, 0, 0);
-    glVertexArrayAttribFormat(mesh.VAO, 0, 3, GL_FLOAT, GL_FALSE, 0);
+        // glEnableVertexArrayAttrib(mesh.VAO, 1);
+        // glVertexArrayAttribBinding(mesh.VAO, 1, 0);
+        // glVertexArrayAttribIFormat(mesh.VAO, 1, 2, GL_INT, 3 * sizeof(GLint));
 
-    glEnableVertexArrayAttrib(mesh.VAO, 1);
-    glVertexArrayAttribBinding(mesh.VAO, 1, 0);
-    glVertexArrayAttribFormat(mesh.VAO, 1, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT));
+        // glEnableVertexArrayAttrib(mesh.VAO, 2);
+        // glVertexArrayAttribBinding(mesh.VAO, 2, 0);
+        // glVertexArrayAttribIFormat(mesh.VAO, 2, 1, GL_INT, 5 * sizeof(GLint));
 
-    glEnableVertexArrayAttrib(mesh.VAO, 2);
-    glVertexArrayAttribBinding(mesh.VAO, 2, 0);
-    glVertexArrayAttribFormat(mesh.VAO, 2, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT));
+        // glVertexArrayVertexBuffer(mesh.VAO, 0, mesh.VBO, 0, 6 * sizeof(GLint));
+        glVertexArrayVertexBuffer(mesh.VAO, 0, mesh.VBO, 0, 1 * sizeof(GLuint));
+        glVertexArrayElementBuffer(mesh.VAO, mesh.EBO);
+    }
 
-    glVertexArrayVertexBuffer(mesh.VAO, 0, mesh.VBO, 0, 6 * sizeof(GL_FLOAT));
-    glVertexArrayElementBuffer(mesh.VAO, mesh.EBO);
+    glNamedBufferData(mesh.VBO, vertices.size() * sizeof(GLuint), &vertices[0], GL_STATIC_DRAW);
+    glNamedBufferData(mesh.EBO, ebo.size() * sizeof(GLuint), &ebo[0], GL_STATIC_DRAW);
+    glNamedBufferData(mesh.ssbo_texture_handles, sizeof(GLuint64) * textures_handles.size(), (const void *)textures_handles.data(), GL_STATIC_DRAW);
 }
