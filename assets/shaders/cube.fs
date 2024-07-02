@@ -7,7 +7,7 @@ layout(binding = 0, std430) readonly buffer ssbo {
     sampler2D texture_handles[];
 };
 
-const vec3 orientation_normal_table[] = { // Note: maybe should be done in fragment shader to save bandwidth
+const vec3 orientation_normal_table[] = {
     vec3(0.0, 1.0, 0.0), // Top = 0
     vec3(0.0, -1.0, 0.0), // Bottom = 1
     vec3(0.0, 0.0, -1.0), // Front = 2
@@ -77,7 +77,6 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
 void main()
 {
     vec4 color = texture(sampler2D(texture_handles[fs_in.texture_id]), fs_in.uv).rgba;
-    // vec4 color = vec4(0.0, 0.7, 0.2, 1.0);
     vec3 normal = orientation_normal_table[fs_in.orientation];
     vec3 lightColor = vec3(255.0, 244.0, 196.0) / 255.0;
 

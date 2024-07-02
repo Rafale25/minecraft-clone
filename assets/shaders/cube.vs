@@ -36,6 +36,6 @@ void main()
     vs_out.frag_pos = world_pos;
     vs_out.uv = a_uv;
     vs_out.orientation = (a_orientation);
-    vs_out.texture_id = a_texture_id;//gl_VertexID / 4; // TODO: don't forget to change
+    vs_out.texture_id = a_texture_id;
     gl_Position = position;
 }
