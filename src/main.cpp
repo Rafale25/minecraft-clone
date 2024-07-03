@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     }
 
     Context ctx(SCR_WIDTH, SCR_HEIGHT, TITLE, 0, 4);
-    View* view = new GameView(ctx);
+    GameView view(ctx);
 
     ctx.setVsync(VSYNC);
     ctx.showView(view);

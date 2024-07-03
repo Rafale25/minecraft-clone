@@ -3,7 +3,7 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
-class View;
+#include "view.hpp"
 
 // TODO: separate view from context (make a ViewManager)
 
@@ -19,7 +19,7 @@ class Context {
         void imguiRender();
         void imguiInit();
 
-        void showView(View* view);
+        void showView(View& view);
         void setVsync(int value);
 
         static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -35,6 +35,7 @@ class Context {
         int width, height;
 
     private:
-        View* _current_view;
+        DefaultView _default_view{*this};
+        View* _current_view = &_default_view;
         int _mouseX, _mouseY;
 };

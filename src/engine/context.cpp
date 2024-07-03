@@ -44,9 +44,6 @@ Context::Context(int width, int height, const char *title, int maximized, int sa
 
     imguiInit();
 
-    // default View
-    _current_view = new DefaultView(*this);
-
     double mouseX, mouseY;
     glfwGetCursorPos(window, &mouseX, &mouseY);
     _mouseX = mouseX;
@@ -83,6 +80,8 @@ void Context::run()
         swapBuffers();
         glfwPollEvents();
     }
+
+    _current_view->onHideView();
 }
 
 void Context::swapBuffers()
@@ -118,11 +117,11 @@ void Context::imguiInit()
     // io.FontGlobalScale = 1.85f; // Scale everything
 }
 
-void Context::showView(View *view)
+void Context::showView(View& view)
 {
     _current_view->onHideView();
-    _current_view = view;
-    view->onShowView();
+    _current_view = &view;
+    view.onShowView();
 
     // call resize callback on first frame
     glfwGetWindowSize(window, &width, &height);

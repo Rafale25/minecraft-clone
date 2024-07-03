@@ -53,6 +53,10 @@ class GameView: public View {
             client.Start();
         }
 
+        void onHideView() {
+            client.client_thread.detach(); // Detach thread to avoid fatal error
+        }
+
         void onUpdate(double time_since_start, float dt)
         {
             float dx = ctx.keyState[GLFW_KEY_A] - ctx.keyState[GLFW_KEY_D];
@@ -177,7 +181,7 @@ class GameView: public View {
             cube_shader.setVec3("u_sun_direction", sunDir);
             cube_shader.setFloat("u_shadow_bias", shadowmap._shadow_bias);
 
-            glBindTextureUnit(0, shadowmap._depthTexture->_texture);
+            glBindTextureUnit(0, shadowmap._depthTexture._texture);
             render_world(cube_shader);
 
             mesh_shader.use();

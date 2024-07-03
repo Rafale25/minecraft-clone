@@ -1,22 +1,24 @@
 #include "shadow_map.hpp"
 
+#include <glm/gtc/matrix_transform.hpp>
+
+#include "context.hpp"
+#include "program.h"
 #include "camera.hpp"
 #include "texture.hpp"
 #include "framebuffer.hpp"
 
-#include <glm/gtc/matrix_transform.hpp>
+static const float borderColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
-Shadowmap::Shadowmap(Context& ctx, GLsizei shadow_width, GLsizei shadow_height)
+Shadowmap::Shadowmap(Context& ctx, GLsizei shadow_width, GLsizei shadow_height):
+    _depthTexture(Texture(shadow_width, shadow_height, GL_DEPTH_COMPONENT24, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_BORDER, borderColor))
 {
     _ctx = &ctx;
     _shadow_width = shadow_width;
     _shadow_height = shadow_height;
 
-    const float borderColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-    _depthTexture = new Texture(shadow_width, shadow_height, GL_DEPTH_COMPONENT24, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_BORDER, borderColor);
-
-    _depthTexture->setSwizzle({ GL_RED, GL_RED, GL_RED, GL_ONE });
-    _depthFBO.attachTexture(_depthTexture->_texture, GL_DEPTH_ATTACHMENT);
+    _depthTexture.setSwizzle({ GL_RED, GL_RED, GL_RED, GL_ONE });
+    _depthFBO.attachTexture(_depthTexture._texture, GL_DEPTH_ATTACHMENT);
 }
 
 void Shadowmap::begin(Camera& camera, Program &program)

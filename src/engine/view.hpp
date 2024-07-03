@@ -35,6 +35,14 @@ class DefaultView: public View {
     public:
         DefaultView(Context& ctx): View(ctx) {}
 
+        void onHideView()
+        {
+        }
+
+        void onShowView()
+        {
+        }
+
         void onUpdate(double time_since_start, float dt)
         {
             // physic, logic ...

@@ -1,15 +1,14 @@
 #pragma once
 
 #include <glad/gl.h>
-
 #include <glm/glm.hpp>
 
-#include "program.h"
-#include "context.hpp"
 #include "framebuffer.hpp"
+#include "texture.hpp"
 
-class Texture;
 class Camera;
+class Context;
+class Program;
 
 struct FrustumBounds {
     float minX, maxX;
@@ -21,7 +20,7 @@ class Shadowmap
 {
 public:
     Shadowmap(Context& ctx, GLsizei shadow_width, GLsizei shadow_height);
-    
+
     void begin(Camera& camera, Program &program);
     void end();
     void setSunDir(glm::vec3 sunDir);
@@ -36,7 +35,7 @@ public:
     float _max_shadow_distance = 120.0f;
     float _shadow_bias = 0.000175f;
     glm::mat4 _lightSpaceMatrix;
-    Texture* _depthTexture;
+    Texture _depthTexture;
 
 private:
     GLsizei _shadow_width, _shadow_height;

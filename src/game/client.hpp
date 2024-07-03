@@ -57,8 +57,8 @@ public:
     int client_id = -1;
     int client_socket;
 
-private:
     std::thread client_thread;
+private:
     World *world;
 
     TextureManager* texture_manager;
