@@ -3,7 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
-glm::mat4 OrbitCamera::getView() {
+glm::mat4 OrbitCamera::getView() const {
     glm::vec3 eye = glm::vec3(1.0f, 0.0f, 0.0f);
 
     eye = glm::rotateZ(eye, _pitch);
@@ -18,7 +18,7 @@ glm::mat4 OrbitCamera::getView() {
     return view;
 }
 
-glm::vec3 OrbitCamera::getPosition() {
+glm::vec3 OrbitCamera::getPosition() const {
     glm::vec3 eye = glm::vec3(1.0f, 0.0f, 0.0f);
 
     eye = glm::rotateZ(eye, _pitch);

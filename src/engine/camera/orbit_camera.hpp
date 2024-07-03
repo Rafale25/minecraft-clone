@@ -15,8 +15,8 @@ public:
         _center(center), _yaw(angle), _pitch(pitch), _distance(distance)
     {}
 
-    glm::mat4 getView();
-    glm::vec3 getPosition();
+    glm::mat4 getView() const;
+    glm::vec3 getPosition() const;
 
     float getYaw() const;
     float getPitch() const;

@@ -1,8 +1,6 @@
 #pragma once
 
-
 #include <glm/glm.hpp>
-
 
 class Camera {
     public:
@@ -11,10 +9,10 @@ class Camera {
             fov(fov), aspect_ratio(aspect_ratio), near_plane(near_plane), far_plane(far_plane)
         {}
 
-        glm::mat4 getProjection();
+        glm::mat4 getProjection() const;
 
-        virtual glm::mat4 getView() = 0;
-        virtual glm::vec3 getPosition() = 0;
+        virtual glm::mat4 getView() const = 0;
+        virtual glm::vec3 getPosition() const = 0;
 
     public:
         // glm::mat4 projection;

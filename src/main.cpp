@@ -2,9 +2,9 @@
 #include "context.hpp"
 #include "game_view.hpp"
 
-const unsigned int SCR_WIDTH = 1280;
-const unsigned int SCR_HEIGHT = 720;
-const char *TITLE = "Minecraft Clone";
+const int SCR_WIDTH = 1280;
+const int SCR_HEIGHT = 720;
+const char * const TITLE = "Minecraft Clone";
 const int VSYNC = 1;
 
 int main(int argc, char **argv)

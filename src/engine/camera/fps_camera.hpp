@@ -15,11 +15,11 @@ class FPSCamera: public Camera {
             _smoothPitch = pitch;
         }
 
-        glm::mat4 getView();
+        glm::mat4 getView() const;
 
-        float getYaw();
-        float getPitch();
-        glm::vec3 getPosition();
+        float getYaw() const;
+        float getPitch() const;
+        glm::vec3 getPosition() const;
         void setPosition(glm::vec3 p);
         void update(float dt);
         void move(glm::vec3 direction);

@@ -5,23 +5,22 @@
 
 #include "lerp.hpp"
 
-glm::mat4 FPSCamera::getView()
+glm::mat4 FPSCamera::getView() const
 {
-    _updateVectors();
     return glm::lookAt(_smoothPosition, _smoothPosition + forward, _up);
 }
 
-float FPSCamera::getYaw()
+float FPSCamera::getYaw() const
 {
     return (_smoothYaw - M_PI_2);
 }
 
-float FPSCamera::getPitch()
+float FPSCamera::getPitch() const
 {
     return (_smoothPitch);
 }
 
-glm::vec3 FPSCamera::getPosition()
+glm::vec3 FPSCamera::getPosition() const
 {
     return _smoothPosition;
 }
@@ -43,6 +42,8 @@ void FPSCamera::update(float dt)
     _smoothRoll = expDecay(_smoothRoll, _roll, 50.0f, dt);
 
     _smoothPosition = expDecay(_smoothPosition, _position, 16.0f, dt);
+
+    _updateVectors();
 }
 
 void FPSCamera::move(glm::vec3 direction)
