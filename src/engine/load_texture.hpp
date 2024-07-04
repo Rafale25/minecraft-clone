@@ -7,7 +7,7 @@
 
 uint32_t loadTexture(const char *path, int format=GL_RGB, int min_filter=GL_LINEAR, int max_filter=GL_LINEAR, int wrap=GL_REPEAT)
 {
-    unsigned int texture;
+    GLuint texture;
     // ---------
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
