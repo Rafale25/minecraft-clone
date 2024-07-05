@@ -191,7 +191,9 @@ class GameView: public View {
 
             // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+            ctx.imguiNewFrame();
             if (_show_debug_gui) gui(dt);
+            ctx.imguiRender();
         }
 
         void render_world(Program &shader, bool use_frustum_culling=true)
@@ -224,7 +226,6 @@ class GameView: public View {
 
         void gui(float dt)
         {
-            ctx.imguiNewFrame();
             // ImGui::ShowDemoWindow();
 
             // ImGui::Begin("Shadow map");
@@ -269,7 +270,6 @@ class GameView: public View {
             ImGui::SliderFloat("Shadow Distance: ", &shadowmap._max_shadow_distance, 0.3f, 500.0f, "%.2f");
 
             ImGui::End();
-            ctx.imguiRender();
         }
 
         void placeSphere(glm::ivec3 center, float radius, BlockType blocktype)
