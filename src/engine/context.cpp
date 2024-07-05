@@ -46,8 +46,8 @@ Context::Context(int width, int height, const char *title, int maximized, int sa
 
     double mouseX, mouseY;
     glfwGetCursorPos(window, &mouseX, &mouseY);
-    _mouseX = mouseX;
-    _mouseY = mouseY;
+    _mouse_x = mouseX;
+    _mouse_y = mouseY;
 }
 
 Context::~Context()
@@ -139,7 +139,7 @@ void Context::key_callback(GLFWwindow* window, int key, int scancode, int action
     Context* ctx = (Context*)glfwGetWindowUserPointer(window);
 
     if (key >= 0 && key < GLFW_KEY_LAST) {
-        ctx->keyState[key] = action > 0 ? 1 : 0;
+        ctx->keystate[key] = action > 0 ? 1 : 0;
     }
 
     // call pressed/release events (need to do that because of key repeat)
@@ -153,13 +153,13 @@ void Context::cursor_position_callback(GLFWwindow* window, double x, double y)
 {
     Context* ctx = (Context*)glfwGetWindowUserPointer(window);
 
-    float dx = x - ctx->_mouseX;
-    float dy = y - ctx->_mouseY;
+    float dx = x - ctx->_mouse_x;
+    float dy = y - ctx->_mouse_y;
 
     ctx->_current_view->onMouseMotion(x, y, dx, dy);
 
-    ctx->_mouseX = x;
-    ctx->_mouseY = y;
+    ctx->_mouse_x = x;
+    ctx->_mouse_y = y;
 
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
         ctx->_current_view->onMouseDrag(x, y, dx, dy);
@@ -171,9 +171,9 @@ void Context::mouse_button_callback(GLFWwindow* window, int button, int action, 
     Context* ctx = (Context*)glfwGetWindowUserPointer(window);
 
     if (action == GLFW_PRESS)
-        ctx->_current_view->onMousePress(ctx->_mouseX, ctx->_mouseY, button);
+        ctx->_current_view->onMousePress(ctx->_mouse_x, ctx->_mouse_y, button);
     else if (action == GLFW_RELEASE)
-        ctx->_current_view->onMouseRelease(ctx->_mouseX, ctx->_mouseY, button);
+        ctx->_current_view->onMouseRelease(ctx->_mouse_x, ctx->_mouse_y, button);
 }
 
 void Context::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
@@ -188,9 +188,9 @@ void Context::cursor_enter_callback(GLFWwindow* window, int entered)
     Context* ctx = (Context*)glfwGetWindowUserPointer(window);
 
     if (entered)
-        ctx->_current_view->onMouseEnter(ctx->_mouseX, ctx->_mouseY);
+        ctx->_current_view->onMouseEnter(ctx->_mouse_x, ctx->_mouse_y);
     else
-        ctx->_current_view->onMouseLeave(ctx->_mouseX, ctx->_mouseY);
+        ctx->_current_view->onMouseLeave(ctx->_mouse_x, ctx->_mouse_y);
 }
 
 void Context::framebuffer_size_callback(GLFWwindow* window, int width, int height)

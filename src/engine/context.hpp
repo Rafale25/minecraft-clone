@@ -31,11 +31,11 @@ class Context {
 
     public:
         GLFWwindow* window;
-        int keyState[GLFW_KEY_LAST] = {0};
+        int keystate[GLFW_KEY_LAST] = {0};
         int width, height;
 
     private:
         DefaultView _default_view{*this};
         View* _current_view = &_default_view;
-        int _mouseX, _mouseY;
+        int _mouse_x, _mouse_y;
 };

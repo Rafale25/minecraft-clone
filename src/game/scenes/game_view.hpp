@@ -61,12 +61,12 @@ class GameView: public View {
 
         void onUpdate(double time_since_start, float dt)
         {
-            float dx = ctx.keyState[GLFW_KEY_A] - ctx.keyState[GLFW_KEY_D];
-            float dy = ctx.keyState[GLFW_KEY_LEFT_CONTROL] - ctx.keyState[GLFW_KEY_SPACE];
-            float dz = ctx.keyState[GLFW_KEY_W] - ctx.keyState[GLFW_KEY_S];
+            float dx = ctx.keystate[GLFW_KEY_A] - ctx.keystate[GLFW_KEY_D];
+            float dy = ctx.keystate[GLFW_KEY_LEFT_CONTROL] - ctx.keystate[GLFW_KEY_SPACE];
+            float dz = ctx.keystate[GLFW_KEY_W] - ctx.keystate[GLFW_KEY_S];
 
             camera.setSpeed(
-                ctx.keyState[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS ? 30.0f : 10.0f
+                ctx.keystate[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS ? 30.0f : 10.0f
             );
 
             camera.move(glm::vec3(dx, dy, dz));
@@ -209,8 +209,10 @@ class GameView: public View {
             {
                 if (chunk->mesh.indices_count == 0 || chunk->mesh.VAO == 0) continue;
 
-                AABB chunk_aabb = {chunk->pos * 16, (chunk->pos * 16) + 16};
-                if (!chunk_aabb.isOnFrustum(camera_frustum)) continue;
+                if (use_frustum_culling) {
+                    AABB chunk_aabb = {chunk->pos * 16, (chunk->pos * 16) + 16};
+                    if (!chunk_aabb.isOnFrustum(camera_frustum)) continue;
+                }
 
                 shader.setVec3("u_chunkPos", chunk->pos * 16);
 
@@ -318,12 +320,12 @@ class GameView: public View {
             if (_show_debug_gui && ImGui::GetIO().WantCaptureMouse) return;
 
             if (button == GLFW_MOUSE_BUTTON_LEFT) {
-                if (ctx.keyState[GLFW_KEY_LEFT_ALT])
+                if (ctx.keystate[GLFW_KEY_LEFT_ALT])
                     placeSphere(raycastWorldPos, bulkEditRadius, BlockType::Air);
                 else
                     client.sendBreakBlockPacket(raycastWorldPos);
             } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-                if (ctx.keyState[GLFW_KEY_LEFT_ALT])
+                if (ctx.keystate[GLFW_KEY_LEFT_ALT])
                     placeSphere(raycastWorldPos, bulkEditRadius, blockInHand);
                 else
                     client.sendPlaceBlockPacket(raycastWorldPos + glm::ivec3(raycastNormal), blockInHand);
