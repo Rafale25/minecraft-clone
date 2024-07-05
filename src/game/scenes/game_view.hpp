@@ -23,6 +23,8 @@
 #include "command_line_args.h"
 #include "string_helpers.hpp"
 
+#include "Frustum.hpp"
+
 void updateNeighboursChunksVaos(World& world, TextureManager& texture_manager, glm::ivec3 chunk_pos)
 {
     const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
@@ -75,7 +77,7 @@ class GameView: public View {
 
             world.updateEntities();
 
-            auto [blocktype, world_pos, normal] = world.BlockRaycast(camera.getPosition(), camera.forward, 16);
+            auto [blocktype, world_pos, normal] = world.BlockRaycast(camera.getPosition(), camera.forward(), 16);
             raycastBlocktype = blocktype;
             raycastWorldPos = world_pos;
             raycastNormal = normal;
@@ -160,34 +162,27 @@ class GameView: public View {
 
             shadowmap.setSunDir(sunDir);
             shadowmap.begin(camera, cube_shadowmapping_shader);
-                render_world(cube_shadowmapping_shader);
+                render_world(cube_shadowmapping_shader, false);
             shadowmap.end();
 
             glDisable(GL_DEPTH_TEST);
-
             skybox_shader.use();
-            // printf("%d %d\n", ctx.width, ctx.height);
-
-            glm::mat4 view_rotation = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), -camera.forward, glm::vec3(0.0f, 1.0f, 0.0f)); // wtf
-
+            glm::mat4 view_rotation = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), -camera.forward(), glm::vec3(0.0f, 1.0f, 0.0f)); // wtf
             skybox_shader.setVec2("u_resolution", glm::vec2(ctx.width, ctx.height));
             skybox_shader.setMat4("u_view", view_rotation);
             skybox_quad.draw();
-
             glEnable(GL_DEPTH_TEST);
 
             cube_shader.use();
             cube_shader.setMat4("u_lightSpaceMatrix", shadowmap._lightSpaceMatrix);
             cube_shader.setVec3("u_sun_direction", sunDir);
             cube_shader.setFloat("u_shadow_bias", shadowmap._shadow_bias);
-
             glBindTextureUnit(0, shadowmap._depthTexture._texture);
             render_world(cube_shader);
 
             mesh_shader.use();
             mesh_shader.setMat4("u_projectionMatrix", camera.getProjection());
             mesh_shader.setMat4("u_viewMatrix", camera.getView());
-
             for (auto& entity : world.entities)
             {
                 mesh_shader.setMat4("u_modelMatrix", entity.smooth_transform.getMatrix());
@@ -199,7 +194,7 @@ class GameView: public View {
             if (_show_debug_gui) gui(dt);
         }
 
-        void render_world(Program &shader)
+        void render_world(Program &shader, bool use_frustum_culling=true)
         {
             shader.use();
             shader.setMat4("u_projectionMatrix", camera.getProjection());
@@ -207,16 +202,21 @@ class GameView: public View {
             shader.setVec3("u_view_position", camera.getPosition());
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_texture_handles);
 
-            _drawcalls_count = 0;
+            Frustum camera_frustum = createFrustumFromCamera(camera, camera.aspect_ratio, glm::radians(camera.fov), camera.near_plane, camera.far_plane);
+
+            _chunks_drawn = 0;
             for (const auto& [key, chunk] : world.chunks)
             {
                 if (chunk->mesh.indices_count == 0 || chunk->mesh.VAO == 0) continue;
-                ++_drawcalls_count;
+
+                AABB chunk_aabb = {chunk->pos * 16, (chunk->pos * 16) + 16};
+                if (!chunk_aabb.isOnFrustum(camera_frustum)) continue;
 
                 shader.setVec3("u_chunkPos", chunk->pos * 16);
 
                 glBindVertexArray(chunk->mesh.VAO);
                 glDrawElements(GL_TRIANGLES, chunk->mesh.indices_count, GL_UNSIGNED_INT, 0);
+                ++_chunks_drawn;
             }
         }
 
@@ -232,14 +232,14 @@ class GameView: public View {
             ImGui::Begin("Debug");
 
             ImGui::Text("%ld new chunks", client.new_chunks.size());
-            ImGui::Text("draw calls: %d", _drawcalls_count);
+            ImGui::Text("draw calls: %d", _chunks_drawn);
 
             ImGui::Text("%.4f secs", dt);
             ImGui::Text("%.2f fps", 1.0f / dt);
 
             glm::vec3 camera_pos = camera.getPosition();
             ImGui::Text("position: %.2f, %.2f, %.2f", camera_pos.x, camera_pos.y, camera_pos.z);
-            ImGui::Text("forward: %.2f, %.2f, %.2f", camera.forward.x, camera.forward.y, camera.forward.z);
+            ImGui::Text("forward: %.2f, %.2f, %.2f", camera.forward().x, camera.forward().y, camera.forward().z);
             ImGui::Text("block in hand: %d", (int)blockInHand);
 
             if (ImGui::TreeNode(SC("Entities: " << world.entities.size()))) {
@@ -380,7 +380,7 @@ class GameView: public View {
         bool _wireframe = false;
         bool _vsync = true;
 
-        int _drawcalls_count;
+        int _chunks_drawn;
 
         // Player
         FPSCamera camera = {

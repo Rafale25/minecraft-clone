@@ -7,7 +7,7 @@
 
 glm::mat4 FPSCamera::getView() const
 {
-    return glm::lookAt(_smoothPosition, _smoothPosition + forward, _up);
+    return glm::lookAt(_smoothPosition, _smoothPosition + _forward, _world_up);
 }
 
 float FPSCamera::getYaw() const
@@ -71,12 +71,25 @@ void FPSCamera::setSpeed(float value)
     _speed = value;
 }
 
+glm::vec3 FPSCamera::right() const {
+    return _right;
+}
+
+glm::vec3 FPSCamera::up() const {
+    return _up;
+}
+
+glm::vec3 FPSCamera::forward() const {
+    return _forward;
+}
+
 void FPSCamera::_updateVectors()
 {
-    forward.x = glm::cos(_smoothYaw) * glm::cos(_smoothPitch);
-    forward.y = glm::sin(_smoothPitch);
-    forward.z = glm::sin(_smoothYaw) * glm::cos(_smoothPitch);
+    _forward.x = glm::cos(_smoothYaw) * glm::cos(_smoothPitch);
+    _forward.y = glm::sin(_smoothPitch);
+    _forward.z = glm::sin(_smoothYaw) * glm::cos(_smoothPitch);
 
-    forward = glm::normalize(forward);
-    _right = glm::normalize(glm::cross(forward, _up));
+    _forward = glm::normalize(_forward);
+    _right = glm::normalize(glm::cross(_forward, _world_up));
+    _up = glm::normalize(glm::cross(_right, _forward));
 }

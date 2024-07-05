@@ -27,7 +27,7 @@ public:
     void updateEntities();
 
     // TODO: change maxsteps by a maxDistance
-    std::tuple<BlockType, glm::ivec3, glm::vec3> BlockRaycast(glm::vec3 origin, glm::vec3 direction, int maxSteps);
+    std::tuple<BlockType, glm::ivec3, glm::vec3> BlockRaycast(const glm::vec3& origin, const glm::vec3& direction, int maxSteps);
     BlockType getBlock(glm::ivec3 pos);
 
     // Chunk* create_chunk();

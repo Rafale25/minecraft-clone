@@ -14,10 +14,11 @@ class Camera {
         virtual glm::mat4 getView() const = 0;
         virtual glm::vec3 getPosition() const = 0;
 
-    public:
-        // glm::mat4 projection;
-        // glm::mat4 view;
+        virtual glm::vec3 right() const = 0;
+        virtual glm::vec3 up() const = 0;
+        virtual glm::vec3 forward() const = 0;
 
+    public:
         float fov = 60.0f;
         float aspect_ratio = 16.0f / 9.0f;
         float near_plane = 0.1f;

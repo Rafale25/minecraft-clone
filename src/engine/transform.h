@@ -10,7 +10,7 @@ struct Transform
     glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
     glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);
 
-    glm::mat4 getMatrix(void)
+    glm::mat4 getMatrix() const
     {
         glm::mat4 m = glm::mat4(1.0f);
 

@@ -17,6 +17,11 @@ class FPSCamera: public Camera {
 
         glm::mat4 getView() const;
 
+        glm::vec3 right() const;
+        glm::vec3 up() const;
+        glm::vec3 forward() const;
+
+
         float getYaw() const;
         float getPitch() const;
         glm::vec3 getPosition() const;
@@ -45,10 +50,10 @@ class FPSCamera: public Camera {
         float _smoothRoll = 0.0f;
         glm::vec3 _smoothPosition = glm::vec3(0.0f, 0.0f, 0.0f);
 
-
-        glm::vec3 _right = glm::vec3(1.0, 0.0, 0.0);
+        glm::vec3 _world_up = glm::vec3(0.0, 1.0, 0.0);
         glm::vec3 _up = glm::vec3(0.0, 1.0, 0.0);
+        glm::vec3 _right = glm::vec3(1.0, 0.0, 0.0);
+        glm::vec3 _forward = glm::vec3(0.0, 0.0, 1.0);
 
     public:
-        glm::vec3 forward = glm::vec3(0.0, 0.0, 1.0);
 };

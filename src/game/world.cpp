@@ -74,7 +74,7 @@ BlockType World::getBlock(glm::ivec3 pos)
     return chunks[chunk_pos]->blocks[index];
 }
 
-std::tuple<BlockType, glm::ivec3, glm::vec3> World::BlockRaycast(glm::vec3 origin, glm::vec3 direction, int maxSteps)
+std::tuple<BlockType, glm::ivec3, glm::vec3> World::BlockRaycast(const glm::vec3& origin, const glm::vec3& direction, int maxSteps)
 {
     glm::vec3 rayPos = origin;
     glm::vec3 mapPos = glm::ivec3(glm::floor(rayPos));
