@@ -322,7 +322,7 @@ void Client::clientThreadFunc()
                             }
                         }
                         if (index_of_existing_chunk_pos != -1) {
-                            // delete new_chunks[index_of_existing_chunk_pos];
+                            delete new_chunks[index_of_existing_chunk_pos];
                             new_chunks[index_of_existing_chunk_pos] = chunk_data;
                         } else {
                             new_chunks.push_front(chunk_data);
