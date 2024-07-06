@@ -140,6 +140,11 @@ Client::Client(World& world, TextureManager& texture_manager, const char* ip):
     fcntl(client_socket, F_SETFL, opts);
 }
 
+Client::~Client() {
+    if (client_thread.joinable())
+        client_thread.detach(); /* Detach thread to avoid fatal error */
+}
+
 void Client::Start()
 {
     client_thread = std::thread(&Client::clientThreadFunc, this);
@@ -308,19 +313,22 @@ void Client::clientThreadFunc()
                         new_chunks_mutex.lock();
 
                         // Replace chunk if already in new chunk list to reduce charge on mainthread //
-                        // int index_of_existing_chunk_pos = -1;
-                        // for (uint i = 0 ; i < new_chunks.size() ; ++i) {
-                        //     if (new_chunks[i].pos == c->pos) {
-                        //         index_of_existing_chunk_pos = i;
-                        //         break;
-                        //     }
-                        // }
-                        // if (index_of_existing_chunk_pos != -1)
-                        //     new_chunks[index_of_existing_chunk_pos] = c;
-                        // else
-                        //     new_chunks.push_front(c);
+                        int index_of_existing_chunk_pos = -1;
+                        for (uint i = 0 ; i < new_chunks.size() ; ++i) {
+                            auto iter = new_chunks.begin() + 1;
+                            if (new_chunks[i]->pos == chunk_data->pos) {
+                                index_of_existing_chunk_pos = i;
+                                break;
+                            }
+                        }
+                        if (index_of_existing_chunk_pos != -1) {
+                            // delete new_chunks[index_of_existing_chunk_pos];
+                            new_chunks[index_of_existing_chunk_pos] = chunk_data;
+                        } else {
+                            new_chunks.push_front(chunk_data);
+                        }
 
-                        new_chunks.push_front(chunk_data);
+                        // new_chunks.push_front(chunk_data);
                         new_chunks_mutex.unlock();
                         // printf("Server sent 'chunk' packet: %d %d %d.\n", id, c.pos.x, c.pos.y, c.pos.z);
                     }

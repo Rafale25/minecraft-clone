@@ -14,7 +14,6 @@ struct Chunk;
 
 struct ChunkData {
     glm::ivec3 pos;
-    // BlockType* blocks;
     BlockType blocks[4096];
 };
 
@@ -35,6 +34,7 @@ private:
 
 public:
     Client(World& world, TextureManager& texture_manager, const char* ip);
+    ~Client();
 
     void Start();
     void clientThreadFunc();
@@ -47,12 +47,12 @@ public:
 
 public:
     std::deque<std::function<void()>> task_queue;
+    std::mutex task_queue_mutex;
 
     // NOTE: new chunk need to be assigned to the chunks list only when the VAO is computed
     std::deque<ChunkData*> new_chunks;
     std::mutex new_chunks_mutex;
 
-    std::mutex task_queue_mutex;
     int client_id = -1;
     int client_socket;
 

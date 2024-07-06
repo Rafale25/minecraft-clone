@@ -55,10 +55,6 @@ class GameView: public View {
             client.Start();
         }
 
-        void onHideView() {
-            client.client_thread.detach(); // Detach thread to avoid fatal error
-        }
-
         void onUpdate(double time_since_start, float dt)
         {
             float dx = ctx.keystate[GLFW_KEY_A] - ctx.keystate[GLFW_KEY_D];
