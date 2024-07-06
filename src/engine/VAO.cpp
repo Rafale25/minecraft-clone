@@ -130,7 +130,7 @@ GLuint createVAO(GLuint buffer, const char * const format, GLuint EBO) {
     FormatIterator it{format};
     FormatInfo info = it.info();
 
-    printf("info: size:%d nodes:%d valid:%d\n", info.size, info.nodes, info.valid);
+    // printf("info: size:%d nodes:%d valid:%d\n", info.size, info.nodes, info.valid);
 
     int attribute = 0;
     GLuint relative_offset = 0;
@@ -138,7 +138,7 @@ GLuint createVAO(GLuint buffer, const char * const format, GLuint EBO) {
     while (1) {
         FormatNode node = it.next();
         if (node.valid == false) break;
-        printf("node: %d %d %d\n", node.size, node.count, node.type);
+        // printf("node: %d %d %d\n", node.size, node.count, node.type);
 
         if (node.type) {
             glEnableVertexArrayAttrib(VAO, attribute);
