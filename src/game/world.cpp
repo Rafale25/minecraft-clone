@@ -50,7 +50,7 @@ void World::removeEntity(int id)
     }
 }
 
-void World::setEntityTransform(int id, glm::vec3 pos, float yaw, float pitch)
+void World::setEntityTransform(int id, const glm::vec3& pos, float yaw, float pitch)
 {
     Entity* e = getEntity(id);
     if (e == nullptr) return;

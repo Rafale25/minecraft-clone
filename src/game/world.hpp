@@ -22,7 +22,7 @@ public:
 
     void addEntity(Entity e);
     void removeEntity(int id);
-    void setEntityTransform(int id, glm::vec3 pos, float yaw, float pitch);
+    void setEntityTransform(int id, const glm::vec3& pos, float yaw, float pitch);
     Entity* getEntity(int id);
     void updateEntities();
 

@@ -11,12 +11,11 @@
 static const float borderColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 Shadowmap::Shadowmap(Context& ctx, GLsizei shadow_width, GLsizei shadow_height):
+    _ctx(ctx),
+    _shadow_width(shadow_width),
+    _shadow_height(shadow_height),
     _depthTexture(Texture(shadow_width, shadow_height, GL_DEPTH_COMPONENT24, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_BORDER, borderColor))
 {
-    _ctx = &ctx;
-    _shadow_width = shadow_width;
-    _shadow_height = shadow_height;
-
     _depthTexture.setSwizzle({ GL_RED, GL_RED, GL_RED, GL_ONE });
     _depthFBO.attachTexture(_depthTexture._texture, GL_DEPTH_ATTACHMENT);
 }
@@ -44,7 +43,7 @@ void Shadowmap::begin(Camera& camera, Program &program)
 void Shadowmap::end()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(0, 0, _ctx->width, _ctx->height);
+    glViewport(0, 0, _ctx.width, _ctx.height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 

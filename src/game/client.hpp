@@ -34,7 +34,6 @@ private:
     } packet;
 
 public:
-    Client() {};
     Client(World& world, TextureManager& texture_manager, const char* ip);
 
     void Start();
@@ -59,7 +58,5 @@ public:
 
     std::thread client_thread;
 private:
-    World *world;
-
-    TextureManager* texture_manager;
+    World& world;
 };

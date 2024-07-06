@@ -95,8 +95,8 @@ ChunkData* readFullMonoChunkPacket(uint8_t *buffer)
     return chunk_data;
 }
 
-Client::Client(World &world, TextureManager& texture_manager, const char* ip):
-    world(&world), texture_manager(&texture_manager)
+Client::Client(World& world, TextureManager& texture_manager, const char* ip):
+    world(world)
 {
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -272,7 +272,7 @@ void Client::clientThreadFunc()
                         task_queue.push_front([this, id, pos]() {
                             Entity e{id};
                             e.transform.position = pos;
-                            world->addEntity(e);
+                            world.addEntity(e);
                         } );
                         task_queue_mutex.unlock();
                     }
@@ -284,7 +284,7 @@ void Client::clientThreadFunc()
                         int entityId = be32toh(*(int*)(&buffer[0]));
                         task_queue_mutex.lock();
                         task_queue.push_front([this, entityId]() {
-                            world->removeEntity(entityId);
+                            world.removeEntity(entityId);
                         } );
                         task_queue_mutex.unlock();
                     }
@@ -295,7 +295,7 @@ void Client::clientThreadFunc()
                         auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
                         task_queue_mutex.lock();
                         task_queue.push_front([this, id, pos, yaw, pitch]() {
-                            world->setEntityTransform(id, pos, yaw, pitch);
+                            world.setEntityTransform(id, pos, yaw, pitch);
                         } );
                         task_queue_mutex.unlock();
                         // printf("Server sent 'move entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);

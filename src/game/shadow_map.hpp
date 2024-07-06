@@ -31,16 +31,15 @@ private:
     FrustumBounds computeFrustumBounds(const glm::mat4& lightView, const std::vector<glm::vec4>& corners);
     glm::mat4 getLightProjectionMatrix(const glm::mat4& lightView, FrustumBounds& b);
 
-public:
-    float _max_shadow_distance = 120.0f;
-    float _shadow_bias = 0.000175f;
-    glm::mat4 _lightSpaceMatrix;
-    Texture _depthTexture;
-
 private:
+    Context& _ctx;
     GLsizei _shadow_width, _shadow_height;
     Framebuffer _depthFBO{GL_NONE, GL_NONE};
-
     glm::vec3 _sunDir;
-    Context* _ctx;
+
+public:
+    Texture _depthTexture;
+    glm::mat4 _lightSpaceMatrix;
+    float _max_shadow_distance = 120.0f;
+    float _shadow_bias = 0.000175f;
 };
