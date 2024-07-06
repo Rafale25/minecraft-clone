@@ -27,7 +27,7 @@ public:
     void updateEntities();
 
     // TODO: change maxsteps by a maxDistance
-    std::tuple<BlockType, glm::ivec3, glm::vec3> BlockRaycast(const glm::vec3& origin, const glm::vec3& direction, int maxSteps);
+    std::tuple<BlockType, glm::ivec3, glm::vec3> BlockRaycast(const glm::vec3& origin, const glm::vec3& direction, int maxSteps) const;
     BlockType getBlock(glm::ivec3 pos) const;
 
     // Chunk* create_chunk();
@@ -35,7 +35,6 @@ public:
 
     void setChunk(ChunkData* chunk_data, TextureManager& texture_manager);
     Chunk* getChunk(glm::ivec3 pos) const;
-    // std::unordered_map<glm::ivec3, Chunk*>::iterator chunks_iter();
 
 public:
     mutable std::unordered_map<glm::ivec3, Chunk*> chunks; //Note: do not access synchronously
