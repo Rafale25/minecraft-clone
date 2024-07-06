@@ -6,20 +6,40 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
+void GLFW_error(int error, const char* description)
+{
+    fprintf(stderr, "%s\n", description);
+}
+
 Context::Context(int width, int height, const char *title, int maximized, int samples)
 {
-    glfwInit();
+    if(glfwPlatformSupported(GLFW_PLATFORM_WIN32)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WIN32);
+    else if(glfwPlatformSupported(GLFW_PLATFORM_COCOA)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_COCOA);
+    else if(glfwPlatformSupported(GLFW_PLATFORM_X11)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
+    else if(glfwPlatformSupported(GLFW_PLATFORM_WAYLAND)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND);
+    else {
+        fprintf(stderr, "Error: could not find acceptable platform for GLFW\n");
+        abort();
+    }
+
+    if (!glfwInit()) {
+        std::cout << "Failed to initialize GLFW!" << std::endl;
+        return;
+    }
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_MAXIMIZED , maximized);
     glfwWindowHint(GLFW_SAMPLES, samples);
 
+    glfwSetErrorCallback(GLFW_error);
+
     window = glfwCreateWindow(width, height, title, NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
+        abort();
     }
 
     glfwMakeContextCurrent(window);
@@ -52,11 +72,11 @@ Context::Context(int width, int height, const char *title, int maximized, int sa
 
 Context::~Context()
 {
-    glfwTerminate();
-
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
+
+    glfwTerminate();
 };
 
 void Context::run()
