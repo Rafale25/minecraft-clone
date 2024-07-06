@@ -87,7 +87,7 @@ class GameView: public View {
 
         void consumeNewChunks()
         {
-            client.new_chunks_mutex.lock();
+            const std::lock_guard<std::mutex> lock(client.new_chunks_mutex);
 
             const int MAX_NEW_CHUNKS_PER_FRAME = 3;
             int i = 0;
@@ -114,17 +114,16 @@ class GameView: public View {
 
                 delete chunk_data;
             }
-            client.new_chunks_mutex.unlock();
         }
 
         void consumeTaskQueue()
         {
-            client.task_queue_mutex.lock();
+            const std::lock_guard<std::mutex> lock(client.task_queue_mutex);
+
             for (auto &task: client.task_queue) {
                 task();
             }
             client.task_queue.clear();
-            client.task_queue_mutex.unlock();
         }
 
         void networkUpdate()

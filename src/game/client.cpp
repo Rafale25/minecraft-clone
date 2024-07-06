@@ -237,12 +237,10 @@ void Client::clientThreadFunc()
     {
         // usleep(10'000);
 
-        // poll (check if server sent anything)
-        int rv = poll(&fds, 1, 0);
+        int rv = poll(&fds, 1, 0); // poll (check if server sent anything)
         if (rv > 0 && (fds.revents & POLLIN)) {
 
             int recv_size = recv(client_socket, buffer, 1, 0);
-            // int recv_size = recv_full(client_socket, buffer, 5000);
             if (recv_size == -1) {
                 std::cout << "recv failed: return -1" << std::endl;
                 break;
@@ -252,65 +250,62 @@ void Client::clientThreadFunc()
 
             /*
             sizes int bytes without id
-            0x00 4
-            0x01 24
-            0x02 4
-            0x03 24
-            0x04 4108
+                0x00 4
+                0x01 24
+                0x02 4
+                0x03 24
+                0x04 4108
             */
-
             switch (id)
             {
-                case 0x00: // identification
+                case 0x00: /* identification */
                     recv_full(client_socket, buffer, 4);
                     {
                         client_id = be32toh(*(int*)(&buffer[0]));
                         printf("Client id: %d\n", client_id);
                     }
                     break;
-                case 0x01: // add entity
+                case 0x01: /* add entity */
                     recv_full(client_socket, buffer, 24);
                     {
                         auto [id, pos] = readAddEntityPacket(buffer);
                         // printf("Server sent 'add entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
-                        task_queue_mutex.lock();
+                        const std::lock_guard<std::mutex> lock(task_queue_mutex);
                         task_queue.push_front([this, id, pos]() {
                             Entity e{id};
                             e.transform.position = pos;
                             world.addEntity(e);
                         } );
-                        task_queue_mutex.unlock();
                     }
                     break;
-                case 0x02: // remove entity
+                case 0x02: /* remove entity */
                     recv_full(client_socket, buffer, 4);
                     {
                         // printf("Server sent 'remove entity' packet: %d.\n", id);
                         int entityId = be32toh(*(int*)(&buffer[0]));
-                        task_queue_mutex.lock();
+                        const std::lock_guard<std::mutex> lock(task_queue_mutex);
                         task_queue.push_front([this, entityId]() {
                             world.removeEntity(entityId);
                         } );
-                        task_queue_mutex.unlock();
                     }
                     break;
-                case 0x03: // update entity
+                case 0x03: /* update entity */
                     recv_full(client_socket, buffer, 24);
                     {
                         auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
-                        task_queue_mutex.lock();
+                        const std::lock_guard<std::mutex> lock(task_queue_mutex);
                         task_queue.push_front([this, id, pos, yaw, pitch]() {
                             world.setEntityTransform(id, pos, yaw, pitch);
                         } );
-                        task_queue_mutex.unlock();
                         // printf("Server sent 'move entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
                     }
                     break;
-                case 0x04: // Chunk
+                case 0x04: /* Chunk */
                     recv_full(client_socket, buffer, 4108);
                     {
                         ChunkData* chunk_data = readChunkPacket(buffer);
-                        new_chunks_mutex.lock();
+
+                        const std::lock_guard<std::mutex> lock(new_chunks_mutex);
 
                         // Replace chunk if already in new chunk list to reduce charge on mainthread //
                         int index_of_existing_chunk_pos = -1;
@@ -329,17 +324,15 @@ void Client::clientThreadFunc()
                         }
 
                         // new_chunks.push_front(chunk_data);
-                        new_chunks_mutex.unlock();
                         // printf("Server sent 'chunk' packet: %d %d %d.\n", id, c.pos.x, c.pos.y, c.pos.z);
                     }
                     break;
-                case 0x05: // full of same block chunk
+                case 0x05: /* full of same block chunk */
                     recv_full(client_socket, buffer, 4*3+1);
                     {
                         ChunkData* chunk_data = readFullMonoChunkPacket(buffer);
-                        new_chunks_mutex.lock();
+                        const std::lock_guard<std::mutex> lock(new_chunks_mutex);
                         new_chunks.push_front(chunk_data);
-                        new_chunks_mutex.unlock();
                     }
                     break;
                 default:
