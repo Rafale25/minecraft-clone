@@ -122,8 +122,3 @@ Chunk* World::getChunk(glm::ivec3 pos) const
     }
     return nullptr;
 }
-
-// std::unordered_map<glm::ivec3, Chunk *>::iterator World::chunks_iter()
-// {
-//     return chunks.begin();
-// }
