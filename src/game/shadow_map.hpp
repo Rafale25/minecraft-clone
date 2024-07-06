@@ -27,7 +27,7 @@ public:
 
 private:
     std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view);
-    glm::mat4 getLighViewMatrix(std::vector<glm::vec4> cameraFrustumCorners, glm::vec3 lightDir);
+    glm::mat4 getLighViewMatrix(const std::vector<glm::vec4>& cameraFrustumCorners, const glm::vec3& lightDir);
     FrustumBounds computeFrustumBounds(const glm::mat4& lightView, const std::vector<glm::vec4>& corners);
     glm::mat4 getLightProjectionMatrix(const glm::mat4& lightView, FrustumBounds& b);
 

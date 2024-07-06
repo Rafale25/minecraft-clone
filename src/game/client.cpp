@@ -342,7 +342,7 @@ void Client::clientThreadFunc()
     }
 }
 
-void Client::sendBreakBlockPacket(glm::ivec3 world_pos)
+void Client::sendBreakBlockPacket(const glm::ivec3& world_pos)
 {
     struct updateBlockPacket packet;
 
@@ -363,7 +363,7 @@ void putIntBe(uint8_t *buffer, int value)
     buffer[3] = (value >> 0) & 0xFF;
 }
 
-void Client::sendBlockBulkEditPacket(std::vector<glm::ivec3> &world_pos, BlockType blocktype)
+void Client::sendBlockBulkEditPacket(const std::vector<glm::ivec3>& world_pos, BlockType blocktype)
 {
     size_t size_in_bytes = sizeof(uint8_t) +
                             sizeof(uint32_t) +
@@ -403,7 +403,7 @@ void Client::sendBlockBulkEditPacket(std::vector<glm::ivec3> &world_pos, BlockTy
     delete [] buffer;
 }
 
-void Client::sendPlaceBlockPacket(glm::ivec3 world_pos, BlockType blocktype)
+void Client::sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blocktype)
 {
     struct updateBlockPacket packet;
 
@@ -416,7 +416,7 @@ void Client::sendPlaceBlockPacket(glm::ivec3 world_pos, BlockType blocktype)
     send(client_socket, &packet, sizeof(packet), 0);
 }
 
-void Client::sendUpdateEntityPacket(int entityId, glm::vec3 pos, float yaw, float pitch)
+void Client::sendUpdateEntityPacket(int entityId, const glm::vec3& pos, float yaw, float pitch)
 {
     struct updateEntityPacket packet;
 

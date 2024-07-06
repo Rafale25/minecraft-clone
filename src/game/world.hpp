@@ -28,16 +28,16 @@ public:
 
     // TODO: change maxsteps by a maxDistance
     std::tuple<BlockType, glm::ivec3, glm::vec3> BlockRaycast(const glm::vec3& origin, const glm::vec3& direction, int maxSteps);
-    BlockType getBlock(glm::ivec3 pos);
+    BlockType getBlock(glm::ivec3 pos) const;
 
     // Chunk* create_chunk();
     // void delete_chunk();
 
     void setChunk(ChunkData* chunk_data, TextureManager& texture_manager);
-    Chunk* getChunk(glm::ivec3 pos);
+    Chunk* getChunk(glm::ivec3 pos) const;
     // std::unordered_map<glm::ivec3, Chunk*>::iterator chunks_iter();
 
 public:
-    std::unordered_map<glm::ivec3, Chunk*> chunks; //Note: do not access synchronously
+    mutable std::unordered_map<glm::ivec3, Chunk*> chunks; //Note: do not access synchronously
     std::vector<Entity> entities;
 };

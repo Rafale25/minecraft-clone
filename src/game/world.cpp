@@ -58,7 +58,7 @@ void World::setEntityTransform(int id, const glm::vec3& pos, float yaw, float pi
     e->transform.rotation = glm::quat(glm::vec3(-pitch, -yaw, 0.0f));
 }
 
-BlockType World::getBlock(glm::ivec3 pos)
+BlockType World::getBlock(glm::ivec3 pos) const
 {
     glm::ivec3 chunk_pos = glm::floor(glm::vec3(pos) / 16.0f);
     glm::ivec3 local_pos = {pos.x % 16, pos.y % 16, pos.z % 16};
@@ -114,7 +114,7 @@ void World::setChunk(ChunkData* chunk_data, TextureManager& texture_manager)
     chunks[chunk_data->pos]->computeChunckVAO(*this, texture_manager);
 }
 
-Chunk* World::getChunk(glm::ivec3 pos)
+Chunk* World::getChunk(glm::ivec3 pos) const
 {
     //NOTE: Maybe can return directly chunks[pos] because unordered_map will call default constructor for Chunk* which is probably 0
     if (chunks.find(pos) != chunks.end()) {

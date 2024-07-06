@@ -95,7 +95,7 @@ public:
 
     }
 
-    void use()
+    void use() const
     {
         glUseProgram(ID);
     }

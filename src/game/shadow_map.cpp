@@ -74,7 +74,7 @@ std::vector<glm::vec4> Shadowmap::getFrustumCornersWorldSpace(const glm::mat4& p
     return frustumCorners;
 }
 
-glm::mat4 Shadowmap::getLighViewMatrix(std::vector<glm::vec4> cameraFrustumCorners, glm::vec3 lightDir)
+glm::mat4 Shadowmap::getLighViewMatrix(const std::vector<glm::vec4>& cameraFrustumCorners, const glm::vec3& lightDir)
 {
     glm::vec3 center = glm::vec3(0, 0, 0);
     for (const auto& v : cameraFrustumCorners) {

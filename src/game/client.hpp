@@ -39,11 +39,11 @@ public:
     void Start();
     void clientThreadFunc();
 
-    void sendBreakBlockPacket(glm::ivec3 world_pos);
-    void sendBlockBulkEditPacket(std::vector<glm::ivec3> &world_pos, BlockType blocktype);
+    void sendBreakBlockPacket(const glm::ivec3& world_pos);
+    void sendBlockBulkEditPacket(const std::vector<glm::ivec3>& world_pos, BlockType blocktype);
 
-    void sendPlaceBlockPacket(glm::ivec3 world_pos, BlockType blocktype);
-    void sendUpdateEntityPacket(int entityId, glm::vec3 pos, float yaw, float pitch);
+    void sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blocktype);
+    void sendUpdateEntityPacket(int entityId, const glm::vec3& pos, float yaw, float pitch);
 
 public:
     std::deque<std::function<void()>> task_queue;

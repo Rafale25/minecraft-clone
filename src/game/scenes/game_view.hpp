@@ -25,7 +25,7 @@
 
 #include "Frustum.hpp"
 
-void updateNeighboursChunksVaos(World& world, TextureManager& texture_manager, glm::ivec3 chunk_pos)
+void updateNeighboursChunksVaos(const World& world, const TextureManager& texture_manager, const glm::ivec3& chunk_pos)
 {
     const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
 
@@ -196,7 +196,7 @@ class GameView: public View {
             ctx.imguiRender();
         }
 
-        void render_world(Program &shader, bool use_frustum_culling=true)
+        void render_world(const Program &shader, bool use_frustum_culling=true)
         {
             shader.use();
             shader.setMat4("u_projectionMatrix", camera.getProjection());
@@ -272,7 +272,7 @@ class GameView: public View {
             ImGui::End();
         }
 
-        void placeSphere(glm::ivec3 center, float radius, BlockType blocktype)
+        void placeSphere(const glm::ivec3& center, float radius, BlockType blocktype)
         {
             std::vector<glm::ivec3> positions;
 
@@ -289,7 +289,7 @@ class GameView: public View {
             client.sendBlockBulkEditPacket(positions, blocktype);
         }
 
-        void setPlayerPosition(glm::vec3 p) {
+        void setPlayerPosition(const glm::vec3& p) {
             camera.setPosition(p);
         }
 

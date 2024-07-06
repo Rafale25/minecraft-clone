@@ -27,7 +27,7 @@ GLuint packVertex(int x, int y, int z, int u, int v, int o, int t) {
     return p;
 }
 
-void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
+void Chunk::computeChunckVAO(const World &world, const TextureManager &texture_manager)
 {
     // TODO: check if chunk is only air, then remove it from world
 
