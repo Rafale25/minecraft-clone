@@ -180,7 +180,6 @@ void Chunk::computeChunckVAO(World &world, TextureManager &texture_manager)
         glCreateVertexArrays(1, &mesh.VAO);
         glCreateBuffers(1, &mesh.VBO);
         glCreateBuffers(1, &mesh.EBO);
-        glCreateBuffers(1, &mesh.ssbo_texture_handles);
 
         glEnableVertexArrayAttrib(mesh.VAO, 0);
         glVertexArrayAttribBinding(mesh.VAO, 0, 0);

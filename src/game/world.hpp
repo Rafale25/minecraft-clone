@@ -40,6 +40,4 @@ public:
 public:
     std::unordered_map<glm::ivec3, Chunk*> chunks; //Note: do not access synchronously
     std::vector<Entity> entities;
-
-    GLuint ssbo_texture_handles;
 };

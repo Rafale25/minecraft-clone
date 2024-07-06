@@ -13,7 +13,6 @@
 // struct ChunkMesh {
 //     GLuint VAO;
 //     GLuint VBO;
-//     GLuint ssbo_texture_handles;
 //     uint32_t vertex_count;
 // };
 
