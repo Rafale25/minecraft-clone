@@ -6,8 +6,8 @@ struct ChunkMesh {
     GLuint VAO, VBO, EBO;
     GLsizei indices_count;
 
+    ChunkMesh(): VAO(0), VBO(0), EBO(0), indices_count(0) {}
     ~ChunkMesh();
 
-    ChunkMesh(): VAO(0), VBO(0), EBO(0), indices_count(0) {}
     void deleteAll();
 };

@@ -25,6 +25,13 @@
 
 #include "Frustum.hpp"
 
+
+/*
+    Create task queue wrapper
+    Have 2 task queue, one for main threads, and the second for multithreading
+*/
+
+
 void updateNeighboursChunksVaos(const World& world, const TextureManager& texture_manager, const glm::ivec3& chunk_pos)
 {
     const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
@@ -64,14 +71,11 @@ class GameView: public View {
             camera.update(dt);
 
             consumeTaskQueue();
-            consumeNewChunks();
+            // consumeNewChunks();
 
             world.updateEntities();
 
-            auto [blocktype, world_pos, normal] = world.BlockRaycast(camera.getPosition(), camera.forward(), 16);
-            raycastBlocktype = blocktype;
-            raycastWorldPos = world_pos;
-            raycastNormal = normal;
+            player_blockraycasthit = world.BlockRaycast(camera.getPosition(), camera.forward(), 16);
 
             network_timer -= dt;
             if (network_timer <= 0.0f) {
@@ -80,34 +84,34 @@ class GameView: public View {
             }
         }
 
-        void consumeNewChunks()
-        {
-            const std::lock_guard<std::mutex> lock(client.new_chunks_mutex);
+        // void consumeNewChunks()
+        // {
+        //     const std::lock_guard<std::mutex> lock(client.new_chunks_mutex);
 
-            const int MAX_NEW_CHUNKS_PER_FRAME = 3;
-            int i = 0;
+        //     const int MAX_NEW_CHUNKS_PER_FRAME = 3;
+        //     int i = 0;
 
-            const glm::vec3 camPos = camera.getPosition();
-            std::sort(client.new_chunks.begin(), client.new_chunks.end(),
-                [this, camPos](const ChunkData* l, const ChunkData* r)
-                {
-                    return glm::distance2(camPos, glm::vec3(l->pos*16)) > glm::distance2(camPos, glm::vec3(r->pos*16));
-                });
+        //     const glm::vec3 camPos = camera.getPosition();
+        //     std::sort(client.new_chunks.begin(), client.new_chunks.end(),
+        //         [this, camPos](const ChunkData* l, const ChunkData* r)
+        //         {
+        //             return glm::distance2(camPos, glm::vec3(l->pos*16)) > glm::distance2(camPos, glm::vec3(r->pos*16));
+        //         });
 
-            // TODO: make a third thread to compute VBO and then do OpenGL calls on main thread
+        //     // TODO: make a third thread to compute VBO and then do OpenGL calls on main thread
 
-            while (client.new_chunks.size() > 0 && i++ < MAX_NEW_CHUNKS_PER_FRAME)
-            {
-                ChunkData* chunk_data = client.new_chunks.back();
-                client.new_chunks.pop_back();
+        //     while (client.new_chunks.size() > 0 && i++ < MAX_NEW_CHUNKS_PER_FRAME)
+        //     {
+        //         ChunkData* chunk_data = client.new_chunks.back();
+        //         client.new_chunks.pop_back();
 
-                world.setChunk(chunk_data, texture_manager);
+        //         world.setChunk(chunk_data, texture_manager);
 
-                updateNeighboursChunksVaos(world, texture_manager, chunk_data->pos);
+        //         updateNeighboursChunksVaos(world, texture_manager, chunk_data->pos);
 
-                delete chunk_data;
-            }
-        }
+        //         delete chunk_data;
+        //     }
+        // }
 
         void consumeTaskQueue()
         {
@@ -309,14 +313,14 @@ class GameView: public View {
 
             if (button == GLFW_MOUSE_BUTTON_LEFT) {
                 if (ctx.keystate[GLFW_KEY_LEFT_ALT])
-                    placeSphere(raycastWorldPos, bulkEditRadius, BlockType::Air);
+                    placeSphere(player_blockraycasthit.pos, bulkEditRadius, BlockType::Air);
                 else
-                    client.sendBreakBlockPacket(raycastWorldPos);
+                    client.sendBreakBlockPacket(player_blockraycasthit.pos);
             } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
                 if (ctx.keystate[GLFW_KEY_LEFT_ALT])
-                    placeSphere(raycastWorldPos, bulkEditRadius, blockInHand);
+                    placeSphere(player_blockraycasthit.pos, bulkEditRadius, blockInHand);
                 else
-                    client.sendPlaceBlockPacket(raycastWorldPos + glm::ivec3(raycastNormal), blockInHand);
+                    client.sendPlaceBlockPacket(player_blockraycasthit.pos + glm::ivec3(player_blockraycasthit.normal), blockInHand);
             }
         }
 
@@ -352,12 +356,11 @@ class GameView: public View {
         Program skybox_shader{"./assets/shaders/skybox.vs", "./assets/shaders/skybox.fs"};
         // Program debugquad_shader{"./assets/shaders/debug_quad.vs", "./assets/shaders/debug_quad_depth.fs"};
 
-        GLuint ssbo_texture_handles;
-
         Shadowmap shadowmap{ctx, 4096, 4096};
         glm::vec3 sunDir = glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f));
         Mesh skybox_quad = Geometry::quad_2d();
 
+        GLuint ssbo_texture_handles;
         TextureManager texture_manager;
 
         World world;
@@ -381,8 +384,6 @@ class GameView: public View {
         BlockType blockInHand = BlockType::Grass;
         float bulkEditRadius = 4.0f;
 
-        BlockType raycastBlocktype;
-        glm::vec3 raycastNormal;
-        glm::ivec3 raycastWorldPos;
+        BlockRaycastHit player_blockraycasthit;
         // -- //
 };

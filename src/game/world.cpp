@@ -74,7 +74,7 @@ BlockType World::getBlock(glm::ivec3 pos) const
     return chunks[chunk_pos]->blocks[index];
 }
 
-std::tuple<BlockType, glm::ivec3, glm::vec3> World::BlockRaycast(const glm::vec3& origin, const glm::vec3& direction, int maxSteps) const
+BlockRaycastHit World::BlockRaycast(const glm::vec3& origin, const glm::vec3& direction, int maxSteps) const
 {
     glm::vec3 rayPos = origin;
     glm::vec3 mapPos = glm::ivec3(glm::floor(rayPos));
@@ -91,7 +91,7 @@ std::tuple<BlockType, glm::ivec3, glm::vec3> World::BlockRaycast(const glm::vec3
         normal = -mask * rayStep;
 
         if (block != BlockType::Air) {
-            return std::tuple<BlockType, glm::ivec3, glm::vec3>({block, mapPos, normal});
+            return {block, mapPos, normal};
         };
 
 		mask = glm::step(sideDist, glm::vec3(sideDist.y, sideDist.z, sideDist.x)) * glm::step(sideDist, glm::vec3(sideDist.z, sideDist.x, sideDist.y));
@@ -99,7 +99,7 @@ std::tuple<BlockType, glm::ivec3, glm::vec3> World::BlockRaycast(const glm::vec3
 		mapPos += mask * rayStep;
 	}
 
-    return std::tuple<BlockType, glm::ivec3, glm::vec3>({BlockType::Air, mapPos, normal});
+    return {BlockType::Air, mapPos, normal};
 }
 
 void World::setChunk(ChunkData* chunk_data, TextureManager& texture_manager)

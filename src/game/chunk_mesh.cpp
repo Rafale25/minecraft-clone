@@ -4,8 +4,9 @@
 
 ChunkMesh::~ChunkMesh()
 {
-    if (VAO != 0)
-        deleteAll();
+    // Note: Dangerous to to in destructor in case we pass ChunkMesh by value and create copies
+    // if (VAO != 0)
+    //     deleteAll();
 }
 
 void ChunkMesh::deleteAll()

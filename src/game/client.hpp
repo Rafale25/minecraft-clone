@@ -12,7 +12,9 @@ class TextureManager;
 class World;
 struct Chunk;
 
-struct ChunkData {
+ // TODO: put these structs in their own header file
+
+struct ChunkData { // sendChunkClientPacket
     glm::ivec3 pos;
     BlockType blocks[4096];
 };

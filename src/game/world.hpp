@@ -9,10 +9,16 @@
 
 #include "entity.hpp"
 #include "enums.hpp"
-#include "client.hpp" // TODO: put chunk_data in its own header file
+#include "client.hpp"
 
 struct Chunk;
 class TextureManager;
+
+struct BlockRaycastHit {
+    BlockType blocktype;
+    glm::ivec3 pos;
+    glm::vec3 normal;
+};
 
 class World
 {
@@ -27,7 +33,7 @@ public:
     void updateEntities();
 
     // TODO: change maxsteps by a maxDistance
-    std::tuple<BlockType, glm::ivec3, glm::vec3> BlockRaycast(const glm::vec3& origin, const glm::vec3& direction, int maxSteps) const;
+    BlockRaycastHit BlockRaycast(const glm::vec3& origin, const glm::vec3& direction, int maxSteps) const;
     BlockType getBlock(glm::ivec3 pos) const;
 
     // Chunk* create_chunk();
@@ -37,6 +43,8 @@ public:
     Chunk* getChunk(glm::ivec3 pos) const;
 
 public:
-    mutable std::unordered_map<glm::ivec3, Chunk*> chunks; //Note: do not access synchronously
+    mutable std::unordered_map<glm::ivec3, Chunk*> chunks;
+
+
     std::vector<Entity> entities;
 };
