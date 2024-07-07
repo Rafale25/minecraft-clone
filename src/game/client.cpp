@@ -15,23 +15,8 @@
 #include "entity.hpp"
 #include "utils/print_buffer.hpp"
 
-int recv_full(int fd, uint8_t *buffer, size_t size)
-{
-    size_t bytes_received = 0;
-
-    while (1) {
-        int recv_size = recv(fd, &buffer[bytes_received], size - bytes_received, 0);
-        bytes_received += recv_size;
-
-        if (recv_size == -1)
-            return -1;
-
-        if (bytes_received == size)
-            break;
-    }
-
-    return bytes_received;
-}
+#include "utils/recv_full.hpp"
+#include "utils/byte_manipulation.hpp"
 
 ChunkData* readChunkPacket(uint8_t *buffer)
 {
@@ -93,79 +78,6 @@ ChunkData* readFullMonoChunkPacket(uint8_t *buffer)
     return chunk_data;
 }
 
-Client::Client(World& world, TextureManager& texture_manager, const char* ip):
-    world(world)
-{
-    client_socket = socket(AF_INET, SOCK_STREAM, 0);
-
-    sockaddr_in serverAddress;
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_addr.s_addr = inet_addr(ip);
-    serverAddress.sin_port = htons(15000);
-
-    struct timeval tv;
-    tv.tv_sec = 3;
-    tv.tv_usec = 0;
-
-    fd_set set;
-    FD_ZERO(&set);
-    FD_SET(client_socket, &set);
-
-    // Set to blocking mode
-    int opts = fcntl(client_socket, F_SETFL, O_NONBLOCK); // https://stackoverflow.com/questions/2597608/c-socket-connection-timeout
-
-    printf("Connecting to %s...\n", ip);
-    int res = connect(client_socket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
-    if (errno != EINPROGRESS) {
-        printf("Connection failed.\n");
-        return;
-    }
-
-    res = select(client_socket+1, NULL, &set, NULL, &tv);
-
-    if (res < 0 && errno != EINTR) {
-        printf("Error connecting %d - %s\n", errno, strerror(errno));
-        exit(0);
-    } else if (res > 0) {
-        printf("Successfully connected to %s\n", ip);
-    } else {
-        printf("Connection timeout.\n");
-        exit(0);
-    }
-
-    // Set blocking mode back
-    opts = opts & (~O_NONBLOCK);
-    fcntl(client_socket, F_SETFL, opts);
-}
-
-Client::~Client() {
-    if (client_thread.joinable())
-        client_thread.detach(); /* Detach thread to avoid fatal error */
-}
-
-void Client::Start()
-{
-    client_thread = std::thread(&Client::clientThreadFunc, this);
-}
-
-// https://www.reddit.com/r/C_Programming/comments/s29903/how_does_endianness_work_for_floats_doubles_and/
-static uint32_t load_u32be(const unsigned char *buf)
-{
-    return (uint32_t)buf[0] << 24 | (uint32_t)buf[1] << 16 |
-           (uint32_t)buf[2] <<  8 | (uint32_t)buf[3] <<  0;
-}
-
-static float load_floatbe(const unsigned char *buf)
-{
-    uint32_t i = load_u32be(buf);
-    float f;
-
-    // f = *(float*)&i;
-    memcpy(&f, &i, 4);
-
-    return f;
-}
-
 AddEntityClientPacket readAddEntityPacket(uint8_t *buffer)
 {
     uint8_t *head = &buffer[0];
@@ -220,6 +132,61 @@ UpdateEntityClientPacket readUpdateEntityPacket(uint8_t *buffer)
     head += sizeof(float);
 
     return packet;
+}
+
+Client::Client(World& world, TextureManager& texture_manager, const char* ip):
+    world(world)
+{
+    client_socket = socket(AF_INET, SOCK_STREAM, 0);
+
+    sockaddr_in serverAddress;
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_addr.s_addr = inet_addr(ip);
+    serverAddress.sin_port = htons(15000);
+
+    struct timeval tv;
+    tv.tv_sec = 3;
+    tv.tv_usec = 0;
+
+    fd_set set;
+    FD_ZERO(&set);
+    FD_SET(client_socket, &set);
+
+    // Set to blocking mode
+    int opts = fcntl(client_socket, F_SETFL, O_NONBLOCK); // https://stackoverflow.com/questions/2597608/c-socket-connection-timeout
+
+    printf("Connecting to %s...\n", ip);
+    int res = connect(client_socket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
+    if (errno != EINPROGRESS) {
+        printf("Connection failed.\n");
+        return;
+    }
+
+    res = select(client_socket+1, NULL, &set, NULL, &tv);
+
+    if (res < 0 && errno != EINTR) {
+        printf("Error connecting %d - %s\n", errno, strerror(errno));
+        exit(0);
+    } else if (res > 0) {
+        printf("Successfully connected to %s\n", ip);
+    } else {
+        printf("Connection timeout.\n");
+        exit(0);
+    }
+
+    // Set blocking mode back
+    opts = opts & (~O_NONBLOCK);
+    fcntl(client_socket, F_SETFL, opts);
+}
+
+Client::~Client() {
+    if (client_thread.joinable())
+        client_thread.detach(); /* Detach thread to avoid fatal error */
+}
+
+void Client::Start()
+{
+    client_thread = std::thread(&Client::clientThreadFunc, this);
 }
 
 void Client::clientThreadFunc()
@@ -349,14 +316,6 @@ void Client::sendBreakBlockPacket(const glm::ivec3& world_pos)
     packet.z = htobe32(*(uint32_t*)&world_pos.z);
 
     send(client_socket, &packet, sizeof(packet), 0);
-}
-
-void putIntBe(uint8_t *buffer, int value)
-{
-    buffer[0] = (value >> 24) & 0xFF;
-    buffer[1] = (value >> 16) & 0xFF;
-    buffer[2] = (value >> 8) & 0xFF;
-    buffer[3] = (value >> 0) & 0xFF;
 }
 
 void Client::sendBlockBulkEditPacket(const std::vector<glm::ivec3>& world_pos, BlockType blocktype)

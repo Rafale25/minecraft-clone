@@ -103,13 +103,11 @@ class GameView: public View {
 
             while (client.new_chunks.size() > 0 && i++ < MAX_NEW_CHUNKS_PER_FRAME)
             {
-                // Chunk* c = client.new_chunks.back();
                 ChunkData* chunk_data = client.new_chunks.back();
                 client.new_chunks.pop_back();
 
                 world.setChunk(chunk_data, texture_manager);
 
-                // recompute neighbours chunks VAO //
                 updateNeighboursChunksVaos(world, texture_manager, chunk_data->pos);
 
                 delete chunk_data;
