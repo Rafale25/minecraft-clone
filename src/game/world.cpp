@@ -116,9 +116,7 @@ void World::setChunk(ChunkData* chunk_data, TextureManager& texture_manager)
 
 Chunk* World::getChunk(glm::ivec3 pos) const
 {
-    //NOTE: Maybe can return directly chunks[pos] because unordered_map will call default constructor for Chunk* which is probably 0
-    if (chunks.find(pos) != chunks.end()) {
+    if (chunks.find(pos) != chunks.end())
         return chunks[pos];
-    }
     return nullptr;
 }

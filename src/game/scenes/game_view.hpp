@@ -29,14 +29,9 @@ void updateNeighboursChunksVaos(const World& world, const TextureManager& textur
 {
     const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
 
-    for (const glm::ivec3 &offset: offsets)
-    {
-        glm::ivec3 cpos = chunk_pos + offset;
-
-        Chunk* nc = world.getChunk(cpos);
-        if (nc != nullptr) {
+    for (const glm::ivec3 &offset: offsets) {
+        if (Chunk* nc = world.getChunk(chunk_pos + offset))
             nc->computeChunckVAO(world, texture_manager);
-        }
     }
 }
 
