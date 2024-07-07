@@ -64,7 +64,7 @@ target_sources(imgui
 target_include_directories(imgui PUBLIC ${IMGUI_DIR})
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
-target_compile_options(${PROJECT_NAME} PRIVATE -W -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter)
+target_compile_options(${PROJECT_NAME} PRIVATE -W -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-strict-aliasing)
 # target_compile_options(${PROJECT_NAME} PRIVATE -W -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -g3)
 
 target_include_directories(${PROJECT_NAME}
