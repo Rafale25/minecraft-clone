@@ -365,10 +365,8 @@ void Client::sendBlockBulkEditPacket(const std::vector<glm::ivec3>& world_pos, B
                             sizeof(uint32_t) +
                             world_pos.size() * (sizeof(uint8_t) + 3*sizeof(int32_t));
 
-    uint8_t *buffer = new uint8_t[size_in_bytes];
+    auto buffer = std::make_unique<uint8_t[]>(size_in_bytes);
     uint8_t *head = &buffer[0];
-
-    memset(buffer, 0, size_in_bytes);
 
     // id
     head[0] = 0x02;
@@ -393,9 +391,7 @@ void Client::sendBlockBulkEditPacket(const std::vector<glm::ivec3>& world_pos, B
         head += sizeof(int32_t);
     }
 
-    send(client_socket, buffer, size_in_bytes, 0);
-
-    delete [] buffer;
+    send(client_socket, buffer.get(), size_in_bytes, 0);
 }
 
 void Client::sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blocktype)
