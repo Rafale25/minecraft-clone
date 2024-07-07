@@ -6,15 +6,13 @@
 #include <poll.h>
 #include <fcntl.h>
 #include <sys/select.h>
+#include <cstring>
+#include <endian.h>
 
 #include "client.hpp"
 #include "chunk.hpp"
 #include "world.hpp"
 #include "entity.hpp"
-
-#include <cstring>
-#include <endian.h>
-
 #include "utils/print_buffer.hpp"
 
 int recv_full(int fd, uint8_t *buffer, size_t size)
@@ -168,62 +166,61 @@ static float load_floatbe(const unsigned char *buf)
     return f;
 }
 
-std::tuple<int, glm::vec3> readAddEntityPacket(uint8_t *buffer)
+AddEntityClientPacket readAddEntityPacket(uint8_t *buffer)
 {
     uint8_t *head = &buffer[0];
     int entityId;
     float x, y, z;
 
+    AddEntityClientPacket packet;
+
     // skip packet id
     // head += sizeof(uint8_t);
 
-    entityId = *(int*)&head[0];
+    packet.id = htonl(*(int*)&head[0]);
     head += sizeof(int);
 
-    x = load_floatbe(&head[0]);
+    packet.position.x = load_floatbe(&head[0]);
     head += sizeof(float);
 
-    y = load_floatbe(&head[0]);
+    packet.position.y = load_floatbe(&head[0]);
     head += sizeof(float);
 
-    z = load_floatbe(&head[0]);
+    packet.position.z = load_floatbe(&head[0]);
     head += sizeof(float);
 
-    return std::tuple<int, glm::vec3>({htonl(entityId), glm::vec3(x, y, z)});
+    return packet;
 }
 
-std::tuple<int, glm::vec3, float, float> readUpdateEntityPacket(uint8_t *buffer)
+UpdateEntityClientPacket readUpdateEntityPacket(uint8_t *buffer)
 {
     uint8_t *head = &buffer[0];
-    int entityId;
-    float x, y, z;
-    float yaw, pitch;
+
+    UpdateEntityClientPacket packet;
 
     // skip packet id
     // head += sizeof(uint8_t);
 
-    entityId = *(int*)&head[0];
+    packet.id = htonl(*(int*)&head[0]);
     head += sizeof(int);
 
-    x = load_floatbe(&head[0]);
+    packet.position.x = load_floatbe(&head[0]);
     head += sizeof(float);
 
-    y = load_floatbe(&head[0]);
+    packet.position.y = load_floatbe(&head[0]);
     head += sizeof(float);
 
-    z = load_floatbe(&head[0]);
+    packet.position.z = load_floatbe(&head[0]);
     head += sizeof(float);
 
-    yaw = load_floatbe(&head[0]);
+    packet.yaw = load_floatbe(&head[0]);
     head += sizeof(float);
 
-    pitch = load_floatbe(&head[0]);
+    packet.pitch = load_floatbe(&head[0]);
     head += sizeof(float);
 
-    return std::tuple<int, glm::vec3, float, float>({htonl(entityId), glm::vec3(x, y, z), yaw, pitch});
+    return packet;
 }
-
-// #include <unistd.h>
 
 void Client::clientThreadFunc()
 {
@@ -281,7 +278,7 @@ void Client::clientThreadFunc()
                 case 0x02: /* remove entity */
                     recv_full(client_socket, buffer, 4);
                     {
-                        // printf("Server sent 'remove entity' packet: %d.\n", id);
+                        // // printf("Server sent 'remove entity' packet: %d.\n", id);
                         int entityId = be32toh(*(int*)(&buffer[0]));
                         const std::lock_guard<std::mutex> lock(task_queue_mutex);
                         task_queue.push_front([this, entityId]() {
@@ -310,7 +307,6 @@ void Client::clientThreadFunc()
                         // Replace chunk if already in new chunk list to reduce charge on mainthread //
                         int index_of_existing_chunk_pos = -1;
                         for (uint i = 0 ; i < new_chunks.size() ; ++i) {
-                            auto iter = new_chunks.begin() + 1;
                             if (new_chunks[i]->pos == chunk_data->pos) {
                                 index_of_existing_chunk_pos = i;
                                 break;
@@ -323,7 +319,6 @@ void Client::clientThreadFunc()
                             new_chunks.push_front(chunk_data);
                         }
 
-                        // new_chunks.push_front(chunk_data);
                         // printf("Server sent 'chunk' packet: %d %d %d.\n", id, c.pos.x, c.pos.y, c.pos.z);
                     }
                     break;
@@ -345,7 +340,7 @@ void Client::clientThreadFunc()
 
 void Client::sendBreakBlockPacket(const glm::ivec3& world_pos)
 {
-    struct updateBlockPacket packet;
+    struct updateBlockServerPacket packet;
 
     packet.id = 0x01; // update block //
     packet.blockType = 0;
@@ -370,9 +365,8 @@ void Client::sendBlockBulkEditPacket(const std::vector<glm::ivec3>& world_pos, B
                             sizeof(uint32_t) +
                             world_pos.size() * (sizeof(uint8_t) + 3*sizeof(int32_t));
 
-    // uint8_t *buffer = new uint8_t[size_in_bytes];
     uint8_t *buffer = new uint8_t[size_in_bytes];
-    uint8_t *head = buffer;
+    uint8_t *head = &buffer[0];
 
     memset(buffer, 0, size_in_bytes);
 
@@ -406,7 +400,7 @@ void Client::sendBlockBulkEditPacket(const std::vector<glm::ivec3>& world_pos, B
 
 void Client::sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blocktype)
 {
-    struct updateBlockPacket packet;
+    struct updateBlockServerPacket packet;
 
     packet.id = 0x01; // update block //
     packet.blockType = (uint8_t)blocktype;
@@ -419,7 +413,7 @@ void Client::sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blockty
 
 void Client::sendUpdateEntityPacket(int entityId, const glm::vec3& pos, float yaw, float pitch)
 {
-    struct updateEntityPacket packet;
+    struct updateEntityServerPacket packet;
 
     packet.id = 0x00; // update entity //
     packet.entityId = htobe32(entityId);

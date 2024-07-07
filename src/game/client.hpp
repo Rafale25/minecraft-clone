@@ -17,21 +17,32 @@ struct ChunkData {
     BlockType blocks[4096];
 };
 
+struct UpdateEntityClientPacket {
+    int id;
+    glm::vec3 position;
+    float yaw;
+    float pitch;
+};
+
+struct AddEntityClientPacket {
+    int id;
+    glm::vec3 position;
+};
+
+struct __attribute__ ((packed)) updateBlockServerPacket {
+    uint8_t id;
+    uint8_t blockType;
+    int x, y, z;
+};
+
+struct __attribute__ ((packed)) updateEntityServerPacket {
+    uint8_t id;
+    int entityId;
+    int x, y, z, yaw, pitch; // float encoded in int
+};
+
 class Client
 {
-private:
-    struct __attribute__ ((packed)) updateBlockPacket {
-        uint8_t id;
-        uint8_t blockType;
-        int x, y, z;
-    };
-
-    struct __attribute__ ((packed)) updateEntityPacket {
-        uint8_t id;
-        int entityId;
-        int x, y, z, yaw, pitch; // float encoded in int
-    } packet;
-
 public:
     Client(World& world, TextureManager& texture_manager, const char* ip);
     ~Client();
