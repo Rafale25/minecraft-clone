@@ -64,7 +64,7 @@ class GameView: public View {
             float dz = ctx.keystate[GLFW_KEY_W] - ctx.keystate[GLFW_KEY_S];
 
             camera.setSpeed(
-                ctx.keystate[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS ? 30.0f : 10.0f
+                ctx.keystate[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS ? 130.0f : 10.0f
             );
 
             camera.move(glm::vec3(dx, dy, dz));
@@ -89,6 +89,7 @@ class GameView: public View {
             {
                 // TODO: Don't understand why i can't pop an element from the task queue
                 // Using the auto for loop for the moment because it works
+                const std::lock_guard<std::mutex> lock(main_task_queue._task_queue_mutex);
                 for (auto &task: main_task_queue._task_queue) {
                     task();
                 }
