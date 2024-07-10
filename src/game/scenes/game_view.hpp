@@ -105,8 +105,7 @@ class GameView: public View {
                 thread_pool.enqueue([this, chunk_data] {
                     const std::lock_guard<std::mutex> lock(this->world.chunks_mutex); // TODO: this mutex don't need to affect the entire scope
 
-                    world.setChunk(chunk_data, texture_manager); // TODO: make setChunk return chunk created
-                    Chunk* chunk = world.getChunk(chunk_data->pos);
+                    Chunk* chunk = world.setChunk(chunk_data);
                     delete chunk_data;
 
                     chunk->computeVertexBuffer(this->world, texture_manager);
@@ -391,6 +390,6 @@ class GameView: public View {
 
         BlockRaycastHit player_blockraycasthit;
 
-        ThreadPool thread_pool{4};
+        ThreadPool thread_pool{3};
         TaskQueue main_task_queue;
 };

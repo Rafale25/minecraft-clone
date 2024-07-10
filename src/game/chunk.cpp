@@ -41,9 +41,6 @@ void Chunk::computeVertexBuffer(const World &world, const TextureManager &textur
         //     ttttttttooouvzzzzzyyyyyxxxxx
     */
 
-    // std::vector<GLuint64> textures_handles;
-    // std::vector<GLuint> vertices;
-    // std::vector<GLuint> ebo;
     mesh.vertices.clear();
     mesh.ebo.clear();
 
@@ -198,4 +195,6 @@ void Chunk::updateVAO()
     glNamedBufferData(mesh.EBO, mesh.ebo.size() * sizeof(GLuint), &mesh.ebo[0], GL_STATIC_DRAW);
 
     // TODO: clear() vertices et ebo vectors if not needed anymore
+    // mesh.vertices.clear();
+    // mesh.ebo.clear();
 }

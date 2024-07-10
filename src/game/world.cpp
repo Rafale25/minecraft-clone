@@ -10,9 +10,9 @@ World::World()
 {
 }
 
-World::~World()
-{
-}
+// World::~World()
+// {
+// }
 
 Entity* World::getEntity(int id)
 {
@@ -60,6 +60,7 @@ void World::setEntityTransform(int id, const glm::vec3& pos, float yaw, float pi
 
 BlockType World::getBlock(glm::ivec3 pos) const
 {
+    // TODO: try using static variables since this function is hot
     glm::ivec3 chunk_pos = glm::floor(glm::vec3(pos) / 16.0f);
     glm::ivec3 local_pos = {pos.x % 16, pos.y % 16, pos.z % 16};
     if (local_pos.x < 0) local_pos.x += 16;
@@ -102,14 +103,21 @@ BlockRaycastHit World::BlockRaycast(const glm::vec3& origin, const glm::vec3& di
     return {BlockType::Air, mapPos, normal};
 }
 
-void World::setChunk(ChunkData* chunk_data, TextureManager& texture_manager)
+Chunk* World::setChunk(ChunkData* chunk_data)
 {
+    Chunk* chunk = nullptr;
+
     if (chunks.find(chunk_data->pos) == chunks.end()) { // if not found
-        Chunk* chunk = new Chunk();
+        chunk = new Chunk();
         chunk->pos = chunk_data->pos;
         chunks[chunk_data->pos] = chunk;
+    } else {
+        chunk = chunks[chunk_data->pos];
     }
-    memcpy(chunks[chunk_data->pos]->blocks, chunk_data->blocks, 4096 * sizeof(uint8_t));
+
+    memcpy(chunk->blocks, chunk_data->blocks, 4096 * sizeof(uint8_t));
+
+    return chunk;
 }
 
 Chunk* World::getChunk(glm::ivec3 pos) const

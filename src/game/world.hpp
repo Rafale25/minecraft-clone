@@ -24,7 +24,7 @@ class World
 {
 public:
     World();
-    ~World();
+    ~World() = default;
 
     void addEntity(Entity e);
     void removeEntity(int id);
@@ -39,13 +39,15 @@ public:
     // Chunk* create_chunk();
     // void delete_chunk();
 
-    void setChunk(ChunkData* chunk_data, TextureManager& texture_manager);
+    Chunk* setChunk(ChunkData* chunk_data);
     Chunk* getChunk(glm::ivec3 pos) const;
 
 public:
     mutable std::unordered_map<glm::ivec3, Chunk*> chunks;
     std::mutex chunks_mutex;
 
+    // std::unordered_map<glm::ivec3, Chunk*> _chunks;
 
     std::vector<Entity> entities;
+    // std::unordered_map<int, Entity> entities; // TODO: switch to this data structure
 };
