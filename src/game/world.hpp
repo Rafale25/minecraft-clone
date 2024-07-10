@@ -44,6 +44,7 @@ public:
 
 public:
     mutable std::unordered_map<glm::ivec3, Chunk*> chunks;
+    std::mutex chunks_mutex;
 
 
     std::vector<Entity> entities;

@@ -17,5 +17,9 @@ struct Chunk
     BlockType blocks[4096]; // 16x16x16
 
     static int XYZtoIndex(int x, int y, int z);
-    void computeChunckVAO(const World& world, const TextureManager& texture_manager);
+
+    void computeVertexBuffer(const World &world, const TextureManager &texture_manager);
+    void updateVAO();
+
+    // void computeChunckVAO(const World& world, const TextureManager& texture_manager);
 };

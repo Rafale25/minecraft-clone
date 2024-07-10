@@ -110,8 +110,6 @@ void World::setChunk(ChunkData* chunk_data, TextureManager& texture_manager)
         chunks[chunk_data->pos] = chunk;
     }
     memcpy(chunks[chunk_data->pos]->blocks, chunk_data->blocks, 4096 * sizeof(uint8_t));
-
-    chunks[chunk_data->pos]->computeChunckVAO(*this, texture_manager);
 }
 
 Chunk* World::getChunk(glm::ivec3 pos) const

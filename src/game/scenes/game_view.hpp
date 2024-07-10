@@ -24,7 +24,7 @@
 #include "string_helpers.hpp"
 
 #include "Frustum.hpp"
-
+#include "thread_pool.hpp"
 
 /*
     Create task queue wrapper
@@ -32,15 +32,15 @@
 */
 
 
-void updateNeighboursChunksVaos(const World& world, const TextureManager& texture_manager, const glm::ivec3& chunk_pos)
-{
-    const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
+// void updateNeighboursChunksVaos(const World& world, const TextureManager& texture_manager, const glm::ivec3& chunk_pos)
+// {
+//     const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
 
-    for (const glm::ivec3 &offset: offsets) {
-        if (Chunk* nc = world.getChunk(chunk_pos + offset))
-            nc->computeChunckVAO(world, texture_manager);
-    }
-}
+//     for (const glm::ivec3 &offset: offsets) {
+//         if (Chunk* nc = world.getChunk(chunk_pos + offset))
+//             nc->computeChunckVAO(world, texture_manager);
+//     }
+// }
 
 class GameView: public View {
     public:
@@ -71,7 +71,7 @@ class GameView: public View {
             camera.update(dt);
 
             consumeTaskQueue();
-            // consumeNewChunks();
+            consumeNewChunks();
 
             world.updateEntities();
 
@@ -84,34 +84,38 @@ class GameView: public View {
             }
         }
 
-        // void consumeNewChunks()
-        // {
-        //     const std::lock_guard<std::mutex> lock(client.new_chunks_mutex);
+        void consumeNewChunks()
+        {
+            {
+                // TODO: Don't understand why i can't pop an element from the task queue
+                // Using the auto for loop for the moment because it works
+                for (auto &task: main_task_queue._task_queue) {
+                    task();
+                }
+                main_task_queue._task_queue.clear();
+            }
 
-        //     const int MAX_NEW_CHUNKS_PER_FRAME = 3;
-        //     int i = 0;
+            const std::lock_guard<std::mutex> lock(client.new_chunks_mutex);
 
-        //     const glm::vec3 camPos = camera.getPosition();
-        //     std::sort(client.new_chunks.begin(), client.new_chunks.end(),
-        //         [this, camPos](const ChunkData* l, const ChunkData* r)
-        //         {
-        //             return glm::distance2(camPos, glm::vec3(l->pos*16)) > glm::distance2(camPos, glm::vec3(r->pos*16));
-        //         });
+            while (client.new_chunks.size() > 0) {
+                ChunkData* chunk_data = client.new_chunks.back();
+                client.new_chunks.pop_back();
 
-        //     // TODO: make a third thread to compute VBO and then do OpenGL calls on main thread
+                thread_pool.enqueue([this, chunk_data] {
+                    const std::lock_guard<std::mutex> lock(this->world.chunks_mutex); // TODO: this mutex don't need to affect the entire scope
 
-        //     while (client.new_chunks.size() > 0 && i++ < MAX_NEW_CHUNKS_PER_FRAME)
-        //     {
-        //         ChunkData* chunk_data = client.new_chunks.back();
-        //         client.new_chunks.pop_back();
+                    world.setChunk(chunk_data, texture_manager); // TODO: make setChunk return chunk created
+                    Chunk* chunk = world.getChunk(chunk_data->pos);
+                    delete chunk_data;
 
-        //         world.setChunk(chunk_data, texture_manager);
+                    chunk->computeVertexBuffer(this->world, texture_manager);
 
-        //         updateNeighboursChunksVaos(world, texture_manager, chunk_data->pos);
-
-        //         delete chunk_data;
-        //     }
-        // }
+                    main_task_queue.push_safe([chunk] {
+                        chunk->updateVAO();
+                    });
+                });
+            }
+        }
 
         void consumeTaskQueue()
         {
@@ -385,5 +389,7 @@ class GameView: public View {
         float bulkEditRadius = 4.0f;
 
         BlockRaycastHit player_blockraycasthit;
-        // -- //
+
+        ThreadPool thread_pool{4};
+        TaskQueue main_task_queue;
 };

@@ -8,18 +8,30 @@
 #include <vector>
 #include <functional>
 
-/*
 class TaskQueue {
 public:
-    void push(std::function<void()> task);
-    std::function<void()> front();
+    void push_safe(std::function<void()> task) {
+        const std::lock_guard<std::mutex> lock(_task_queue_mutex);
+        // _task_queue.emplace(std::move(task));
+        _task_queue.push_back(std::move(task));
+    };
+
+    // std::function<void()> popFront() {
+    //     const std::lock_guard<std::mutex> lock(_task_queue_mutex);
+    //     // auto task = std::move(_task_queue.front());
+    //     auto task = _task_queue.front();
+    //     // _task_queue.pop();
+    //     _task_queue.pop_front();
+    //     return task;
+    // }
+
     int count() const { return _task_queue.size(); };
 
-private:
-    std::queue<std::function<void()>> _task_queue;
-
+public:
+    // std::queue<std::function<void()>> _task_queue;
+    std::deque<std::function<void()>> _task_queue;
+    std::mutex _task_queue_mutex;
 };
-*/
 
 // https://www.geeksforgeeks.org/thread-pool-in-cpp/
 class ThreadPool {
