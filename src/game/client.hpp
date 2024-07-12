@@ -58,6 +58,13 @@ public:
     void sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blocktype);
     void sendUpdateEntityPacket(int entityId, const glm::vec3& pos, float yaw, float pitch);
 
+    void packet_Identification(uint8_t* buffer);
+    void packet_AddEntity(uint8_t* buffer);
+    void packet_RemoveEntity(uint8_t* buffer);
+    void packet_UpdateEntity(uint8_t* buffer);
+    void packet_SendChunk(uint8_t* buffer);
+    void packet_SendMonotypeChunk(uint8_t* buffer);
+
 public:
     std::deque<std::function<void()>> task_queue;
     std::mutex task_queue_mutex;

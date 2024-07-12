@@ -189,6 +189,65 @@ void Client::Start()
     client_thread = std::thread(&Client::clientThreadFunc, this);
 }
 
+void Client::packet_Identification(uint8_t* buffer) {
+    client_id = be32toh(*(int*)(&buffer[0]));
+    // printf("Client id: %d\n", client_id);
+}
+
+void Client::packet_AddEntity(uint8_t* buffer) {
+    auto [id, pos] = readAddEntityPacket(buffer);
+    const std::lock_guard<std::mutex> lock(task_queue_mutex);
+    task_queue.push_front([this, id, pos]() {
+        Entity e{id};
+        e.transform.position = pos;
+        world.addEntity(e);
+    } );
+}
+
+void Client::packet_RemoveEntity(uint8_t* buffer) {
+    int entityId = be32toh(*(int*)(&buffer[0]));
+    const std::lock_guard<std::mutex> lock(task_queue_mutex);
+    task_queue.push_front([this, entityId]() {
+        world.removeEntity(entityId);
+    } );
+}
+
+void Client::packet_UpdateEntity(uint8_t* buffer) {
+    auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
+    const std::lock_guard<std::mutex> lock(task_queue_mutex);
+    task_queue.push_front([this, id, pos, yaw, pitch]() {
+        world.setEntityTransform(id, pos, yaw, pitch);
+    } );
+}
+
+void Client::packet_SendChunk(uint8_t* buffer) {
+    ChunkData* chunk_data = readChunkPacket(buffer);
+
+    const std::lock_guard<std::mutex> lock(new_chunks_mutex);
+
+    // Replace chunk if already in new chunk list to reduce charge on mainthread //
+    int index_of_existing_chunk_pos = -1;
+    for (uint i = 0 ; i < new_chunks.size() ; ++i) {
+        if (new_chunks[i]->pos == chunk_data->pos) {
+            index_of_existing_chunk_pos = i;
+            break;
+        }
+    }
+    if (index_of_existing_chunk_pos != -1) {
+        delete new_chunks[index_of_existing_chunk_pos];
+        new_chunks[index_of_existing_chunk_pos] = chunk_data;
+    } else {
+        new_chunks.push_front(chunk_data);
+    }
+}
+
+void Client::packet_SendMonotypeChunk(uint8_t* buffer) {
+    ChunkData* chunk_data = readFullMonoChunkPacket(buffer);
+    const std::lock_guard<std::mutex> lock(new_chunks_mutex);
+    new_chunks.push_front(chunk_data);
+}
+
+
 void Client::clientThreadFunc()
 {
     struct pollfd fds;
@@ -224,78 +283,32 @@ void Client::clientThreadFunc()
         {
             case 0x00: /* identification */
                 recv_full(client_socket, buffer, 4);
-                {
-                    client_id = be32toh(*(int*)(&buffer[0]));
-                    printf("Client id: %d\n", client_id);
-                }
+                packet_Identification(buffer);
+                // printf("Client id: %d\n", client_id);
                 break;
             case 0x01: /* add entity */
                 recv_full(client_socket, buffer, 24);
-                {
-                    auto [id, pos] = readAddEntityPacket(buffer);
-                    const std::lock_guard<std::mutex> lock(task_queue_mutex);
-                    task_queue.push_front([this, id, pos]() {
-                        Entity e{id};
-                        e.transform.position = pos;
-                        world.addEntity(e);
-                    } );
-                    // printf("Server sent 'add entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
-                }
+                packet_AddEntity(buffer);
+                // printf("Server sent 'add entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
                 break;
             case 0x02: /* remove entity */
                 recv_full(client_socket, buffer, 4);
-                {
-                    // printf("Server sent 'remove entity' packet: %d.\n", id);
-                    int entityId = be32toh(*(int*)(&buffer[0]));
-                    const std::lock_guard<std::mutex> lock(task_queue_mutex);
-                    task_queue.push_front([this, entityId]() {
-                        world.removeEntity(entityId);
-                    } );
-                }
+                packet_RemoveEntity(buffer);
+                // printf("Server sent 'remove entity' packet: %d.\n", id);
                 break;
             case 0x03: /* update entity */
                 recv_full(client_socket, buffer, 24);
-                {
-                    auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
-                    const std::lock_guard<std::mutex> lock(task_queue_mutex);
-                    task_queue.push_front([this, id, pos, yaw, pitch]() {
-                        world.setEntityTransform(id, pos, yaw, pitch);
-                    } );
-                    // printf("Server sent 'move entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
-                }
+                packet_UpdateEntity(buffer);
+                // printf("Server sent 'move entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
                 break;
             case 0x04: /* Chunk */
                 recv_full(client_socket, buffer, 4108);
-                {
-                    ChunkData* chunk_data = readChunkPacket(buffer);
-
-                    const std::lock_guard<std::mutex> lock(new_chunks_mutex);
-
-                    // Replace chunk if already in new chunk list to reduce charge on mainthread //
-                    int index_of_existing_chunk_pos = -1;
-                    for (uint i = 0 ; i < new_chunks.size() ; ++i) {
-                        if (new_chunks[i]->pos == chunk_data->pos) {
-                            index_of_existing_chunk_pos = i;
-                            break;
-                        }
-                    }
-                    if (index_of_existing_chunk_pos != -1) {
-                        delete new_chunks[index_of_existing_chunk_pos];
-                        new_chunks[index_of_existing_chunk_pos] = chunk_data;
-                    } else {
-                        new_chunks.push_front(chunk_data);
-                    }
-
-                    // printf("Server sent 'chunk' packet: %d %d %d.\n", id, c.pos.x, c.pos.y, c.pos.z);
-                }
+                packet_SendChunk(buffer);
+                // printf("Server sent 'chunk' packet: %d %d %d.\n", id, c.pos.x, c.pos.y, c.pos.z);
                 break;
             case 0x05: /* full of same block chunk */
                 recv_full(client_socket, buffer, 4*3+1);
-                {
-                    ChunkData* chunk_data = readFullMonoChunkPacket(buffer);
-                    const std::lock_guard<std::mutex> lock(new_chunks_mutex);
-                    new_chunks.push_front(chunk_data);
-                }
+                packet_SendMonotypeChunk(buffer);
                 break;
             default:
                 break;
@@ -309,9 +322,10 @@ void Client::sendBreakBlockPacket(const glm::ivec3& world_pos)
 
     packet.id = 0x01; // update block //
     packet.blockType = 0;
-    packet.x = htobe32(*(uint32_t*)&world_pos.x);
-    packet.y = htobe32(*(uint32_t*)&world_pos.y);
-    packet.z = htobe32(*(uint32_t*)&world_pos.z);
+
+    packet.x = be32toh(*(uint32_t*)&world_pos.x);
+    packet.y = be32toh(*(uint32_t*)&world_pos.y);
+    packet.z = be32toh(*(uint32_t*)&world_pos.z);
 
     send(client_socket, &packet, sizeof(packet), 0);
 }
@@ -357,9 +371,9 @@ void Client::sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blockty
 
     packet.id = 0x01; // update block //
     packet.blockType = (uint8_t)blocktype;
-    packet.x = htobe32(*(uint32_t*)&world_pos.x);
-    packet.y = htobe32(*(uint32_t*)&world_pos.y);
-    packet.z = htobe32(*(uint32_t*)&world_pos.z);
+    packet.x = be32toh(*(uint32_t*)&world_pos.x);
+    packet.y = be32toh(*(uint32_t*)&world_pos.y);
+    packet.z = be32toh(*(uint32_t*)&world_pos.z);
 
     send(client_socket, &packet, sizeof(packet), 0);
 }
@@ -369,12 +383,12 @@ void Client::sendUpdateEntityPacket(int entityId, const glm::vec3& pos, float ya
     struct updateEntityServerPacket packet;
 
     packet.id = 0x00; // update entity //
-    packet.entityId = htobe32(entityId);
-    packet.x = htobe32(*(uint32_t*)&pos.x);
-    packet.y = htobe32(*(uint32_t*)&pos.y);
-    packet.z = htobe32(*(uint32_t*)&pos.z);
-    packet.yaw = htobe32(*(uint32_t*)&yaw);
-    packet.pitch = htobe32(*(uint32_t*)&pitch);
+    packet.entityId = be32toh(entityId);
+    packet.x = be32toh(*(uint32_t*)&pos.x);
+    packet.y = be32toh(*(uint32_t*)&pos.y);
+    packet.z = be32toh(*(uint32_t*)&pos.z);
+    packet.yaw = be32toh(*(uint32_t*)&yaw);
+    packet.pitch = be32toh(*(uint32_t*)&pitch);
 
     send(client_socket, &packet, sizeof(packet), 0);
 }
