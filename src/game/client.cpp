@@ -48,16 +48,13 @@ ChunkPacket* readChunkPacket(ByteBuffer buffer)
 
 ChunkPacket* readFullMonoChunkPacket(ByteBuffer buffer)
 {
-    ChunkPacket *chunk_data = new ChunkPacket;
-
     int x = buffer.getInt();
     int y = buffer.getInt();
     int z = buffer.getInt();
-
-    chunk_data->pos = glm::ivec3(x, y, z) / 16;
-
     uint8_t blockType = buffer.get();
 
+    ChunkPacket *chunk_data = new ChunkPacket;
+    chunk_data->pos = glm::ivec3(x, y, z) / 16;
     memset(chunk_data->blocks, blockType, 16*16*16);
 
     return chunk_data;
