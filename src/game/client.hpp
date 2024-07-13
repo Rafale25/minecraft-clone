@@ -10,6 +10,7 @@
 
 class TextureManager;
 class World;
+class ByteBuffer;
 struct Chunk;
 
  // TODO: put these structs in their own header file
@@ -58,12 +59,12 @@ public:
     void sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blocktype);
     void sendUpdateEntityPacket(int entityId, const glm::vec3& pos, float yaw, float pitch);
 
-    void packet_Identification(uint8_t* buffer);
-    void packet_AddEntity(uint8_t* buffer);
-    void packet_RemoveEntity(uint8_t* buffer);
-    void packet_UpdateEntity(uint8_t* buffer);
-    void packet_SendChunk(uint8_t* buffer);
-    void packet_SendMonotypeChunk(uint8_t* buffer);
+    void packet_Identification(ByteBuffer buffer);
+    void packet_AddEntity(ByteBuffer buffer);
+    void packet_RemoveEntity(ByteBuffer buffer);
+    void packet_UpdateEntity(ByteBuffer buffer);
+    void packet_SendChunk(ByteBuffer buffer);
+    void packet_SendMonotypeChunk(ByteBuffer buffer);
 
 public:
     std::deque<std::function<void()>> task_queue;

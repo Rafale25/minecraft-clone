@@ -20,27 +20,18 @@
 
 #include "ByteBuffer.hpp"
 
-ChunkPacket* readChunkPacket(uint8_t *buffer)
+ChunkPacket* readChunkPacket(ByteBuffer buffer)
 {
-    uint8_t *head = buffer;
-    int x, y, z;
-
-    x = *(int*)head;
-    head += sizeof(int);
-
-    y = *(int*)head;
-    head += sizeof(int);
-
-    z = *(int*)head;
-    head += sizeof(int);
-
     ChunkPacket* chunk_data = new ChunkPacket;
 
-    chunk_data->pos = glm::ivec3(be32toh(x), be32toh(y), be32toh(z)) / 16;
+    int x = buffer.getInt();
+    int y = buffer.getInt();
+    int z = buffer.getInt();
+
+    chunk_data->pos = glm::ivec3(x, y, z) / 16;
 
     for (int i = 0 ; i < 16*16*16 ; ++i) {
-        uint8_t byte = *(uint8_t*)head;
-        head += sizeof(uint8_t);
+        uint8_t byte = buffer.get();
 
         /* convert to BlackoutBurst indexing -_- */
         // int x = i % 16;
@@ -55,86 +46,45 @@ ChunkPacket* readChunkPacket(uint8_t *buffer)
     return chunk_data;
 }
 
-ChunkPacket* readFullMonoChunkPacket(uint8_t *buffer)
+ChunkPacket* readFullMonoChunkPacket(ByteBuffer buffer)
 {
-    uint8_t *head = buffer;
-    int x, y, z;
-    uint8_t blockType;
-
-    x = *(int*)head;
-    // memcpy(&x, head, sizeof(int));
-    head += sizeof(int);
-
-    y = *(int*)head;
-    // memcpy(&y, head, sizeof(int));
-    head += sizeof(int);
-
-    z = *(int*)head;
-    // memcpy(&z, head, sizeof(int));
-    head += sizeof(int);
-
-    blockType = head[0];
-
     ChunkPacket *chunk_data = new ChunkPacket;
-    chunk_data->pos = glm::ivec3(be32toh(x), be32toh(y), be32toh(z)) / 16;
+
+    int x = buffer.getInt();
+    int y = buffer.getInt();
+    int z = buffer.getInt();
+
+    chunk_data->pos = glm::ivec3(x, y, z) / 16;
+
+    uint8_t blockType = buffer.get();
 
     memset(chunk_data->blocks, blockType, 16*16*16);
 
     return chunk_data;
 }
 
-AddEntityClientPacket readAddEntityPacket(uint8_t *buffer)
+AddEntityClientPacket readAddEntityPacket(ByteBuffer buffer)
 {
-    uint8_t *head = buffer;
-    int entityId;
-    float x, y, z;
-
     AddEntityClientPacket packet;
 
-    // skip packet id
-    // head += sizeof(uint8_t);
-
-    packet.id = be32toh(*(int*)head);
-    head += sizeof(int);
-
-    packet.position.x = load_floatbe(head);
-    head += sizeof(float);
-
-    packet.position.y = load_floatbe(head);
-    head += sizeof(float);
-
-    packet.position.z = load_floatbe(head);
-    head += sizeof(float);
+    packet.id = buffer.getInt();
+    packet.position.x = buffer.getFloat();
+    packet.position.y = buffer.getFloat();
+    packet.position.z = buffer.getFloat();
 
     return packet;
 }
 
-UpdateEntityClientPacket readUpdateEntityPacket(uint8_t *buffer)
+UpdateEntityClientPacket readUpdateEntityPacket(ByteBuffer buffer)
 {
-    uint8_t *head = &buffer[0];
-
     UpdateEntityClientPacket packet;
 
-    // skip packet id
-    // head += sizeof(uint8_t);
-
-    packet.id = be32toh(*(int*)head);
-    head += sizeof(int);
-
-    packet.position.x = load_floatbe(head);
-    head += sizeof(float);
-
-    packet.position.y = load_floatbe(head);
-    head += sizeof(float);
-
-    packet.position.z = load_floatbe(head);
-    head += sizeof(float);
-
-    packet.yaw = load_floatbe(head);
-    head += sizeof(float);
-
-    packet.pitch = load_floatbe(head);
-    head += sizeof(float);
+    packet.id = buffer.getInt();
+    packet.position.x = buffer.getFloat();
+    packet.position.y = buffer.getFloat();
+    packet.position.z = buffer.getFloat();
+    packet.yaw = buffer.getFloat();
+    packet.pitch = buffer.getFloat();
 
     return packet;
 }
@@ -194,12 +144,12 @@ void Client::Start()
     client_thread = std::thread(&Client::clientThreadFunc, this);
 }
 
-void Client::packet_Identification(uint8_t* buffer) {
-    client_id = be32toh(*(int*)buffer);
+void Client::packet_Identification(ByteBuffer buffer) {
+    client_id = buffer.getInt();
     // printf("Client id: %d\n", client_id);
 }
 
-void Client::packet_AddEntity(uint8_t* buffer) {
+void Client::packet_AddEntity(ByteBuffer buffer) {
     auto [id, pos] = readAddEntityPacket(buffer);
     const std::lock_guard<std::mutex> lock(task_queue_mutex);
     task_queue.push_front([this, id, pos]() {
@@ -209,15 +159,15 @@ void Client::packet_AddEntity(uint8_t* buffer) {
     } );
 }
 
-void Client::packet_RemoveEntity(uint8_t* buffer) {
-    int entityId = be32toh(*(int*)buffer);
+void Client::packet_RemoveEntity(ByteBuffer buffer) {
+    int entityId = buffer.getInt();
     const std::lock_guard<std::mutex> lock(task_queue_mutex);
     task_queue.push_front([this, entityId]() {
         world.removeEntity(entityId);
-    } );
+    });
 }
 
-void Client::packet_UpdateEntity(uint8_t* buffer) {
+void Client::packet_UpdateEntity(ByteBuffer buffer) {
     auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
     const std::lock_guard<std::mutex> lock(task_queue_mutex);
     task_queue.push_front([this, id, pos, yaw, pitch]() {
@@ -225,7 +175,7 @@ void Client::packet_UpdateEntity(uint8_t* buffer) {
     } );
 }
 
-void Client::packet_SendChunk(uint8_t* buffer) {
+void Client::packet_SendChunk(ByteBuffer buffer) {
     ChunkPacket* chunk_data = readChunkPacket(buffer);
 
     const std::lock_guard<std::mutex> lock(new_chunks_mutex);
@@ -246,7 +196,7 @@ void Client::packet_SendChunk(uint8_t* buffer) {
     }
 }
 
-void Client::packet_SendMonotypeChunk(uint8_t* buffer) {
+void Client::packet_SendMonotypeChunk(ByteBuffer buffer) {
     ChunkPacket* chunk_data = readFullMonoChunkPacket(buffer);
     const std::lock_guard<std::mutex> lock(new_chunks_mutex);
     new_chunks.push_front(chunk_data);
@@ -278,32 +228,32 @@ void Client::clientThreadFunc()
         {
             case 0x00: /* identification */
                 recv_full(client_socket, buffer, 4);
-                packet_Identification(buffer);
+                packet_Identification(ByteBuffer(buffer, 4, ByteBuffer::ByteOrder::BE));
                 // printf("Client id: %d\n", client_id);
                 break;
             case 0x01: /* add entity */
                 recv_full(client_socket, buffer, 24);
-                packet_AddEntity(buffer);
+                packet_AddEntity(ByteBuffer(buffer, 24, ByteBuffer::ByteOrder::BE));
                 // printf("Server sent 'add entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
                 break;
             case 0x02: /* remove entity */
                 recv_full(client_socket, buffer, 4);
-                packet_RemoveEntity(buffer);
+                packet_RemoveEntity(ByteBuffer(buffer, 4, ByteBuffer::ByteOrder::BE));
                 // printf("Server sent 'remove entity' packet: %d.\n", id);
                 break;
             case 0x03: /* update entity */
                 recv_full(client_socket, buffer, 24);
-                packet_UpdateEntity(buffer);
+                packet_UpdateEntity(ByteBuffer(buffer, 24, ByteBuffer::ByteOrder::BE));
                 // printf("Server sent 'move entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
                 break;
             case 0x04: /* Chunk */
                 recv_full(client_socket, buffer, 4108);
-                packet_SendChunk(buffer);
+                packet_SendChunk(ByteBuffer(buffer, 4108, ByteBuffer::ByteOrder::BE));
                 // printf("Server sent 'chunk' packet: %d %d %d.\n", id, c.pos.x, c.pos.y, c.pos.z);
                 break;
             case 0x05: /* full of same block chunk */
                 recv_full(client_socket, buffer, 4*3+1);
-                packet_SendMonotypeChunk(buffer);
+                packet_SendMonotypeChunk(ByteBuffer(buffer, 4*3+1, ByteBuffer::ByteOrder::BE));
                 break;
             default:
                 break;
@@ -318,9 +268,9 @@ void Client::sendBreakBlockPacket(const glm::ivec3& world_pos)
     packet.id = 0x01; // update block //
     packet.blockType = 0;
 
-    packet.x = be32toh(*(uint32_t*)&world_pos.x);
-    packet.y = be32toh(*(uint32_t*)&world_pos.y);
-    packet.z = be32toh(*(uint32_t*)&world_pos.z);
+    packet.x = htobe32(*(uint32_t*)&world_pos.x);
+    packet.y = htobe32(*(uint32_t*)&world_pos.y);
+    packet.z = htobe32(*(uint32_t*)&world_pos.z);
 
     send(client_socket, &packet, sizeof(packet), 0);
 }
@@ -366,9 +316,9 @@ void Client::sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blockty
 
     packet.id = 0x01; // update block //
     packet.blockType = (uint8_t)blocktype;
-    packet.x = be32toh(*(uint32_t*)&world_pos.x);
-    packet.y = be32toh(*(uint32_t*)&world_pos.y);
-    packet.z = be32toh(*(uint32_t*)&world_pos.z);
+    packet.x = htobe32(*(uint32_t*)&world_pos.x);
+    packet.y = htobe32(*(uint32_t*)&world_pos.y);
+    packet.z = htobe32(*(uint32_t*)&world_pos.z);
 
     send(client_socket, &packet, sizeof(packet), 0);
 }
@@ -378,12 +328,12 @@ void Client::sendUpdateEntityPacket(int entityId, const glm::vec3& pos, float ya
     struct updateEntityServerPacket packet;
 
     packet.id = 0x00; // update entity //
-    packet.entityId = be32toh(entityId);
-    packet.x = be32toh(*(uint32_t*)&pos.x);
-    packet.y = be32toh(*(uint32_t*)&pos.y);
-    packet.z = be32toh(*(uint32_t*)&pos.z);
-    packet.yaw = be32toh(*(uint32_t*)&yaw);
-    packet.pitch = be32toh(*(uint32_t*)&pitch);
+    packet.entityId = htobe32(entityId);
+    packet.x = htobe32(*(uint32_t*)&pos.x);
+    packet.y = htobe32(*(uint32_t*)&pos.y);
+    packet.z = htobe32(*(uint32_t*)&pos.z);
+    packet.yaw = htobe32(*(uint32_t*)&yaw);
+    packet.pitch = htobe32(*(uint32_t*)&pitch);
 
     send(client_socket, &packet, sizeof(packet), 0);
 }
