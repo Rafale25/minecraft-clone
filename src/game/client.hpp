@@ -14,7 +14,7 @@ struct Chunk;
 
  // TODO: put these structs in their own header file
 
-struct ChunkData { // sendChunkClientPacket
+struct ChunkPacket { // sendChunkClientPacket
     glm::ivec3 pos;
     BlockType blocks[4096];
 };
@@ -70,7 +70,7 @@ public:
     std::mutex task_queue_mutex;
 
     // NOTE: new chunk need to be assigned to the chunks list only when the VAO is computed
-    std::deque<ChunkData*> new_chunks;
+    std::deque<ChunkPacket*> new_chunks;
     std::mutex new_chunks_mutex;
 
     int client_id = -1;

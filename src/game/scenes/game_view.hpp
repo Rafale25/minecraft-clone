@@ -67,7 +67,7 @@ class GameView: public View {
                 ctx.keystate[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS ? 130.0f : 10.0f
             );
 
-            camera.move(glm::vec3(dx, dy, dz));
+            if (!_cursorEnable) camera.move(glm::vec3(dx, dy, dz));
             camera.update(dt);
 
             consumeTaskQueue();
@@ -99,7 +99,7 @@ class GameView: public View {
             const std::lock_guard<std::mutex> lock(client.new_chunks_mutex);
 
             while (client.new_chunks.size() > 0) {
-                ChunkData* chunk_data = client.new_chunks.back();
+                ChunkPacket* chunk_data = client.new_chunks.back();
                 client.new_chunks.pop_back();
 
                 thread_pool.enqueue([this, chunk_data] {
@@ -185,8 +185,6 @@ class GameView: public View {
                 entity.draw();
             }
 
-            // glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
             ctx.imguiNewFrame();
             if (_show_debug_gui) gui(dt);
             ctx.imguiRender();
@@ -208,7 +206,7 @@ class GameView: public View {
                 if (chunk->mesh.indices_count == 0 || chunk->mesh.VAO == 0) continue;
 
                 if (use_frustum_culling) {
-                    AABB chunk_aabb = {chunk->pos * 16, (chunk->pos * 16) + 16};
+                    AABB chunk_aabb = {(chunk->pos * 16), (chunk->pos * 16) + 16};
                     if (!chunk_aabb.isOnFrustum(camera_frustum)) continue;
                 }
 

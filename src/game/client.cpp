@@ -18,26 +18,28 @@
 #include "utils/recv_full.hpp"
 #include "utils/byte_manipulation.hpp"
 
-ChunkData* readChunkPacket(uint8_t *buffer)
+#include "ByteBuffer.hpp"
+
+ChunkPacket* readChunkPacket(uint8_t *buffer)
 {
-    uint8_t *head = &buffer[0];
+    uint8_t *head = buffer;
     int x, y, z;
 
-    x = *(int*)&head[0];
+    x = *(int*)head;
     head += sizeof(int);
 
-    y = *(int*)&head[0];
+    y = *(int*)head;
     head += sizeof(int);
 
-    z = *(int*)&head[0];
+    z = *(int*)head;
     head += sizeof(int);
 
-    ChunkData* chunk_data = new ChunkData;
+    ChunkPacket* chunk_data = new ChunkPacket;
 
-    chunk_data->pos = glm::ivec3(htonl(x), htonl(y), htonl(z)) / 16;
+    chunk_data->pos = glm::ivec3(be32toh(x), be32toh(y), be32toh(z)) / 16;
 
     for (int i = 0 ; i < 16*16*16 ; ++i) {
-        uint8_t byte = *(uint8_t*)&head[0];
+        uint8_t byte = *(uint8_t*)head;
         head += sizeof(uint8_t);
 
         /* convert to BlackoutBurst indexing -_- */
@@ -53,25 +55,28 @@ ChunkData* readChunkPacket(uint8_t *buffer)
     return chunk_data;
 }
 
-ChunkData* readFullMonoChunkPacket(uint8_t *buffer)
+ChunkPacket* readFullMonoChunkPacket(uint8_t *buffer)
 {
-    uint8_t *head = &buffer[0];
+    uint8_t *head = buffer;
     int x, y, z;
     uint8_t blockType;
 
-    x = *(int*)&head[0];
+    x = *(int*)head;
+    // memcpy(&x, head, sizeof(int));
     head += sizeof(int);
 
-    y = *(int*)&head[0];
+    y = *(int*)head;
+    // memcpy(&y, head, sizeof(int));
     head += sizeof(int);
 
-    z = *(int*)&head[0];
+    z = *(int*)head;
+    // memcpy(&z, head, sizeof(int));
     head += sizeof(int);
 
     blockType = head[0];
 
-    ChunkData *chunk_data = new ChunkData;
-    chunk_data->pos = glm::ivec3(htonl(x), htonl(y), htonl(z)) / 16;
+    ChunkPacket *chunk_data = new ChunkPacket;
+    chunk_data->pos = glm::ivec3(be32toh(x), be32toh(y), be32toh(z)) / 16;
 
     memset(chunk_data->blocks, blockType, 16*16*16);
 
@@ -80,7 +85,7 @@ ChunkData* readFullMonoChunkPacket(uint8_t *buffer)
 
 AddEntityClientPacket readAddEntityPacket(uint8_t *buffer)
 {
-    uint8_t *head = &buffer[0];
+    uint8_t *head = buffer;
     int entityId;
     float x, y, z;
 
@@ -89,16 +94,16 @@ AddEntityClientPacket readAddEntityPacket(uint8_t *buffer)
     // skip packet id
     // head += sizeof(uint8_t);
 
-    packet.id = htonl(*(int*)&head[0]);
+    packet.id = be32toh(*(int*)head);
     head += sizeof(int);
 
-    packet.position.x = load_floatbe(&head[0]);
+    packet.position.x = load_floatbe(head);
     head += sizeof(float);
 
-    packet.position.y = load_floatbe(&head[0]);
+    packet.position.y = load_floatbe(head);
     head += sizeof(float);
 
-    packet.position.z = load_floatbe(&head[0]);
+    packet.position.z = load_floatbe(head);
     head += sizeof(float);
 
     return packet;
@@ -113,22 +118,22 @@ UpdateEntityClientPacket readUpdateEntityPacket(uint8_t *buffer)
     // skip packet id
     // head += sizeof(uint8_t);
 
-    packet.id = htonl(*(int*)&head[0]);
+    packet.id = be32toh(*(int*)head);
     head += sizeof(int);
 
-    packet.position.x = load_floatbe(&head[0]);
+    packet.position.x = load_floatbe(head);
     head += sizeof(float);
 
-    packet.position.y = load_floatbe(&head[0]);
+    packet.position.y = load_floatbe(head);
     head += sizeof(float);
 
-    packet.position.z = load_floatbe(&head[0]);
+    packet.position.z = load_floatbe(head);
     head += sizeof(float);
 
-    packet.yaw = load_floatbe(&head[0]);
+    packet.yaw = load_floatbe(head);
     head += sizeof(float);
 
-    packet.pitch = load_floatbe(&head[0]);
+    packet.pitch = load_floatbe(head);
     head += sizeof(float);
 
     return packet;
@@ -190,7 +195,7 @@ void Client::Start()
 }
 
 void Client::packet_Identification(uint8_t* buffer) {
-    client_id = be32toh(*(int*)(&buffer[0]));
+    client_id = be32toh(*(int*)buffer);
     // printf("Client id: %d\n", client_id);
 }
 
@@ -205,7 +210,7 @@ void Client::packet_AddEntity(uint8_t* buffer) {
 }
 
 void Client::packet_RemoveEntity(uint8_t* buffer) {
-    int entityId = be32toh(*(int*)(&buffer[0]));
+    int entityId = be32toh(*(int*)buffer);
     const std::lock_guard<std::mutex> lock(task_queue_mutex);
     task_queue.push_front([this, entityId]() {
         world.removeEntity(entityId);
@@ -221,7 +226,7 @@ void Client::packet_UpdateEntity(uint8_t* buffer) {
 }
 
 void Client::packet_SendChunk(uint8_t* buffer) {
-    ChunkData* chunk_data = readChunkPacket(buffer);
+    ChunkPacket* chunk_data = readChunkPacket(buffer);
 
     const std::lock_guard<std::mutex> lock(new_chunks_mutex);
 
@@ -242,11 +247,10 @@ void Client::packet_SendChunk(uint8_t* buffer) {
 }
 
 void Client::packet_SendMonotypeChunk(uint8_t* buffer) {
-    ChunkData* chunk_data = readFullMonoChunkPacket(buffer);
+    ChunkPacket* chunk_data = readFullMonoChunkPacket(buffer);
     const std::lock_guard<std::mutex> lock(new_chunks_mutex);
     new_chunks.push_front(chunk_data);
 }
-
 
 void Client::clientThreadFunc()
 {
@@ -270,15 +274,6 @@ void Client::clientThreadFunc()
         }
 
         uint8_t id = buffer[0];
-
-        /*
-        sizes int bytes without id
-            0x00 4
-            0x01 24
-            0x02 4
-            0x03 24
-            0x04 4108
-        */
         switch (id)
         {
             case 0x00: /* identification */
