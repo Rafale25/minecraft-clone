@@ -59,15 +59,17 @@ class GameView: public View {
 
         void onUpdate(double time_since_start, float dt)
         {
-            float dx = ctx.keystate[GLFW_KEY_A] - ctx.keystate[GLFW_KEY_D];
-            float dy = ctx.keystate[GLFW_KEY_LEFT_CONTROL] - ctx.keystate[GLFW_KEY_SPACE];
-            float dz = ctx.keystate[GLFW_KEY_W] - ctx.keystate[GLFW_KEY_S];
+            glm::vec3 delta = {
+                ctx.keystate[GLFW_KEY_A] - ctx.keystate[GLFW_KEY_D],
+                ctx.keystate[GLFW_KEY_LEFT_CONTROL] - ctx.keystate[GLFW_KEY_SPACE],
+                ctx.keystate[GLFW_KEY_W] - ctx.keystate[GLFW_KEY_S]
+            };
 
             camera.setSpeed(
                 ctx.keystate[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS ? 130.0f : 10.0f
             );
 
-            if (!_cursorEnable) camera.move(glm::vec3(dx, dy, dz));
+            if (!_cursorEnable) camera.move(delta);
             camera.update(dt);
 
             consumeTaskQueue();
