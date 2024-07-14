@@ -26,12 +26,6 @@
 #include "Frustum.hpp"
 #include "thread_pool.hpp"
 
-/*
-    Create task queue wrapper
-    Have 2 task queue, one for main threads, and the second for multithreading
-*/
-
-
 // void updateNeighboursChunksVaos(const World& world, const TextureManager& texture_manager, const glm::ivec3& chunk_pos)
 // {
 //     const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
