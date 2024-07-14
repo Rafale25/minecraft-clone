@@ -58,7 +58,7 @@ void World::setEntityTransform(int id, const glm::vec3& pos, float yaw, float pi
     e->transform.rotation = glm::quat(glm::vec3(-pitch, -yaw, 0.0f));
 }
 
-BlockType World::getBlock(glm::ivec3 pos) const
+BlockType World::getBlock(const glm::ivec3& pos) const
 {
     // TODO: try using static variables since this function is hot
     glm::ivec3 chunk_pos = glm::floor(glm::vec3(pos) / 16.0f);

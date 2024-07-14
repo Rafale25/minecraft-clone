@@ -34,7 +34,7 @@ public:
 
     // TODO: change maxsteps by a maxDistance
     BlockRaycastHit BlockRaycast(const glm::vec3& origin, const glm::vec3& direction, int maxSteps) const;
-    BlockType getBlock(glm::ivec3 pos) const;
+    BlockType getBlock(const glm::ivec3& pos) const;
 
     // Chunk* create_chunk();
     // void delete_chunk();
