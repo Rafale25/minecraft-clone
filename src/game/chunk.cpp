@@ -197,4 +197,7 @@ void Chunk::updateVAO()
     // TODO: clear() vertices et ebo vectors if not needed anymore
     // mesh.vertices.clear();
     // mesh.ebo.clear();
+
+    // mesh.vertices.shrink_to_fit();
+    // mesh.ebo.shrink_to_fit();
 }

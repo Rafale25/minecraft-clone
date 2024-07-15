@@ -11,7 +11,7 @@ struct ChunkMesh {
     std::vector<GLuint> ebo;
 
     ChunkMesh(): VAO(0), VBO(0), EBO(0), indices_count(0) {}
-    ~ChunkMesh();
+    ~ChunkMesh() = default;
 
     void deleteAll();
 };

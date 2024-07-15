@@ -2,12 +2,12 @@
 
 #include <stdio.h>
 
-ChunkMesh::~ChunkMesh()
-{
+// ChunkMesh::~ChunkMesh()
+// {
     // Note: Dangerous to to in destructor in case we pass ChunkMesh by value and create copies
     // if (VAO != 0)
     //     deleteAll();
-}
+// }
 
 void ChunkMesh::deleteAll()
 {

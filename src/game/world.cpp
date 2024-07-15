@@ -103,6 +103,24 @@ BlockRaycastHit World::BlockRaycast(const glm::vec3& origin, const glm::vec3& di
     return {BlockType::Air, mapPos, normal};
 }
 
+
+// void World::setChunk(Chunk* chunk)
+// {
+//     if (chunks.find(chunk->pos) == chunks.end()) { // if not found
+//         chunks[chunk->pos] = chunk;
+//     } else {
+
+//         if (chunk->mesh.VAO != 0) { // if chunk has a mesh
+//             chunks[chunk->pos]->mesh.deleteAll();
+//             delete chunks[chunk->pos];
+//         }
+
+
+//         chunks[chunk->pos] = chunk;
+//     }
+// }
+
+
 Chunk* World::setChunk(ChunkPacket* chunk_data)
 {
     Chunk* chunk = nullptr;

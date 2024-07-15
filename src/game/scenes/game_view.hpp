@@ -26,15 +26,22 @@
 #include "Frustum.hpp"
 #include "thread_pool.hpp"
 
-// void updateNeighboursChunksVaos(const World& world, const TextureManager& texture_manager, const glm::ivec3& chunk_pos)
-// {
-//     const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
+#include "mem_info.hpp"
 
-//     for (const glm::ivec3 &offset: offsets) {
-//         if (Chunk* nc = world.getChunk(chunk_pos + offset))
-//             nc->computeChunckVAO(world, texture_manager);
-//     }
-// }
+void updateNeighboursChunksVaos(const World& world, const TextureManager& texture_manager, const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
+{
+    const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
+
+    for (const glm::ivec3 &offset: offsets) {
+        if (Chunk* neighbor_chunk = world.getChunk(chunk_pos + offset)) {
+            neighbor_chunk->computeVertexBuffer(world, texture_manager);
+
+            main_task_queue.push_safe([neighbor_chunk] {
+                neighbor_chunk->updateVAO();
+            });
+        }
+    }
+}
 
 class GameView: public View {
     public:
@@ -83,8 +90,8 @@ class GameView: public View {
         void consumeNewChunks()
         {
             {
-                // TODO: Don't understand why i can't pop an element from the task queue
-                // Using the auto for loop for the moment because it works
+                // TODO: Don't understand why i can't pop an element from the task queue.
+                // Using the auto for loop for the moment because it works.
                 const std::lock_guard<std::mutex> lock(main_task_queue._task_queue_mutex);
                 for (auto &task: main_task_queue._task_queue) {
                     task();
@@ -99,16 +106,25 @@ class GameView: public View {
                 client.new_chunks.pop_back();
 
                 thread_pool.enqueue([this, chunk_data] {
-                    const std::lock_guard<std::mutex> lock(this->world.chunks_mutex); // TODO: this mutex don't need to affect the entire scope
 
-                    Chunk* chunk = world.setChunk(chunk_data);
+                    Chunk* chunk = nullptr;
+                    {
+                        const std::lock_guard<std::mutex> lock(this->world.chunks_mutex);
+                        chunk = world.setChunk(chunk_data);
+                    }
                     delete chunk_data;
 
-                    chunk->computeVertexBuffer(this->world, texture_manager);
+                    {
+                        const std::lock_guard<std::mutex> lock(this->world.chunks_mutex); // TODO: This mutex is probably killing performance a lot
+                        chunk->computeVertexBuffer(this->world, texture_manager);
 
-                    main_task_queue.push_safe([chunk] {
-                        chunk->updateVAO();
-                    });
+                        main_task_queue.push_safe([chunk] {
+                            chunk->updateVAO();
+                        });
+
+                        // updateNeighboursChunksVaos(world, texture_manager, chunk->pos, main_task_queue);
+                    }
+
                 });
             }
         }
@@ -199,6 +215,7 @@ class GameView: public View {
             _chunks_drawn = 0;
             for (const auto& [key, chunk] : world.chunks)
             {
+                // printf("VAO: %d\n", chunk->mesh.VAO);
                 if (chunk->mesh.indices_count == 0 || chunk->mesh.VAO == 0) continue;
 
                 if (use_frustum_culling) {
@@ -223,6 +240,9 @@ class GameView: public View {
             // ImGui::End();
 
             ImGui::Begin("Debug");
+
+            ImGui::Text("RAM: %.3f Go", ((double)getCurrentRSS()) / (1024*1024*1024));
+            // ImGui::Text("Peak RAM: %.3f Go", ((double)getPeakRSS()) / (1024*1024*1024));
 
             ImGui::Text("%ld new chunks", client.new_chunks.size());
             ImGui::Text("draw calls: %d", _chunks_drawn);

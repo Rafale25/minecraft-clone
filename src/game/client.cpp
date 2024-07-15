@@ -20,7 +20,7 @@
 
 #include "ByteBuffer.hpp"
 
-ChunkPacket* readChunkPacket(ByteBuffer buffer)
+ChunkPacket* readChunkPacket(ByteBuffer& buffer)
 {
     ChunkPacket* chunk_data = new ChunkPacket;
 
