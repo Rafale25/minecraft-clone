@@ -120,7 +120,7 @@ Chunk* World::setChunk(ChunkPacket* chunk_data)
     return chunk;
 }
 
-Chunk* World::getChunk(glm::ivec3 pos) const
+Chunk* World::getChunk(const glm::ivec3& pos) const
 {
     if (chunks.find(pos) != chunks.end())
         return chunks[pos];

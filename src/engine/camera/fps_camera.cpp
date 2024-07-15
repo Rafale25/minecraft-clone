@@ -25,7 +25,7 @@ glm::vec3 FPSCamera::getPosition() const
     return _smoothPosition;
 }
 
-void FPSCamera::setPosition(glm::vec3 p)
+void FPSCamera::setPosition(const glm::vec3& p)
 {
     _position = p;
     _smoothPosition = p;
@@ -46,15 +46,15 @@ void FPSCamera::update(float dt)
     _updateVectors();
 }
 
-void FPSCamera::move(glm::vec3 direction)
+void FPSCamera::move(const glm::vec3& direction)
 {
     // _movement += -glm::inverse(glm::mat3(getView())) * direction;
 
     glm::mat4 rotateM = glm::rotate(glm::mat4(1.0f), -getYaw(), {0.0f, 1.0f, 0.0f});
-    direction = glm::vec3(rotateM * glm::vec4(direction, 1.0f));
-    direction.y = -direction.y;
+    glm::vec3 dir = glm::vec3(rotateM * glm::vec4(direction, 1.0f));
+    dir.y = -dir.y;
 
-    _movement += direction;
+    _movement += dir;
 }
 
 void FPSCamera::onMouseMotion(int x, int y, int dx, int dy)

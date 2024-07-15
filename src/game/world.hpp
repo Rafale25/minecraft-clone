@@ -40,7 +40,7 @@ public:
     // void delete_chunk();
 
     Chunk* setChunk(ChunkPacket* chunk_data);
-    Chunk* getChunk(glm::ivec3 pos) const;
+    Chunk* getChunk(const glm::ivec3& pos) const;
 
 public:
     mutable std::unordered_map<glm::ivec3, Chunk*> chunks;

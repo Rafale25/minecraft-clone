@@ -23,7 +23,7 @@ public:
 
     void begin(Camera& camera, Program &program);
     void end();
-    void setSunDir(glm::vec3 sunDir);
+    void setSunDir(const glm::vec3& sunDir);
 
 private:
     std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view);

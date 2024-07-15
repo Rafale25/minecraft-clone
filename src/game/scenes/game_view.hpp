@@ -352,7 +352,6 @@ class GameView: public View {
         Program cube_shadowmapping_shader{"./assets/shaders/cube_shadowmap.vs", "./assets/shaders/cube_shadowmap.fs"};
         Program mesh_shader{"./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs"};
         Program skybox_shader{"./assets/shaders/skybox.vs", "./assets/shaders/skybox.fs"};
-        // Program debugquad_shader{"./assets/shaders/debug_quad.vs", "./assets/shaders/debug_quad_depth.fs"};
 
         Shadowmap shadowmap{ctx, 4096, 4096};
         glm::vec3 sunDir = glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f));

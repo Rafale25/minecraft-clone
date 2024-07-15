@@ -4,7 +4,7 @@ class FPSCamera: public Camera {
     public:
         FPSCamera()
         {}
-        FPSCamera(glm::vec3 position, float yaw, float pitch, float fov, float aspect_ratio, float near_plane, float far_plane):
+        FPSCamera(const glm::vec3& position, float yaw, float pitch, float fov, float aspect_ratio, float near_plane, float far_plane):
             Camera(fov, aspect_ratio, near_plane, far_plane),
             _position(position),
             _yaw(yaw),
@@ -25,9 +25,9 @@ class FPSCamera: public Camera {
         float getYaw() const;
         float getPitch() const;
         glm::vec3 getPosition() const;
-        void setPosition(glm::vec3 p);
+        void setPosition(const glm::vec3& p);
         void update(float dt);
-        void move(glm::vec3 direction);
+        void move(const glm::vec3& direction);
         void onMouseMotion(int x, int y, int dx, int dy);
         void setSpeed(float value);
 
@@ -38,9 +38,9 @@ class FPSCamera: public Camera {
         float _speed = 10.0f;
         float _mouseSensitivity = 0.002f;
 
-        glm::vec3 _movement = glm::vec3(0.0f, 0.0f, 0.0); // reset each frame
+        glm::vec3 _movement = {0.0f, 0.0f, 0.0f}; // reset each frame
 
-        glm::vec3 _position = glm::vec3(0.0f, 0.0f, 0.0f);
+        glm::vec3 _position = {0.0f, 0.0f, 0.0f};
         float _yaw = 0.0f;
         float _pitch = 0.0f;
         float _roll = 0.0f;
@@ -48,12 +48,12 @@ class FPSCamera: public Camera {
         float _smoothYaw = 0.0f;
         float _smoothPitch = 0.0f;
         float _smoothRoll = 0.0f;
-        glm::vec3 _smoothPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+        glm::vec3 _smoothPosition = {0.0f, 0.0f, 0.0f};
 
-        glm::vec3 _world_up = glm::vec3(0.0, 1.0, 0.0);
-        glm::vec3 _up = glm::vec3(0.0, 1.0, 0.0);
-        glm::vec3 _right = glm::vec3(1.0, 0.0, 0.0);
-        glm::vec3 _forward = glm::vec3(0.0, 0.0, 1.0);
+        glm::vec3 _world_up = {0.0, 1.0, 0.0};
+        glm::vec3 _up = {0.0, 1.0, 0.0};
+        glm::vec3 _right = {1.0, 0.0, 0.0};
+        glm::vec3 _forward = {0.0, 0.0, 1.0};
 
     public:
 };
