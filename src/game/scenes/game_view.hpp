@@ -117,12 +117,11 @@ class GameView: public View {
                     {
                         const std::lock_guard<std::mutex> lock(this->world.chunks_mutex); // TODO: This mutex is probably killing performance a lot
                         chunk->computeVertexBuffer(this->world, texture_manager);
-
                         main_task_queue.push_safe([chunk] {
                             chunk->updateVAO();
                         });
 
-                        // updateNeighboursChunksVaos(world, texture_manager, chunk->pos, main_task_queue);
+                        updateNeighboursChunksVaos(world, texture_manager, chunk->pos, main_task_queue);
                     }
 
                 });
@@ -403,6 +402,6 @@ class GameView: public View {
 
         BlockRaycastHit player_blockraycasthit;
 
-        ThreadPool thread_pool{3};
+        ThreadPool thread_pool{4};
         TaskQueue main_task_queue;
 };

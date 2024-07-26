@@ -178,16 +178,10 @@ void Client::packet_SendChunk(ByteBuffer buffer) {
     const std::lock_guard<std::mutex> lock(new_chunks_mutex);
 
     // Replace chunk if already in new chunk list to reduce charge on mainthread //
-    int index_of_existing_chunk_pos = -1;
-    for (uint i = 0 ; i < new_chunks.size() ; ++i) {
-        if (new_chunks[i]->pos == chunk_data->pos) {
-            index_of_existing_chunk_pos = i;
-            break;
-        }
-    }
-    if (index_of_existing_chunk_pos != -1) {
-        delete new_chunks[index_of_existing_chunk_pos];
-        new_chunks[index_of_existing_chunk_pos] = chunk_data;
+    auto it = std::find_if(new_chunks.begin(), new_chunks.end(), [&chunk_data](const auto& chunk){ return chunk->pos == chunk_data->pos; });
+    if (it != new_chunks.end()) {
+        delete *it;
+        *it = chunk_data;
     } else {
         new_chunks.push_front(chunk_data);
     }

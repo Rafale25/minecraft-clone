@@ -69,10 +69,11 @@ BlockType World::getBlock(const glm::ivec3& pos) const
 
     // printf("chunck pos: %d %d %d\n", chunk_pos.x, chunk_pos.y, chunk_pos.z);
     // printf("local_pos: %d %d %d\n", local_pos.x, local_pos.y, local_pos.z);
-    if (chunks.count(chunk_pos) == 0) return BlockType::Air; // chunk doesn't exist //
+    auto it = chunks.find(chunk_pos);
+    if (it == chunks.end()) return BlockType::Air; // chunk doesn't exist //
 
     int index = Chunk::XYZtoIndex(local_pos.x, local_pos.y, local_pos.z);
-    return chunks[chunk_pos]->blocks[index];
+    return it->second->blocks[index];
 }
 
 BlockRaycastHit World::BlockRaycast(const glm::vec3& origin, const glm::vec3& direction, int maxSteps) const
@@ -130,7 +131,8 @@ Chunk* World::setChunk(ChunkPacket* chunk_data)
         chunk->pos = chunk_data->pos;
         chunks[chunk_data->pos] = chunk;
     } else {
-        chunk = chunks[chunk_data->pos];
+        // chunk = chunks[chunk_data->pos];
+        chunk = chunks.at(chunk_data->pos);
     }
 
     memcpy(chunk->blocks, chunk_data->blocks, 4096 * sizeof(uint8_t));
