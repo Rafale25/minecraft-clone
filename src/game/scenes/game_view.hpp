@@ -109,7 +109,7 @@ class GameView: public View {
 
                     Chunk* chunk = nullptr;
                     {
-                        const std::lock_guard<std::mutex> lock(this->world.chunks_mutex);
+                        // const std::lock_guard<std::mutex> lock(this->world.chunks_mutex);
                         chunk = world.setChunk(chunk_data);
                     }
                     delete chunk_data;
@@ -212,6 +212,8 @@ class GameView: public View {
             Frustum camera_frustum = createFrustumFromCamera(camera, camera.aspect_ratio, glm::radians(camera.fov), camera.near_plane, camera.far_plane);
 
             _chunks_drawn = 0;
+
+            const std::lock_guard<std::mutex> lock(world.chunks_mutex);
             for (const auto& [key, chunk] : world.chunks)
             {
                 // printf("VAO: %d\n", chunk->mesh.VAO);

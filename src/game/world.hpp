@@ -36,6 +36,8 @@ public:
     BlockRaycastHit BlockRaycast(const glm::vec3& origin, const glm::vec3& direction, int maxSteps) const;
     BlockType getBlock(const glm::ivec3& pos) const;
 
+    //  getBlocks(const glm::ivec3& pos) const;
+
     // Chunk* create_chunk();
     // void delete_chunk();
 

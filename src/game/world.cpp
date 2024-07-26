@@ -126,6 +126,8 @@ Chunk* World::setChunk(ChunkPacket* chunk_data)
 {
     Chunk* chunk = nullptr;
 
+    const std::lock_guard<std::mutex> lock(chunks_mutex);
+
     if (chunks.find(chunk_data->pos) == chunks.end()) { // if not found
         chunk = new Chunk();
         chunk->pos = chunk_data->pos;
