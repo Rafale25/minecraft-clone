@@ -47,7 +47,7 @@ public:
 
 public:
     mutable std::unordered_map<glm::ivec3, Chunk*> chunks;
-    std::mutex chunks_mutex;
+    mutable std::mutex chunks_mutex;
 
     std::vector<Entity> entities;
     // std::unordered_map<int, Entity> entities; // TODO: switch to this data structure

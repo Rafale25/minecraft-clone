@@ -104,37 +104,19 @@ BlockRaycastHit World::BlockRaycast(const glm::vec3& origin, const glm::vec3& di
     return {BlockType::Air, mapPos, normal};
 }
 
-
-// void World::setChunk(Chunk* chunk)
-// {
-//     if (chunks.find(chunk->pos) == chunks.end()) { // if not found
-//         chunks[chunk->pos] = chunk;
-//     } else {
-
-//         if (chunk->mesh.VAO != 0) { // if chunk has a mesh
-//             chunks[chunk->pos]->mesh.deleteAll();
-//             delete chunks[chunk->pos];
-//         }
-
-
-//         chunks[chunk->pos] = chunk;
-//     }
-// }
-
-
 Chunk* World::setChunk(ChunkPacket* chunk_data)
 {
     Chunk* chunk = nullptr;
 
     const std::lock_guard<std::mutex> lock(chunks_mutex);
 
-    if (chunks.find(chunk_data->pos) == chunks.end()) { // if not found
+    auto it = chunks.find(chunk_data->pos);
+    if (it == chunks.end()) { // if not found
         chunk = new Chunk();
         chunk->pos = chunk_data->pos;
         chunks[chunk_data->pos] = chunk;
     } else {
-        // chunk = chunks[chunk_data->pos];
-        chunk = chunks.at(chunk_data->pos);
+        chunk = it->second;
     }
 
     memcpy(chunk->blocks, chunk_data->blocks, 4096 * sizeof(uint8_t));
@@ -144,7 +126,8 @@ Chunk* World::setChunk(ChunkPacket* chunk_data)
 
 Chunk* World::getChunk(const glm::ivec3& pos) const
 {
-    if (chunks.find(pos) != chunks.end())
-        return chunks[pos];
+    auto it = chunks.find(pos);
+    if (it != chunks.end())
+        return it->second;
     return nullptr;
 }

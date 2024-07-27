@@ -41,6 +41,8 @@ void Chunk::computeVertexBuffer(const World &world, const TextureManager &textur
         //     ttttttttooouvzzzzzyyyyyxxxxx
     */
 
+    ChunkExtra chunkextra = ChunkExtra::get(world, pos);
+
     mesh.vertices.clear();
     mesh.ebo.clear();
 
@@ -55,14 +57,16 @@ void Chunk::computeVertexBuffer(const World &world, const TextureManager &textur
         if (block == BlockType::Air) continue;
 
         // const BlockMetadata block_metadata = blocksMetadata[(int)block];
-        const glm::ivec3 world_pos = (pos * 16) + glm::ivec3(x, y, z);
+        const glm::ivec3 local_pos = glm::ivec3(x, y, z);
+        // const glm::ivec3 world_pos = (pos * 16) + local_pos;
         auto [texture_top_handle, texture_side_handle, texture_bot_handle] = texture_manager.block_textures_ids[block];
 
         BlockType nb; // neighbour block
         BlockMetadata nbmtd; // neighbour block metadata
 
         // front
-        nb = world.getBlock(world_pos + glm::ivec3(0, 0, -1));
+        // nb = world.getBlock(world_pos + glm::ivec3(0, 0, -1));
+        nb = chunkextra.getBlock(local_pos + glm::ivec3(0, 0, -1));
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
             mesh.vertices.insert(mesh.vertices.end(), {
@@ -80,7 +84,8 @@ void Chunk::computeVertexBuffer(const World &world, const TextureManager &textur
         }
 
         // back
-        nb = world.getBlock(world_pos + glm::ivec3(0, 0, 1));
+        // nb = world.getBlock(world_pos + glm::ivec3(0, 0, 1));
+        nb = chunkextra.getBlock(local_pos + glm::ivec3(0, 0, 1));
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
             mesh.vertices.insert(mesh.vertices.end(), {
@@ -98,7 +103,8 @@ void Chunk::computeVertexBuffer(const World &world, const TextureManager &textur
         }
 
         // down
-        nb = world.getBlock(world_pos + glm::ivec3(0, -1, 0));
+        // nb = world.getBlock(world_pos + glm::ivec3(0, -1, 0));
+        nb = chunkextra.getBlock(local_pos + glm::ivec3(0, -1, 0));
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
             mesh.vertices.insert(mesh.vertices.end(), {
@@ -116,7 +122,8 @@ void Chunk::computeVertexBuffer(const World &world, const TextureManager &textur
         }
 
         // top
-        nb = world.getBlock(world_pos + glm::ivec3(0, 1, 0));
+        // nb = world.getBlock(world_pos + glm::ivec3(0, 1, 0));
+        nb = chunkextra.getBlock(local_pos + glm::ivec3(0, 1, 0));
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
             mesh.vertices.insert(mesh.vertices.end(), {
@@ -134,7 +141,8 @@ void Chunk::computeVertexBuffer(const World &world, const TextureManager &textur
         }
 
         // left
-        nb = world.getBlock(world_pos + glm::ivec3(-1, 0, 0));
+        // nb = world.getBlock(world_pos + glm::ivec3(-1, 0, 0));
+        nb = chunkextra.getBlock(local_pos + glm::ivec3(-1, 0, 0));
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
             mesh.vertices.insert(mesh.vertices.end(), {
@@ -152,7 +160,8 @@ void Chunk::computeVertexBuffer(const World &world, const TextureManager &textur
         }
 
         // right
-        nb = world.getBlock(world_pos + glm::ivec3(1, 0, 0));
+        // nb = world.getBlock(world_pos + glm::ivec3(1, 0, 0));
+        nb = chunkextra.getBlock(local_pos + glm::ivec3(1, 0, 0));
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
             mesh.vertices.insert(mesh.vertices.end(), {

@@ -107,21 +107,18 @@ class GameView: public View {
 
                 thread_pool.enqueue([this, chunk_data] {
 
-                    Chunk* chunk = nullptr;
-                    {
-                        // const std::lock_guard<std::mutex> lock(this->world.chunks_mutex);
-                        chunk = world.setChunk(chunk_data);
-                    }
+                    Chunk* chunk = world.setChunk(chunk_data);
                     delete chunk_data;
 
                     {
-                        const std::lock_guard<std::mutex> lock(this->world.chunks_mutex); // TODO: This mutex is probably killing performance a lot
+                        // const std::lock_guard<std::mutex> lock(this->world.chunks_mutex); // TODO: This mutex is probably killing performance a lot
                         chunk->computeVertexBuffer(this->world, texture_manager);
                         main_task_queue.push_safe([chunk] {
                             chunk->updateVAO();
                         });
 
-                        updateNeighboursChunksVaos(world, texture_manager, chunk->pos, main_task_queue);
+                        // updateNeighboursChunksVaos(world, texture_manager, chunk->pos, main_task_queue);
+                        // IWASHERE: the updateNeighbours seems to be the cause of the segfault (why not updateVAO of the current chunk ?? no idea)
                     }
 
                 });
@@ -404,6 +401,6 @@ class GameView: public View {
 
         BlockRaycastHit player_blockraycasthit;
 
-        ThreadPool thread_pool{4};
+        ThreadPool thread_pool{3};
         TaskQueue main_task_queue;
 };
