@@ -37,6 +37,7 @@ public:
 class ThreadPool {
 public:
     ThreadPool(size_t num_threads = std::thread::hardware_concurrency()) {
+        std::cout << "num_threads: " << num_threads << std::endl;
         for (size_t i = 0; i < num_threads; ++i) {
             _workers.emplace_back([this] {
                 while (true) {
