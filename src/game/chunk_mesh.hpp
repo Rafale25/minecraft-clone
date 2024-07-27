@@ -1,7 +1,11 @@
 #pragma once
 
-#include <glad/gl.h>
 #include <vector>
+#include <glad/gl.h>
+
+class World;
+class TextureManager;
+struct Chunk;
 
 struct ChunkMesh {
     GLuint VAO, VBO, EBO;
@@ -12,6 +16,9 @@ struct ChunkMesh {
 
     ChunkMesh(): VAO(0), VBO(0), EBO(0), indices_count(0) {}
     ~ChunkMesh() = default;
+
+    void computeVertexBuffer(const World &world, const TextureManager &texture_manager, const Chunk* chunk);
+    void updateVAO();
 
     void deleteAll();
 };

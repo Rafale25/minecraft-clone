@@ -30,14 +30,17 @@
 
 void updateNeighboursChunksVaos(const World& world, const TextureManager& texture_manager, const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
 {
-    const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
+    // const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
+    const glm::ivec3 offsets[] = { {0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
+
+    // const std::lock_guard<std::mutex> lock(world.chunks_mutex);
 
     for (const glm::ivec3 &offset: offsets) {
         if (Chunk* neighbor_chunk = world.getChunk(chunk_pos + offset)) {
-            neighbor_chunk->computeVertexBuffer(world, texture_manager);
+            neighbor_chunk->mesh.computeVertexBuffer(world, texture_manager, neighbor_chunk);
 
             main_task_queue.push_safe([neighbor_chunk] {
-                neighbor_chunk->updateVAO();
+                neighbor_chunk->mesh.updateVAO();
             });
         }
     }
@@ -112,12 +115,12 @@ class GameView: public View {
 
                     {
                         // const std::lock_guard<std::mutex> lock(this->world.chunks_mutex); // TODO: This mutex is probably killing performance a lot
-                        chunk->computeVertexBuffer(this->world, texture_manager);
-                        main_task_queue.push_safe([chunk] {
-                            chunk->updateVAO();
-                        });
+                        // chunk->computeVertexBuffer(this->world, texture_manager);
+                        // main_task_queue.push_safe([chunk] {
+                        //     chunk->updateVAO();
+                        // });
 
-                        // updateNeighboursChunksVaos(world, texture_manager, chunk->pos, main_task_queue);
+                        updateNeighboursChunksVaos(world, texture_manager, chunk->pos, main_task_queue);
                         // IWASHERE: the updateNeighbours seems to be the cause of the segfault (why not updateVAO of the current chunk ?? no idea)
                     }
 
@@ -401,6 +404,6 @@ class GameView: public View {
 
         BlockRaycastHit player_blockraycasthit;
 
-        ThreadPool thread_pool{3};
+        ThreadPool thread_pool{4};
         TaskQueue main_task_queue;
 };
