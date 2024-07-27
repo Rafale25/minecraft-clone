@@ -40,14 +40,18 @@ struct __attribute__ ((packed)) updateBlockServerPacket {
 
 struct __attribute__ ((packed)) updateEntityServerPacket {
     uint8_t id;
-    int entityId;
     int x, y, z, yaw, pitch; // float encoded in int
+};
+
+struct __attribute__ ((packed)) sendTextMessageServerPacket {
+    uint8_t id;
+    char buffer[4096];
 };
 
 class Client
 {
 public:
-    Client(World& world, TextureManager& texture_manager, const char* ip);
+    Client(World& world, std::vector<std::string>& tchat, const char* ip);
     ~Client();
 
     void Start();
@@ -55,9 +59,9 @@ public:
 
     void sendBreakBlockPacket(const glm::ivec3& world_pos);
     void sendBlockBulkEditPacket(const std::vector<glm::ivec3>& world_pos, BlockType blocktype);
-
     void sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blocktype);
-    void sendUpdateEntityPacket(int entityId, const glm::vec3& pos, float yaw, float pitch);
+    void sendUpdateEntityPacket(const glm::vec3& pos, float yaw, float pitch);
+    void sendTextMessagePacket(const char *buffer);
 
     void packet_Identification(ByteBuffer buffer);
     void packet_AddEntity(ByteBuffer buffer);
@@ -80,4 +84,5 @@ public:
     std::thread client_thread;
 private:
     World& world;
+    std::vector<std::string>& tchat;
 };

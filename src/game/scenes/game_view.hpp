@@ -146,7 +146,7 @@ class GameView: public View {
             float yaw = camera.getYaw();
             float pitch = camera.getPitch();
 
-            client.sendUpdateEntityPacket(client.client_id, pos, yaw, pitch);
+            client.sendUpdateEntityPacket(pos, yaw, pitch);
         }
 
         void onDraw(double time_since_start, float dt)
@@ -280,7 +280,30 @@ class GameView: public View {
             ImGui::SliderFloat("Shadow Bias: ", &shadowmap._shadow_bias, 0.000001f, 0.1f, "%.6f");
             ImGui::SliderFloat("Shadow Distance: ", &shadowmap._max_shadow_distance, 0.3f, 500.0f, "%.2f");
 
+            ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;
+            // if (disable_mouse_wheel)
+            //     window_flags |= ImGuiWindowFlags_NoScrollWithMouse;
+            ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 260), ImGuiChildFlags_None, window_flags);
+            for (const auto& msg: tchat) {
+                // ImGui::TextWrapped("%04d: scrollable region salut comment ça va la famille ptdr pkeffeo oooo o oeolaaa kf ofkf ", i);
+                ImGui::TextWrapped("%s", msg.c_str());
+                ImGui::Spacing();
+            }
+            ImGui::EndChild();
+
+            ImGui::InputText("", input_text_buffer, IM_ARRAYSIZE(input_text_buffer));
+            ImGui::SameLine();
+            if (ImGui::Button("Send")) {
+                sendTextMessage();
+            }
             ImGui::End();
+        }
+
+        void sendTextMessage() {
+            if (strlen(input_text_buffer) <= 0) return;
+            client.sendTextMessagePacket(input_text_buffer);
+            // tchat.push_back(std::string(input_text_buffer, strlen(input_text_buffer)));
+            memset(input_text_buffer, 0, sizeof(input_text_buffer));
         }
 
         void placeSphere(const glm::ivec3& center, float radius, BlockType blocktype)
@@ -382,18 +405,15 @@ class GameView: public View {
         TextureManager texture_manager;
 
         World world;
-        Client client{world, texture_manager, global_argv[1]};
+        Client client{world, tchat, global_argv[1]};
 
         float network_timer = 1.0f;
-
         bool _cursorEnable = false;
         bool _show_debug_gui = false;
         bool _wireframe = false;
         bool _vsync = true;
-
         int _chunks_drawn;
 
-        // Player
         FPSCamera camera = {
             glm::vec3(10.0f, 25.0, 12.0f), 0.0f, 0.0f,
             60.0f, (float)ctx.width / (float)ctx.height, 0.1f, 1000.0f
@@ -403,6 +423,9 @@ class GameView: public View {
         float bulkEditRadius = 4.0f;
 
         BlockRaycastHit player_blockraycasthit;
+
+        char input_text_buffer[4096] = {0};
+        std::vector<std::string> tchat;
 
         ThreadPool thread_pool{4};
         TaskQueue main_task_queue;

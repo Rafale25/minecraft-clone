@@ -9,6 +9,8 @@
 #include <cstring>
 #include <endian.h>
 
+#include <string>
+
 #include "client.hpp"
 #include "chunk.hpp"
 #include "world.hpp"
@@ -86,8 +88,9 @@ UpdateEntityClientPacket readUpdateEntityPacket(ByteBuffer buffer)
     return packet;
 }
 
-Client::Client(World& world, TextureManager& texture_manager, const char* ip):
-    world(world)
+Client::Client(World& world, std::vector<std::string>& tchat, const char* ip):
+    world(world),
+    tchat(tchat)
 {
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -246,6 +249,12 @@ void Client::clientThreadFunc()
                 recv_full(client_socket, buffer, 4*3+1);
                 packet_SendMonotypeChunk(ByteBuffer(buffer, 4*3+1, ByteBuffer::ByteOrder::BE));
                 break;
+            case 0x06: /* tchat message */
+                recv_full(client_socket, buffer, 4096);
+                tchat.push_back(
+                    std::string((char*)buffer, strlen((char*)buffer))
+                );
+                break;
             default:
                 break;
         }
@@ -314,17 +323,27 @@ void Client::sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blockty
     send(client_socket, &packet, sizeof(packet), 0);
 }
 
-void Client::sendUpdateEntityPacket(int entityId, const glm::vec3& pos, float yaw, float pitch)
+void Client::sendUpdateEntityPacket(const glm::vec3& pos, float yaw, float pitch)
 {
     struct updateEntityServerPacket packet;
 
     packet.id = 0x00; // update entity //
-    packet.entityId = htobe32(entityId);
+    // packet.entityId = htobe32(entityId);
     packet.x = htobe32(*(uint32_t*)&pos.x);
     packet.y = htobe32(*(uint32_t*)&pos.y);
     packet.z = htobe32(*(uint32_t*)&pos.z);
     packet.yaw = htobe32(*(uint32_t*)&yaw);
     packet.pitch = htobe32(*(uint32_t*)&pitch);
+
+    send(client_socket, &packet, sizeof(packet), 0);
+}
+
+void Client::sendTextMessagePacket(const char* buffer)
+{
+    struct sendTextMessageServerPacket packet;
+
+    packet.id = 0x03;
+    memcpy(packet.buffer, buffer, 4096 * sizeof(char));
 
     send(client_socket, &packet, sizeof(packet), 0);
 }
