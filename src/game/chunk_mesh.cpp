@@ -35,7 +35,7 @@ GLuint packVertex(int x, int y, int z, int u, int v, int o, int t) {
     return p;
 }
 
-void ChunkMesh::computeVertexBuffer(const World &world, const TextureManager &texture_manager, const Chunk* chunk)
+void ChunkMesh::computeVertexBuffer(const World &world, const Chunk* chunk)
 {
     // TODO: check if chunk is only air, then remove it from world
 
@@ -67,7 +67,7 @@ void ChunkMesh::computeVertexBuffer(const World &world, const TextureManager &te
         // const BlockMetadata block_metadata = blocksMetadata[(int)block];
         const glm::ivec3 local_pos = glm::ivec3(x, y, z);
         // const glm::ivec3 world_pos = (pos * 16) + local_pos;
-        auto [texture_top_handle, texture_side_handle, texture_bot_handle] = texture_manager.block_textures_ids[block];
+        auto [texture_top_handle, texture_side_handle, texture_bot_handle] = TextureManager::Get().block_textures_ids[block];
 
         BlockType nb; // neighbour block
         BlockMetadata nbmtd; // neighbour block metadata

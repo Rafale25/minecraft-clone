@@ -11,9 +11,19 @@
 class TextureManager
 {
 public:
+    TextureManager(const TextureManager&) = delete;
+
+    static TextureManager& Get()
+    {
+        return _instance;
+    }
+
     void loadAllTextures();
 
 private:
+    TextureManager() {}
+    static TextureManager _instance;
+
     std::unordered_map<TextureName, const char* const> textures_name = {
         { TextureName::GrassTop,    "grass_block_top.png"},
         { TextureName::GrassSide,   "grass_block_side.png"},

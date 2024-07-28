@@ -28,7 +28,9 @@
 
 #include "mem_info.hpp"
 
-void updateNeighboursChunksVaos(const World& world, const TextureManager& texture_manager, const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
+TextureManager TextureManager::_instance;
+
+void updateNeighboursChunksVaos(const World& world, const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
 {
     // const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
     const glm::ivec3 offsets[] = { {0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
@@ -37,7 +39,7 @@ void updateNeighboursChunksVaos(const World& world, const TextureManager& textur
 
     for (const glm::ivec3 &offset: offsets) {
         if (Chunk* neighbor_chunk = world.getChunk(chunk_pos + offset)) {
-            neighbor_chunk->mesh.computeVertexBuffer(world, texture_manager, neighbor_chunk);
+            neighbor_chunk->mesh.computeVertexBuffer(world, neighbor_chunk);
 
             main_task_queue.push_safe([neighbor_chunk] {
                 neighbor_chunk->mesh.updateVAO();
@@ -52,8 +54,8 @@ class GameView: public View {
         {
             glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-            texture_manager.loadAllTextures();
-            ssbo_texture_handles = createBufferStorage(&texture_manager.textures_handles[0], texture_manager.textures_handles.size() * sizeof(GLuint64));
+            TextureManager::Get().loadAllTextures();
+            ssbo_texture_handles = createBufferStorage(&TextureManager::Get().textures_handles[0], TextureManager::Get().textures_handles.size() * sizeof(GLuint64));
 
             cube_shader.use();
             cube_shader.setInt("shadowMap", 0);
@@ -120,8 +122,7 @@ class GameView: public View {
                         //     chunk->updateVAO();
                         // });
 
-                        updateNeighboursChunksVaos(world, texture_manager, chunk->pos, main_task_queue);
-                        // IWASHERE: the updateNeighbours seems to be the cause of the segfault (why not updateVAO of the current chunk ?? no idea)
+                        updateNeighboursChunksVaos(world, chunk->pos, main_task_queue);
                     }
 
                 });
@@ -302,7 +303,6 @@ class GameView: public View {
         void sendTextMessage() {
             if (strlen(input_text_buffer) <= 0) return;
             client.sendTextMessagePacket(input_text_buffer);
-            // tchat.push_back(std::string(input_text_buffer, strlen(input_text_buffer)));
             memset(input_text_buffer, 0, sizeof(input_text_buffer));
         }
 
@@ -402,7 +402,6 @@ class GameView: public View {
         Mesh skybox_quad = Geometry::quad_2d();
 
         GLuint ssbo_texture_handles;
-        TextureManager texture_manager;
 
         World world;
         Client client{world, tchat, global_argv[1]};
