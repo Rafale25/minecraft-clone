@@ -15,14 +15,16 @@ public:
 
     static TextureManager& Get()
     {
+        static TextureManager _instance;
         return _instance;
     }
 
-    void loadAllTextures();
+    static void loadAllTextures() { Get()._loadAllTextures(); }
 
 private:
+    void _loadAllTextures();
+
     TextureManager() {}
-    static TextureManager _instance;
 
     std::unordered_map<TextureName, const char* const> textures_name = {
         { TextureName::GrassTop,    "grass_block_top.png"},

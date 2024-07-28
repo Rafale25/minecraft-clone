@@ -28,8 +28,6 @@
 
 #include "mem_info.hpp"
 
-TextureManager TextureManager::_instance;
-
 void updateNeighboursChunksVaos(const World& world, const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
 {
     // const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
@@ -54,7 +52,7 @@ class GameView: public View {
         {
             glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-            TextureManager::Get().loadAllTextures();
+            TextureManager::loadAllTextures();
             ssbo_texture_handles = createBufferStorage(&TextureManager::Get().textures_handles[0], TextureManager::Get().textures_handles.size() * sizeof(GLuint64));
 
             cube_shader.use();

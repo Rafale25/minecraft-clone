@@ -1,7 +1,7 @@
 #include "texture_manager.hpp"
 #include "load_texture.hpp"
 
-void TextureManager::loadAllTextures()
+void TextureManager::_loadAllTextures()
 {
     std::string textures_path = "assets/textures/";
 
