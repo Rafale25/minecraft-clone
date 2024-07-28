@@ -12,6 +12,7 @@ class TextureManager
 {
 public:
     TextureManager(const TextureManager&) = delete;
+    TextureManager& operator=(const TextureManager&) = delete;
 
     static TextureManager& Get()
     {
