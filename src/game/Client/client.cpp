@@ -184,8 +184,8 @@ void Client::clientThreadFunc()
                 readPacketAddEntity(ByteBuffer(buffer, sizeof(Server::AddEntityClientPacket), ByteBuffer::ByteOrder::BE));
                 break;
             case REMOVE_ENTITY:
-                recv_full(client_socket, buffer, 4);
-                readPacketRemoveEntity(ByteBuffer(buffer, 4, ByteBuffer::ByteOrder::BE));
+                recv_full(client_socket, buffer, sizeof(Server::RemoveEntity));
+                readPacketRemoveEntity(ByteBuffer(buffer, sizeof(Server::RemoveEntity), ByteBuffer::ByteOrder::BE));
                 break;
             case UPDATE_ENTITY:
                 recv_full(client_socket, buffer, sizeof(Server::UpdateEntityClientPacket));
@@ -200,12 +200,14 @@ void Client::clientThreadFunc()
                 readPacketSendMonotypeChunk(ByteBuffer(buffer, 4*3+1, ByteBuffer::ByteOrder::BE));
                 break;
             case CHAT:
-                recv_full(client_socket, buffer, 4096);
+                recv_full(client_socket, buffer, sizeof(Server::Chat));
                 tchat.push_back(
                     std::string((char*)buffer, strlen((char*)buffer))
                 );
                 break;
             case UPDATE_ENTITY_METADATA:
+                recv_full(client_socket, buffer, sizeof(Server::UpdateEntityMetadata));
+                // TODO: Do stuff with it
                 break;
             default:
                 break;

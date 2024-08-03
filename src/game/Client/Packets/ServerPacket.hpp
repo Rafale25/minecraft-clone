@@ -14,9 +14,16 @@ namespace Packet
             int client_id;
         };
 
-        struct ChunkPacket {
-            glm::ivec3 pos;
-            BlockType blocks[4096];
+        struct AddEntityClientPacket {
+            int id;
+            glm::vec3 position;
+            float yaw;
+            float pitch;
+            char name[64];
+        };
+
+        struct RemoveEntity {
+            int entityId;
         };
 
         struct UpdateEntityClientPacket {
@@ -26,11 +33,17 @@ namespace Packet
             float pitch;
         };
 
-        struct AddEntityClientPacket {
-            int id;
-            glm::vec3 position;
-            float yaw;
-            float pitch;
+        struct ChunkPacket {
+            glm::ivec3 pos;
+            BlockType blocks[4096];
+        };
+
+        struct Chat {
+            uint8_t msg[4096];
+        };
+
+        struct UpdateEntityMetadata {
+            int entityId;
             char name[64];
         };
 

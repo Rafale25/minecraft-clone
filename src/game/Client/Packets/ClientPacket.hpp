@@ -6,6 +6,7 @@ namespace Packet
 {
     namespace Client {
 
+/* assure data is packed and no padding is used */
 #pragma pack(push, 1)
 
         struct UpdateBlock {
