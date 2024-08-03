@@ -241,8 +241,7 @@ class GameView: public View {
 
             ImGui::Begin("Debug");
 
-            ImGui::Text("RAM: %.3f Go", ((double)getCurrentRSS()) / (1024*1024*1024));
-            // ImGui::Text("Peak RAM: %.3f Go", ((double)getPeakRSS()) / (1024*1024*1024));
+            ImGui::Text("RAM: %.3f / %.3f Go", ((double)getCurrentRSS()) / (1024*1024*1024), ((double)getPeakRSS()) / (1024*1024*1024));
 
             ImGui::Text("%ld new chunks", client.new_chunks.size());
             ImGui::Text("draw calls: %d", _chunks_drawn);
@@ -254,6 +253,8 @@ class GameView: public View {
             ImGui::Text("position: %.2f, %.2f, %.2f", camera_pos.x, camera_pos.y, camera_pos.z);
             ImGui::Text("forward: %.2f, %.2f, %.2f", camera.forward().x, camera.forward().y, camera.forward().z);
             ImGui::Text("block in hand: %d", (int)blockInHand);
+
+            ImGui::Text("ClientId: %d", client.client_id);
 
             if (ImGui::TreeNode(SC("Entities: " << world.entities.size()))) {
                 for (auto& entity : world.entities) {

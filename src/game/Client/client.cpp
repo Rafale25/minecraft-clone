@@ -170,43 +170,42 @@ void Client::clientThreadFunc()
             break;
         }
 
+        using namespace Packet;
+
         uint8_t id = buffer[0];
         switch (id)
         {
-            case 0x00: /* identification */
-                recv_full(client_socket, buffer, 4);
-                readPacketIdentification(ByteBuffer(buffer, 4, ByteBuffer::ByteOrder::BE));
-                // printf("Client id: %d\n", client_id);
+            case IDENTIFICATION:
+                recv_full(client_socket, buffer, sizeof(Server::Identification));
+                readPacketIdentification(ByteBuffer(buffer, sizeof(Server::Identification), ByteBuffer::ByteOrder::BE));
                 break;
-            case 0x01: /* add entity */
-                recv_full(client_socket, buffer, 88);
-                readPacketAddEntity(ByteBuffer(buffer, 88, ByteBuffer::ByteOrder::BE));
-                // printf("Server sent 'add entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
+            case ADD_ENTITY:
+                recv_full(client_socket, buffer, sizeof(Server::AddEntityClientPacket));
+                readPacketAddEntity(ByteBuffer(buffer, sizeof(Server::AddEntityClientPacket), ByteBuffer::ByteOrder::BE));
                 break;
-            case 0x02: /* remove entity */
+            case REMOVE_ENTITY:
                 recv_full(client_socket, buffer, 4);
                 readPacketRemoveEntity(ByteBuffer(buffer, 4, ByteBuffer::ByteOrder::BE));
-                // printf("Server sent 'remove entity' packet: %d.\n", id);
                 break;
-            case 0x03: /* update entity */
-                recv_full(client_socket, buffer, 24);
-                readPacketUpdateEntity(ByteBuffer(buffer, 24, ByteBuffer::ByteOrder::BE));
-                // printf("Server sent 'move entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
+            case UPDATE_ENTITY:
+                recv_full(client_socket, buffer, sizeof(Server::UpdateEntityClientPacket));
+                readPacketUpdateEntity(ByteBuffer(buffer, sizeof(Server::UpdateEntityClientPacket), ByteBuffer::ByteOrder::BE));
                 break;
-            case 0x04: /* Chunk */
-                recv_full(client_socket, buffer, 4108);
-                readPacketSendChunk(ByteBuffer(buffer, 4108, ByteBuffer::ByteOrder::BE));
-                // printf("Server sent 'chunk' packet: %d %d %d.\n", id, c.pos.x, c.pos.y, c.pos.z);
+            case CHUNK:
+                recv_full(client_socket, buffer, sizeof(Server::ChunkPacket));
+                readPacketSendChunk(ByteBuffer(buffer, sizeof(Server::ChunkPacket), ByteBuffer::ByteOrder::BE));
                 break;
-            case 0x05: /* full of same block chunk */
+            case MONOTYPE_CHUNK:
                 recv_full(client_socket, buffer, 4*3+1);
                 readPacketSendMonotypeChunk(ByteBuffer(buffer, 4*3+1, ByteBuffer::ByteOrder::BE));
                 break;
-            case 0x06: /* tchat message */
+            case CHAT:
                 recv_full(client_socket, buffer, 4096);
                 tchat.push_back(
                     std::string((char*)buffer, strlen((char*)buffer))
                 );
+                break;
+            case UPDATE_ENTITY_METADATA:
                 break;
             default:
                 break;
@@ -271,7 +270,7 @@ void Client::readPacketSendMonotypeChunk(ByteBuffer buffer) {
 
 void Client::sendBreakBlockPacket(const glm::ivec3& world_pos)
 {
-    Packet::Client::updateBlockServerPacket packet = {};
+    Packet::Client::UpdateBlock packet = {};
 
     packet.id = 0x01; // update block //
     packet.blockType = 0;
@@ -320,7 +319,7 @@ void Client::sendBlockBulkEditPacket(const std::vector<glm::ivec3>& world_pos, B
 
 void Client::sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blocktype)
 {
-    Packet::Client::updateBlockServerPacket packet = {};
+    Packet::Client::UpdateBlock packet = {};
 
     packet.id = 0x01; // update block //
     packet.blockType = (uint8_t)blocktype;
@@ -333,7 +332,7 @@ void Client::sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blockty
 
 void Client::sendUpdateEntityPacket(const glm::vec3& pos, float yaw, float pitch)
 {
-    Packet::Client::updateEntityServerPacket packet = {};
+    Packet::Client::UpdateEntity packet = {};
 
     packet.id = 0x00; // update entity //
     // packet.entityId = htobe32(entityId);
@@ -348,7 +347,7 @@ void Client::sendUpdateEntityPacket(const glm::vec3& pos, float yaw, float pitch
 
 void Client::sendTextMessagePacket(const char* buffer)
 {
-    Packet::Client::sendTextMessageServerPacket packet = {};
+    Packet::Client::SendTextMessage packet = {};
 
     packet.id = 0x03;
     memcpy(packet.buffer, buffer, 4096 * sizeof(char));

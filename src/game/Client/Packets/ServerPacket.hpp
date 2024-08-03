@@ -6,6 +6,14 @@
 namespace Packet
 {
     namespace Server {
+
+/* assure data is packed and no padding is used */
+#pragma pack(push, 1)
+
+        struct Identification {
+            int client_id;
+        };
+
         struct ChunkPacket {
             glm::ivec3 pos;
             BlockType blocks[4096];
@@ -25,5 +33,8 @@ namespace Packet
             float pitch;
             char name[64];
         };
+
+#pragma pack(pop)
+
     }
 }
