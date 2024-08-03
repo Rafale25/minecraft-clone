@@ -42,7 +42,7 @@ public:
     // void delete_chunk();
 
     // void setChunk(Chunk* chunk_data);
-    Chunk* setChunk(ChunkPacket* chunk_data);
+    Chunk* setChunk(Packet::Server::ChunkPacket* chunk_data);
     Chunk* getChunk(const glm::ivec3& pos) const;
 
 public:

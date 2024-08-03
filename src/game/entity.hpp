@@ -2,6 +2,7 @@
 
 #include "glad/gl.h"
 #include "transform.h"
+#include <string>
 
 class Entity
 {
@@ -12,6 +13,7 @@ public:
 
 public:
     int id;
+    std::string name;
     Transform transform, smooth_transform;
 
     GLuint VAO, VBO, EBO;

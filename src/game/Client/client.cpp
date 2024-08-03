@@ -22,9 +22,9 @@
 
 #include "ByteBuffer.hpp"
 
-ChunkPacket* readChunkPacket(ByteBuffer& buffer)
+Packet::Server::ChunkPacket* readChunkPacket(ByteBuffer& buffer)
 {
-    ChunkPacket* chunk_data = new ChunkPacket;
+    auto* chunk_data = new Packet::Server::ChunkPacket;
 
     int x = buffer.getInt();
     int y = buffer.getInt();
@@ -48,35 +48,38 @@ ChunkPacket* readChunkPacket(ByteBuffer& buffer)
     return chunk_data;
 }
 
-ChunkPacket* readFullMonoChunkPacket(ByteBuffer buffer)
+Packet::Server::ChunkPacket* readFullMonoChunkPacket(ByteBuffer buffer)
 {
     int x = buffer.getInt();
     int y = buffer.getInt();
     int z = buffer.getInt();
     uint8_t blockType = buffer.get();
 
-    ChunkPacket *chunk_data = new ChunkPacket;
+    auto *chunk_data = new Packet::Server::ChunkPacket;
     chunk_data->pos = glm::ivec3(x, y, z) / 16;
     memset(chunk_data->blocks, blockType, 16*16*16);
 
     return chunk_data;
 }
 
-AddEntityClientPacket readAddEntityPacket(ByteBuffer buffer)
+Packet::Server::AddEntityClientPacket readAddEntityPacket(ByteBuffer buffer)
 {
-    AddEntityClientPacket packet;
+    Packet::Server::AddEntityClientPacket packet;
 
     packet.id = buffer.getInt();
     packet.position.x = buffer.getFloat();
     packet.position.y = buffer.getFloat();
     packet.position.z = buffer.getFloat();
+    packet.yaw = buffer.getFloat();
+    packet.pitch = buffer.getFloat();
+    buffer.getN((uint8_t*)packet.name, 64);
 
     return packet;
 }
 
-UpdateEntityClientPacket readUpdateEntityPacket(ByteBuffer buffer)
+Packet::Server::UpdateEntityClientPacket readUpdateEntityPacket(ByteBuffer buffer)
 {
-    UpdateEntityClientPacket packet;
+    Packet::Server::UpdateEntityClientPacket packet;
 
     packet.id = buffer.getInt();
     packet.position.x = buffer.getFloat();
@@ -132,6 +135,8 @@ Client::Client(World& world, std::vector<std::string>& tchat, const char* ip):
     // Set blocking mode back
     opts = opts & (~O_NONBLOCK);
     fcntl(client_socket, F_SETFL, opts);
+
+    sendClientMetadataPacket(8, "Rafale25");
 }
 
 Client::~Client() {
@@ -142,58 +147,6 @@ Client::~Client() {
 void Client::Start()
 {
     client_thread = std::thread(&Client::clientThreadFunc, this);
-}
-
-void Client::packet_Identification(ByteBuffer buffer) {
-    client_id = buffer.getInt();
-    // printf("Client id: %d\n", client_id);
-}
-
-void Client::packet_AddEntity(ByteBuffer buffer) {
-    auto [id, pos] = readAddEntityPacket(buffer);
-    const std::lock_guard<std::mutex> lock(task_queue_mutex);
-    task_queue.push_front([this, id, pos]() {
-        Entity e{id};
-        e.transform.position = pos;
-        world.addEntity(e);
-    } );
-}
-
-void Client::packet_RemoveEntity(ByteBuffer buffer) {
-    int entityId = buffer.getInt();
-    const std::lock_guard<std::mutex> lock(task_queue_mutex);
-    task_queue.push_front([this, entityId]() {
-        world.removeEntity(entityId);
-    });
-}
-
-void Client::packet_UpdateEntity(ByteBuffer buffer) {
-    auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
-    const std::lock_guard<std::mutex> lock(task_queue_mutex);
-    task_queue.push_front([this, id, pos, yaw, pitch]() {
-        world.setEntityTransform(id, pos, yaw, pitch);
-    } );
-}
-
-void Client::packet_SendChunk(ByteBuffer buffer) {
-    ChunkPacket* chunk_data = readChunkPacket(buffer);
-
-    const std::lock_guard<std::mutex> lock(new_chunks_mutex);
-
-    // Replace chunk if already in new chunk list to reduce charge on mainthread //
-    auto it = std::find_if(new_chunks.begin(), new_chunks.end(), [&chunk_data](const auto& chunk){ return chunk->pos == chunk_data->pos; });
-    if (it != new_chunks.end()) {
-        delete *it;
-        *it = chunk_data;
-    } else {
-        new_chunks.push_front(chunk_data);
-    }
-}
-
-void Client::packet_SendMonotypeChunk(ByteBuffer buffer) {
-    ChunkPacket* chunk_data = readFullMonoChunkPacket(buffer);
-    const std::lock_guard<std::mutex> lock(new_chunks_mutex);
-    new_chunks.push_front(chunk_data);
 }
 
 void Client::clientThreadFunc()
@@ -222,32 +175,32 @@ void Client::clientThreadFunc()
         {
             case 0x00: /* identification */
                 recv_full(client_socket, buffer, 4);
-                packet_Identification(ByteBuffer(buffer, 4, ByteBuffer::ByteOrder::BE));
+                readPacketIdentification(ByteBuffer(buffer, 4, ByteBuffer::ByteOrder::BE));
                 // printf("Client id: %d\n", client_id);
                 break;
             case 0x01: /* add entity */
-                recv_full(client_socket, buffer, 24);
-                packet_AddEntity(ByteBuffer(buffer, 24, ByteBuffer::ByteOrder::BE));
+                recv_full(client_socket, buffer, 88);
+                readPacketAddEntity(ByteBuffer(buffer, 88, ByteBuffer::ByteOrder::BE));
                 // printf("Server sent 'add entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
                 break;
             case 0x02: /* remove entity */
                 recv_full(client_socket, buffer, 4);
-                packet_RemoveEntity(ByteBuffer(buffer, 4, ByteBuffer::ByteOrder::BE));
+                readPacketRemoveEntity(ByteBuffer(buffer, 4, ByteBuffer::ByteOrder::BE));
                 // printf("Server sent 'remove entity' packet: %d.\n", id);
                 break;
             case 0x03: /* update entity */
                 recv_full(client_socket, buffer, 24);
-                packet_UpdateEntity(ByteBuffer(buffer, 24, ByteBuffer::ByteOrder::BE));
+                readPacketUpdateEntity(ByteBuffer(buffer, 24, ByteBuffer::ByteOrder::BE));
                 // printf("Server sent 'move entity' packet: %d %f %f %f.\n", id, pos.x, pos.y, pos.z);
                 break;
             case 0x04: /* Chunk */
                 recv_full(client_socket, buffer, 4108);
-                packet_SendChunk(ByteBuffer(buffer, 4108, ByteBuffer::ByteOrder::BE));
+                readPacketSendChunk(ByteBuffer(buffer, 4108, ByteBuffer::ByteOrder::BE));
                 // printf("Server sent 'chunk' packet: %d %d %d.\n", id, c.pos.x, c.pos.y, c.pos.z);
                 break;
             case 0x05: /* full of same block chunk */
                 recv_full(client_socket, buffer, 4*3+1);
-                packet_SendMonotypeChunk(ByteBuffer(buffer, 4*3+1, ByteBuffer::ByteOrder::BE));
+                readPacketSendMonotypeChunk(ByteBuffer(buffer, 4*3+1, ByteBuffer::ByteOrder::BE));
                 break;
             case 0x06: /* tchat message */
                 recv_full(client_socket, buffer, 4096);
@@ -261,9 +214,64 @@ void Client::clientThreadFunc()
     }
 }
 
+void Client::readPacketIdentification(ByteBuffer buffer) {
+    client_id = buffer.getInt();
+    // printf("Client id: %d\n", client_id);
+}
+
+void Client::readPacketAddEntity(ByteBuffer buffer) {
+    auto [id, pos, yaw, pitch, name] = readAddEntityPacket(buffer);
+    const std::lock_guard<std::mutex> lock(task_queue_mutex);
+    task_queue.push_front([&]() {
+        Entity e{id};
+        e.transform.position = pos;
+        // e.transform.rotation.y = yaw;
+        // e.transform.rotation.x = pitch;
+        e.name = std::string(name);
+        world.addEntity(e);
+    } );
+}
+
+void Client::readPacketRemoveEntity(ByteBuffer buffer) {
+    int entityId = buffer.getInt();
+    const std::lock_guard<std::mutex> lock(task_queue_mutex);
+    task_queue.push_front([this, entityId]() {
+        world.removeEntity(entityId);
+    });
+}
+
+void Client::readPacketUpdateEntity(ByteBuffer buffer) {
+    auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
+    const std::lock_guard<std::mutex> lock(task_queue_mutex);
+    task_queue.push_front([this, id, pos, yaw, pitch]() {
+        world.setEntityTransform(id, pos, yaw, pitch);
+    } );
+}
+
+void Client::readPacketSendChunk(ByteBuffer buffer) {
+    auto* chunk_data = readChunkPacket(buffer);
+
+    const std::lock_guard<std::mutex> lock(new_chunks_mutex);
+
+    // Replace chunk if already in new chunk list to reduce charge on mainthread //
+    auto it = std::find_if(new_chunks.begin(), new_chunks.end(), [&chunk_data](const auto& chunk){ return chunk->pos == chunk_data->pos; });
+    if (it != new_chunks.end()) {
+        delete *it;
+        *it = chunk_data;
+    } else {
+        new_chunks.push_front(chunk_data);
+    }
+}
+
+void Client::readPacketSendMonotypeChunk(ByteBuffer buffer) {
+    auto* chunk_data = readFullMonoChunkPacket(buffer);
+    const std::lock_guard<std::mutex> lock(new_chunks_mutex);
+    new_chunks.push_front(chunk_data);
+}
+
 void Client::sendBreakBlockPacket(const glm::ivec3& world_pos)
 {
-    struct updateBlockServerPacket packet;
+    Packet::Client::updateBlockServerPacket packet = {};
 
     packet.id = 0x01; // update block //
     packet.blockType = 0;
@@ -312,7 +320,7 @@ void Client::sendBlockBulkEditPacket(const std::vector<glm::ivec3>& world_pos, B
 
 void Client::sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blocktype)
 {
-    struct updateBlockServerPacket packet;
+    Packet::Client::updateBlockServerPacket packet = {};
 
     packet.id = 0x01; // update block //
     packet.blockType = (uint8_t)blocktype;
@@ -325,7 +333,7 @@ void Client::sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blockty
 
 void Client::sendUpdateEntityPacket(const glm::vec3& pos, float yaw, float pitch)
 {
-    struct updateEntityServerPacket packet;
+    Packet::Client::updateEntityServerPacket packet = {};
 
     packet.id = 0x00; // update entity //
     // packet.entityId = htobe32(entityId);
@@ -340,10 +348,20 @@ void Client::sendUpdateEntityPacket(const glm::vec3& pos, float yaw, float pitch
 
 void Client::sendTextMessagePacket(const char* buffer)
 {
-    struct sendTextMessageServerPacket packet;
+    Packet::Client::sendTextMessageServerPacket packet = {};
 
     packet.id = 0x03;
     memcpy(packet.buffer, buffer, 4096 * sizeof(char));
+
+    send(client_socket, &packet, sizeof(packet), 0);
+}
+
+void Client::sendClientMetadataPacket(int render_distance, std::string name)
+{
+    Packet::Client::ClientMetadata packet = {};
+    packet.id = 0x04;
+    packet.render_distance = render_distance;
+    memcpy(packet.name, name.c_str(), name.length());
 
     send(client_socket, &packet, sizeof(packet), 0);
 }

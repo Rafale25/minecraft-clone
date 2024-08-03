@@ -27,7 +27,7 @@ set(SRC_FILES
     ./src/engine/VAO.cpp
     ./src/game/chunk.cpp
     ./src/game/chunk_mesh.cpp
-    ./src/game/client.cpp
+    ./src/game/Client/client.cpp
     ./src/game/texture_manager.cpp
     ./src/game/entity.cpp
     ./src/game/world.cpp
@@ -63,8 +63,14 @@ target_sources(imgui
 target_include_directories(imgui PUBLIC ${IMGUI_DIR})
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
-target_compile_options(${PROJECT_NAME} PRIVATE -W -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-strict-aliasing)
-# target_compile_options(${PROJECT_NAME} PRIVATE -W -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-strict-aliasing -g3)
+target_compile_options(${PROJECT_NAME} PRIVATE
+    -W -Wall -Wextra
+    -Wno-unused-variable
+    -Wno-unused-parameter
+    -Wno-strict-aliasing
+    # -g3
+    # -g
+)
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
@@ -74,6 +80,8 @@ target_include_directories(${PROJECT_NAME}
         ./src/engine/camera/
         ./src/game/
         ./src/game/scenes/
+        ./src/game/Client/
+        ./src/game/Client/Packets
         ./src/utils/
         ${IMGUI_DIR}
         ${IMGUI_DIR}/backends

@@ -30,6 +30,11 @@ public:
         return value;
     }
 
+    void getN(uint8_t* p, size_t n) {
+        memcpy(p, head, n);
+        head += n * sizeof(uint8_t);
+    }
+
     uint16_t getShort() {
         uint16_t value;
         memcpy(&value, head, sizeof(uint16_t));

@@ -104,7 +104,7 @@ BlockRaycastHit World::BlockRaycast(const glm::vec3& origin, const glm::vec3& di
     return {BlockType::Air, mapPos, normal};
 }
 
-Chunk* World::setChunk(ChunkPacket* chunk_data)
+Chunk* World::setChunk(Packet::Server::ChunkPacket* chunk_data)
 {
     Chunk* chunk = nullptr;
 

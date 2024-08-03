@@ -105,7 +105,7 @@ class GameView: public View {
             const std::lock_guard<std::mutex> lock(client.new_chunks_mutex);
 
             while (client.new_chunks.size() > 0) {
-                ChunkPacket* chunk_data = client.new_chunks.back();
+                Packet::Server::ChunkPacket* chunk_data = client.new_chunks.back();
                 client.new_chunks.pop_back();
 
                 thread_pool.enqueue([this, chunk_data] {
@@ -343,8 +343,10 @@ class GameView: public View {
                 // glfwSetWindowMonitor(ctx.window, monitor, 0, 0, mode->width, mode->height, 0);
             }
 
-            if (key == GLFW_KEY_P) {
-                _show_debug_gui = !_show_debug_gui;
+            if (!ImGui::GetIO().WantCaptureKeyboard) {
+                if (key == GLFW_KEY_P) {
+                    _show_debug_gui = !_show_debug_gui;
+                }
             }
         }
 
