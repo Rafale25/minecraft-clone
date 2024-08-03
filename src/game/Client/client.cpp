@@ -280,7 +280,7 @@ void Client::sendBreakBlockPacket(const glm::ivec3& world_pos)
     packet.y = htobe32(*(uint32_t*)&world_pos.y);
     packet.z = htobe32(*(uint32_t*)&world_pos.z);
 
-    send(client_socket, &packet, sizeof(packet), 0);
+    sendPacket(&packet, sizeof(packet));
 }
 
 void Client::sendBlockBulkEditPacket(const std::vector<glm::ivec3>& world_pos, BlockType blocktype)
@@ -315,7 +315,7 @@ void Client::sendBlockBulkEditPacket(const std::vector<glm::ivec3>& world_pos, B
         head += sizeof(int32_t);
     }
 
-    send(client_socket, buffer.get(), size_in_bytes, 0);
+    sendPacket(buffer.get(), size_in_bytes);
 }
 
 void Client::sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blocktype)
@@ -328,7 +328,7 @@ void Client::sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blockty
     packet.y = htobe32(*(uint32_t*)&world_pos.y);
     packet.z = htobe32(*(uint32_t*)&world_pos.z);
 
-    send(client_socket, &packet, sizeof(packet), 0);
+    sendPacket(&packet, sizeof(packet));
 }
 
 void Client::sendUpdateEntityPacket(const glm::vec3& pos, float yaw, float pitch)
@@ -343,7 +343,7 @@ void Client::sendUpdateEntityPacket(const glm::vec3& pos, float yaw, float pitch
     packet.yaw = htobe32(*(uint32_t*)&yaw);
     packet.pitch = htobe32(*(uint32_t*)&pitch);
 
-    send(client_socket, &packet, sizeof(packet), 0);
+    sendPacket(&packet, sizeof(packet));
 }
 
 void Client::sendTextMessagePacket(const char* buffer)
@@ -353,7 +353,7 @@ void Client::sendTextMessagePacket(const char* buffer)
     packet.id = 0x03;
     memcpy(packet.buffer, buffer, 4096 * sizeof(char));
 
-    send(client_socket, &packet, sizeof(packet), 0);
+    sendPacket(&packet, sizeof(packet));
 }
 
 void Client::sendClientMetadataPacket(int render_distance, std::string name)
@@ -363,5 +363,10 @@ void Client::sendClientMetadataPacket(int render_distance, std::string name)
     packet.render_distance = render_distance;
     memcpy(packet.name, name.c_str(), name.length());
 
-    send(client_socket, &packet, sizeof(packet), 0);
+    sendPacket(&packet, sizeof(packet));
+}
+
+void Client::sendPacket(const void *buf, size_t size)
+{
+    send(client_socket, buf, size, 0);
 }

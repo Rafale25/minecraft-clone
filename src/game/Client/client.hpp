@@ -39,6 +39,8 @@ public:
     void readPacketSendChunk(ByteBuffer buffer);
     void readPacketSendMonotypeChunk(ByteBuffer buffer);
 
+    void sendPacket(const void *buf, size_t size);
+
 public:
     std::deque<std::function<void()>> task_queue;
     std::mutex task_queue_mutex;
