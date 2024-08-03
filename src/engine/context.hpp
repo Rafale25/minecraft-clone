@@ -30,12 +30,12 @@ class Context {
         static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
     public:
-        GLFWwindow* window;
+        GLFWwindow* window = nullptr;
         int keystate[GLFW_KEY_LAST] = {0};
-        int width, height;
+        int width = 0, height = 0;
 
     private:
         DefaultView _default_view{*this};
         View* _current_view = &_default_view;
-        int _mouse_x, _mouse_y;
+        int _mouse_x = 0, _mouse_y = 0;
 };
