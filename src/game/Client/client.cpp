@@ -196,8 +196,8 @@ void Client::clientThreadFunc()
                 readPacketSendChunk(ByteBuffer(buffer, sizeof(Server::ChunkPacket), ByteBuffer::ByteOrder::BE));
                 break;
             case MONOTYPE_CHUNK:
-                recv_full(client_socket, buffer, 4*3+1);
-                readPacketSendMonotypeChunk(ByteBuffer(buffer, 4*3+1, ByteBuffer::ByteOrder::BE));
+                recv_full(client_socket, buffer, sizeof(Server::MonoChunkPacket));
+                readPacketSendMonotypeChunk(ByteBuffer(buffer, sizeof(Server::MonoChunkPacket), ByteBuffer::ByteOrder::BE));
                 break;
             case CHAT:
                 recv_full(client_socket, buffer, sizeof(Server::Chat));

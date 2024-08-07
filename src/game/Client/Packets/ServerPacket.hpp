@@ -38,6 +38,12 @@ namespace Packet
             BlockType blocks[4096];
         };
 
+        struct MonoChunkPacket {
+            glm::ivec3 pos;
+            BlockType block;
+        };
+
+
         struct Chat {
             uint8_t msg[4096];
         };
