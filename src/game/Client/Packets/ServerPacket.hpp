@@ -14,7 +14,7 @@ namespace Packet
             int client_id;
         };
 
-        struct AddEntityClientPacket {
+        struct AddEntity {
             int id;
             glm::vec3 position;
             float yaw;
@@ -23,11 +23,11 @@ namespace Packet
         };
 
         struct RemoveEntity {
-            int entityId;
+            int entity_id;
         };
 
-        struct UpdateEntityClientPacket {
-            int id;
+        struct UpdateEntity {
+            int entity_id;
             glm::vec3 position;
             float yaw;
             float pitch;
@@ -43,13 +43,12 @@ namespace Packet
             BlockType block;
         };
 
-
-        struct Chat {
+        struct ChatMessage {
             uint8_t msg[4096];
         };
 
         struct UpdateEntityMetadata {
-            int entityId;
+            int entity_id;
             char name[64];
         };
 

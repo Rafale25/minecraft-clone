@@ -25,7 +25,7 @@ class Client
         UPDATE_ENTITY = 0x03,
         CHUNK = 0x04,
         MONOTYPE_CHUNK = 0x05,
-        CHAT = 0x06,
+        CHAT_MESSAGE = 0x06,
         UPDATE_ENTITY_METADATA = 0x07
     };
 
@@ -40,7 +40,7 @@ public:
     void sendBlockBulkEditPacket(const std::vector<glm::ivec3>& world_pos, BlockType blocktype);
     void sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blocktype);
     void sendUpdateEntityPacket(const glm::vec3& pos, float yaw, float pitch);
-    void sendTextMessagePacket(const char *buffer);
+    void sendChatMessagePacket(const char *buffer);
     void sendClientMetadataPacket(int render_distance, std::string name);
 
     void readPacketIdentification(ByteBuffer buffer);
@@ -49,7 +49,10 @@ public:
     void readPacketUpdateEntity(ByteBuffer buffer);
     void readPacketSendChunk(ByteBuffer buffer);
     void readPacketSendMonotypeChunk(ByteBuffer buffer);
+    void readPacketEntityMetadata(ByteBuffer buffer);
+    void readPacketChatMessage(const uint8_t* buffer);
 
+private:
     void sendPacket(const void *buf, size_t size);
 
 public:

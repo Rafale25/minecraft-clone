@@ -285,7 +285,6 @@ class GameView: public View {
             //     window_flags |= ImGuiWindowFlags_NoScrollWithMouse;
             ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 260), ImGuiChildFlags_None, window_flags);
             for (const auto& msg: tchat) {
-                // ImGui::TextWrapped("%04d: scrollable region salut comment ça va la famille ptdr pkeffeo oooo o oeolaaa kf ofkf ", i);
                 ImGui::TextWrapped("%s", msg.c_str());
                 ImGui::Spacing();
             }
@@ -301,7 +300,7 @@ class GameView: public View {
 
         void sendTextMessage() {
             if (strlen(input_text_buffer) <= 0) return;
-            client.sendTextMessagePacket(input_text_buffer);
+            client.sendChatMessagePacket(input_text_buffer);
             memset(input_text_buffer, 0, sizeof(input_text_buffer));
         }
 
