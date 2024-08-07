@@ -277,9 +277,23 @@ void Client::readPacketEntityMetadata(ByteBuffer buffer) {
 }
 
 void Client::readPacketChatMessage(const uint8_t* buffer) {
-    tchat.push_back(
-        std::string((char*)buffer, strlen((char*)buffer))
-    );
+    std::string str = std::string((char*)buffer, strlen((char*)buffer));
+
+    /* Removes &[] from message */
+    size_t index = 0;
+    while (true) {
+        /* Locate the substring to replace. */
+        index = str.find("&", index);
+        if (index == std::string::npos) break;
+
+        /* Make the replacement. */
+        str.replace(index, 2, "");
+
+        /* Advance index forward so the next iteration doesn't pick it up as well. */
+        index += 2;
+    }
+
+    tchat.push_back(str);
 }
 
 // SEND //
