@@ -96,7 +96,8 @@ void main()
     float shadow = ShadowCalculation(fs_in.FragPosLightSpace, normal);
 
     // if cube face is not facing light, then it's in its own shadow
-    if (dot(normal, u_sun_direction) < 0.0)
+    if (dot(normal, u_sun_direction) < 0.0
+    || u_sun_direction.y < 0.0) // if sun is under the ground (points up)
         shadow = 1.0;
 
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse)) * color.rgb;
