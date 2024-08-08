@@ -108,12 +108,14 @@ Chunk* World::setChunk(Packet::Server::ChunkPacket* chunk_data)
 {
     Chunk* chunk = nullptr;
 
-    const std::lock_guard<std::mutex> lock(chunks_mutex);
+    // const std::lock_guard<std::mutex> lock(chunks_mutex);
 
     auto it = chunks.find(chunk_data->pos);
     if (it == chunks.end()) { // if not found
         chunk = new Chunk();
         chunk->pos = chunk_data->pos;
+
+        const std::lock_guard<std::mutex> lock(chunks_mutex); // Don't know if it's okay to use it only here
         chunks[chunk_data->pos] = chunk;
     } else {
         chunk = it->second;

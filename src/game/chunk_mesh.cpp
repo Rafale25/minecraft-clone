@@ -80,6 +80,11 @@ void ChunkMesh::computeVertexBuffer(const World &world, const Chunk* chunk)
                 packVertex(x+0, y+1, z+0, 0, 1, Orientation::Front, texture_side_handle),
             });
 
+/*
+ChunkMesh::computeVertexBuffer (this=0x7fff8a198860, this@entry=<error reading variable: Cannot access memory at address 0x7fffec1ffd00>, world=...,
+chunk=<error reading variable: Cannot access memory at address 0x7fffec1ffd00>) at /home/rafale25/Documents/Github/minecraft-clone/src/game/chunk_mesh.cpp:83
+83                  ebo.insert(ebo.end(), {
+*/
             ebo.insert(ebo.end(), {
                 ebo_offset+0, ebo_offset+1, ebo_offset+2,
                 ebo_offset+0, ebo_offset+2, ebo_offset+3
@@ -208,12 +213,11 @@ void ChunkMesh::updateVAO()
     glNamedBufferData(VBO, vertices.size() * sizeof(GLuint), &vertices[0], GL_STATIC_DRAW);
     glNamedBufferData(EBO, ebo.size() * sizeof(GLuint), &ebo[0], GL_STATIC_DRAW);
 
-    // TODO: clear() vertices et ebo vectors if not needed anymore
-    // vertices.clear();
-    // ebo.clear();
-
-    // vertices.shrink_to_fit();
-    // ebo.shrink_to_fit();
+    // Can cause crash if still needed
+    vertices.clear();
+    ebo.clear();
+    vertices.shrink_to_fit();
+    ebo.shrink_to_fit();
 }
 
 void ChunkMesh::deleteAll()

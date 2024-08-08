@@ -137,7 +137,7 @@ Client::Client(World& world, std::vector<std::string>& tchat, const char* ip):
     opts = opts & (~O_NONBLOCK);
     fcntl(client_socket, F_SETFL, opts);
 
-    sendClientMetadataPacket(8, "Rafale25");
+    sendClientMetadataPacket(10, "Rafale25");
 }
 
 Client::~Client() {

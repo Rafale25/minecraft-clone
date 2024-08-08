@@ -12,7 +12,6 @@ class TaskQueue {
 public:
     void push_safe(std::function<void()> task) {
         const std::lock_guard<std::mutex> lock(_task_queue_mutex);
-        // _task_queue.emplace(std::move(task));
         _task_queue.push_back(std::move(task));
     };
 

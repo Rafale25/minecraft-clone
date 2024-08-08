@@ -28,19 +28,25 @@
 
 #include "mem_info.hpp"
 
-void updateNeighboursChunksVaos(const World& world, const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
+void update3x3Chunks(const World& world, const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
 {
     // const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
     const glm::ivec3 offsets[] = { {0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
 
-    // const std::lock_guard<std::mutex> lock(world.chunks_mutex);
-
     for (const glm::ivec3 &offset: offsets) {
         if (Chunk* neighbor_chunk = world.getChunk(chunk_pos + offset)) {
-            neighbor_chunk->mesh.computeVertexBuffer(world, neighbor_chunk);
 
-            main_task_queue.push_safe([neighbor_chunk] {
-                neighbor_chunk->mesh.updateVAO();
+            ChunkMesh new_chunk_mesh;
+            new_chunk_mesh.computeVertexBuffer(world, neighbor_chunk);
+
+            main_task_queue.push_safe([neighbor_chunk, new_chunk_mesh] mutable {
+                new_chunk_mesh.updateVAO();
+
+                auto old_mesh = neighbor_chunk->mesh;
+                // neighbor_chunk->mesh.deleteAll(); // this being before the assignation is a potential race condition (could cause a segfault is the render try to use the variable)
+                neighbor_chunk->mesh = new_chunk_mesh;
+
+                old_mesh.deleteAll();
             });
         }
     }
@@ -109,20 +115,10 @@ class GameView: public View {
                 client.new_chunks.pop_back();
 
                 thread_pool.enqueue([this, chunk_data] {
-
                     Chunk* chunk = world.setChunk(chunk_data);
                     delete chunk_data;
 
-                    {
-                        // const std::lock_guard<std::mutex> lock(this->world.chunks_mutex); // TODO: This mutex is probably killing performance a lot
-                        // chunk->computeVertexBuffer(this->world, texture_manager);
-                        // main_task_queue.push_safe([chunk] {
-                        //     chunk->updateVAO();
-                        // });
-
-                        updateNeighboursChunksVaos(world, chunk->pos, main_task_queue);
-                    }
-
+                    update3x3Chunks(world, chunk->pos, main_task_queue);
                 });
             }
         }
@@ -178,7 +174,7 @@ class GameView: public View {
             skybox_shader.setMat4("u_view", view_rotation);
             skybox_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
 
-            printf("%f\n", glm::dot(glm::normalize(sunDir), {0.0f, 1.0f, 0.0f}));
+            // printf("%f\n", glm::dot(glm::normalize(sunDir), {0.0f, 1.0f, 0.0f}));
 
             skybox_quad.draw();
             glEnable(GL_DEPTH_TEST);
@@ -219,7 +215,6 @@ class GameView: public View {
             const std::lock_guard<std::mutex> lock(world.chunks_mutex);
             for (const auto& [key, chunk] : world.chunks)
             {
-                // printf("VAO: %d\n", chunk->mesh.VAO);
                 if (chunk->mesh.indices_count == 0 || chunk->mesh.VAO == 0) continue;
 
                 if (use_frustum_culling) {
@@ -230,6 +225,8 @@ class GameView: public View {
                 shader.setVec3("u_chunkPos", chunk->pos * 16);
 
                 glBindVertexArray(chunk->mesh.VAO);
+
+                // printf("indices_count: %d; VAO: %d\n", chunk->mesh.indices_count, chunk->mesh.VAO);
                 glDrawElements(GL_TRIANGLES, chunk->mesh.indices_count, GL_UNSIGNED_INT, 0);
                 ++_chunks_drawn;
             }
