@@ -20,6 +20,18 @@ struct BlockRaycastHit {
     glm::vec3 normal;
 };
 
+// struct KeyHasher
+// {
+//     std::size_t operator()(const glm::ivec3& key) const
+//     {
+//         constexpr int SIZE = 25;
+
+//         return key.x + key.y*SIZE + key.z*SIZE*SIZE;
+//         // return ((key.x * 5209) ^ (key.y * 1811)) ^ (key.z * 7297);
+//     }
+// };
+
+
 class World
 {
 public:
@@ -43,6 +55,7 @@ public:
 
 public:
     std::unordered_map<glm::ivec3, Chunk*> chunks;
+    // std::unordered_map<glm::ivec3, Chunk*, KeyHasher> chunks;
     mutable std::shared_mutex chunks_mutex;
 
     std::vector<Entity> entities;

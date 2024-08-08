@@ -5,7 +5,6 @@
 #include <mutex>
 #include <deque>
 
-#include "glm/gtx/hash.hpp"
 #include "enums.hpp"
 
 #include "ClientPacket.hpp"
