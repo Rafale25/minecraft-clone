@@ -28,6 +28,8 @@
 
 #include "mem_info.hpp"
 
+#include <clock.hpp>
+
 void update3x3Chunks(const World& world, const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
 {
     // const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
@@ -39,7 +41,7 @@ void update3x3Chunks(const World& world, const glm::ivec3& chunk_pos, TaskQueue&
             ChunkMesh new_chunk_mesh;
             new_chunk_mesh.computeVertexBuffer(world, neighbor_chunk);
 
-            main_task_queue.push_safe([neighbor_chunk, new_chunk_mesh] mutable {
+            main_task_queue.push_safe([neighbor_chunk, new_chunk_mesh]() mutable {
                 new_chunk_mesh.updateVAO();
 
                 auto old_mesh = neighbor_chunk->mesh;
@@ -69,6 +71,7 @@ class GameView: public View {
 
         void onUpdate(double time_since_start, float dt)
         {
+
             glm::vec3 delta = {
                 ctx.keystate[GLFW_KEY_A] - ctx.keystate[GLFW_KEY_D],
                 ctx.keystate[GLFW_KEY_LEFT_CONTROL] - ctx.keystate[GLFW_KEY_SPACE],
@@ -212,7 +215,11 @@ class GameView: public View {
 
             _chunks_drawn = 0;
 
+            Chrono chrono;
             const std::lock_guard<std::mutex> lock(world.chunks_mutex);
+            _debug_time_mutex = chrono.getTimeMs();
+            _debug_max_time_mutex = std::max(_debug_max_time_mutex, _debug_time_mutex);
+
             for (const auto& [key, chunk] : world.chunks)
             {
                 if (chunk->mesh.indices_count == 0 || chunk->mesh.VAO == 0) continue;
@@ -243,6 +250,9 @@ class GameView: public View {
             ImGui::Begin("Debug");
 
             ImGui::Text("RAM: %.3f / %.3f Go", ((double)getCurrentRSS()) / (1024*1024*1024), ((double)getPeakRSS()) / (1024*1024*1024));
+
+            ImGui::Text("%fms mutex time", _debug_time_mutex);
+            ImGui::Text("%fms mutex max time", _debug_max_time_mutex);
 
             ImGui::Text("%ld new chunks", client.new_chunks.size());
             ImGui::Text("draw calls: %d", _chunks_drawn);
@@ -413,6 +423,9 @@ class GameView: public View {
         bool _wireframe = false;
         bool _vsync = true;
         int _chunks_drawn;
+
+        double _debug_time_mutex;
+        double _debug_max_time_mutex;
 
         FPSCamera camera = {
             glm::vec3(10.0f, 25.0, 12.0f), 0.0f, 0.0f,
