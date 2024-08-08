@@ -24,7 +24,7 @@ struct ChunkExtra
     static ChunkExtra get(const World& world, const glm::ivec3& pos) {
         ChunkExtra chunkextra;
 
-        const std::lock_guard<std::mutex> lock(world.chunks_mutex);
+        const std::shared_lock lock(world.chunks_mutex);
 
         for (int z = 0 ; z < 18 ; ++z) {
         for (int y = 0 ; y < 18 ; ++y) {

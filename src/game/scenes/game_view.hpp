@@ -28,11 +28,10 @@
 
 #include "mem_info.hpp"
 
-#include <clock.hpp>
+#include "clock.hpp"
 
 void update3x3Chunks(const World& world, const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
 {
-    // const glm::ivec3 offsets[] = { {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
     const glm::ivec3 offsets[] = { {0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
 
     for (const glm::ivec3 &offset: offsets) {
@@ -119,6 +118,7 @@ class GameView: public View {
 
                 thread_pool.enqueue([this, chunk_data] {
                     Chunk* chunk = world.setChunk(chunk_data);
+
                     delete chunk_data;
 
                     update3x3Chunks(world, chunk->pos, main_task_queue);
@@ -215,10 +215,7 @@ class GameView: public View {
 
             _chunks_drawn = 0;
 
-            Chrono chrono;
-            const std::lock_guard<std::mutex> lock(world.chunks_mutex);
-            _debug_time_mutex = chrono.getTimeMs();
-            _debug_max_time_mutex = std::max(_debug_max_time_mutex, _debug_time_mutex);
+            const std::shared_lock<std::shared_mutex> lock(world.chunks_mutex);
 
             for (const auto& [key, chunk] : world.chunks)
             {
@@ -251,8 +248,7 @@ class GameView: public View {
 
             ImGui::Text("RAM: %.3f / %.3f Go", ((double)getCurrentRSS()) / (1024*1024*1024), ((double)getPeakRSS()) / (1024*1024*1024));
 
-            ImGui::Text("%fms mutex time", _debug_time_mutex);
-            ImGui::Text("%fms mutex max time", _debug_max_time_mutex);
+            ImGui::Text("thread pools tasks %ld", thread_pool._task_queue.size());
 
             ImGui::Text("%ld new chunks", client.new_chunks.size());
             ImGui::Text("draw calls: %d", _chunks_drawn);
@@ -424,9 +420,6 @@ class GameView: public View {
         bool _vsync = true;
         int _chunks_drawn;
 
-        double _debug_time_mutex;
-        double _debug_max_time_mutex;
-
         FPSCamera camera = {
             glm::vec3(10.0f, 25.0, 12.0f), 0.0f, 0.0f,
             60.0f, (float)ctx.width / (float)ctx.height, 0.1f, 1000.0f
@@ -440,6 +433,6 @@ class GameView: public View {
         char input_text_buffer[4096] = {0};
         std::vector<std::string> tchat;
 
-        ThreadPool thread_pool{4};
+        ThreadPool thread_pool{8};
         TaskQueue main_task_queue;
 };

@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <unordered_map>
-#include <mutex>
+#include <shared_mutex>
 
 #include <glm/glm.hpp>
 #include "glm/gtx/hash.hpp"
@@ -38,16 +38,12 @@ public:
 
     //  getBlocks(const glm::ivec3& pos) const;
 
-    // Chunk* create_chunk();
-    // void delete_chunk();
-
-    // void setChunk(Chunk* chunk_data);
     Chunk* setChunk(Packet::Server::ChunkPacket* chunk_data);
     Chunk* getChunk(const glm::ivec3& pos) const;
 
 public:
-    mutable std::unordered_map<glm::ivec3, Chunk*> chunks;
-    mutable std::mutex chunks_mutex;
+    std::unordered_map<glm::ivec3, Chunk*> chunks;
+    mutable std::shared_mutex chunks_mutex;
 
     std::vector<Entity> entities;
     // std::unordered_map<int, Entity> entities; // TODO: switch to this data structure

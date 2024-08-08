@@ -104,18 +104,24 @@ BlockRaycastHit World::BlockRaycast(const glm::vec3& origin, const glm::vec3& di
     return {BlockType::Air, mapPos, normal};
 }
 
+#include "clock.hpp"
+
 Chunk* World::setChunk(Packet::Server::ChunkPacket* chunk_data)
 {
     Chunk* chunk = nullptr;
 
-    // const std::lock_guard<std::mutex> lock(chunks_mutex);
-
+    chunks_mutex.lock_shared();
     auto it = chunks.find(chunk_data->pos);
+    chunks_mutex.unlock_shared();
+
     if (it == chunks.end()) { // if not found
         chunk = new Chunk();
         chunk->pos = chunk_data->pos;
 
-        const std::lock_guard<std::mutex> lock(chunks_mutex); // Don't know if it's okay to use it only here
+    // Chrono chrono;
+        const std::lock_guard<std::shared_mutex> lock(chunks_mutex); // TODO: This is where the program waits the most
+                                                                    // How to fix: separate chunks and their mesh, so we can have different mutex for data and rendering
+    // chrono.log();
         chunks[chunk_data->pos] = chunk;
     } else {
         chunk = it->second;
@@ -128,6 +134,8 @@ Chunk* World::setChunk(Packet::Server::ChunkPacket* chunk_data)
 
 Chunk* World::getChunk(const glm::ivec3& pos) const
 {
+    const std::shared_lock<std::shared_mutex> lock(chunks_mutex);
+
     auto it = chunks.find(pos);
     if (it != chunks.end())
         return it->second;

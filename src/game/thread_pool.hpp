@@ -100,6 +100,7 @@ public:
     std::queue<std::function<void()>> _task_queue;
     std::mutex _task_queue_mutex;
 
+private:
     std::condition_variable _cv;
     bool _stop = false;
 };
