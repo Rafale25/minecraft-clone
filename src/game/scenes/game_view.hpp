@@ -15,6 +15,7 @@
 #include "framebuffer.hpp"
 #include "geometry.hpp"
 #include "shadow_map.hpp"
+#include "ServerPacket.hpp"
 
 #include "imgui.h"
 #include <algorithm>
@@ -111,6 +112,13 @@ class GameView: public View {
             }
 
             const std::lock_guard<std::mutex> lock(client.new_chunks_mutex);
+
+            // const glm::vec3 camPos = camera.getPosition();
+            // std::sort(client.new_chunks.begin(), client.new_chunks.end(),
+            //     [this, camPos](const Packet::Server::ChunkPacket* l, const Packet::Server::ChunkPacket* r)
+            //     {
+            //         return glm::distance2(camPos, glm::vec3(l->pos*16)) > glm::distance2(camPos, glm::vec3(r->pos*16));
+            //     });
 
             while (client.new_chunks.size() > 0) {
                 Packet::Server::ChunkPacket* chunk_data = client.new_chunks.back();
@@ -248,9 +256,9 @@ class GameView: public View {
 
             ImGui::Text("RAM: %.3f / %.3f Go", ((double)getCurrentRSS()) / (1024*1024*1024), ((double)getPeakRSS()) / (1024*1024*1024));
 
+            ImGui::Text("new chunks: %ld", client.new_chunks.size());
             ImGui::Text("thread pools tasks %ld", thread_pool._task_queue.size());
 
-            ImGui::Text("%ld new chunks", client.new_chunks.size());
             ImGui::Text("draw calls: %d", _chunks_drawn);
 
             ImGui::Text("%.4f secs", dt);

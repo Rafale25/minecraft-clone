@@ -25,13 +25,12 @@ set(SRC_FILES
     ./src/engine/framebuffer.cpp
     ./src/engine/command_line_args.cpp
     ./src/engine/VAO.cpp
-    ./src/game/chunk.cpp
-    ./src/game/chunk_mesh.cpp
+    ./src/game/world/chunk.cpp
+    ./src/game/world/chunk_mesh.cpp
+    ./src/game/world/world.cpp
     ./src/game/Client/client.cpp
     ./src/game/texture_manager.cpp
     ./src/game/entity.cpp
-    ./src/game/world.cpp
-    ./src/game/world_renderer.cpp
     ./src/game/shadow_map.cpp
     ./src/game/enums.cpp
     ./src/main.cpp
@@ -68,7 +67,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     -Wno-unused-variable
     -Wno-unused-parameter
     -Wno-strict-aliasing
-    # -g3
+    -g3
     # -g
 )
 
@@ -79,6 +78,7 @@ target_include_directories(${PROJECT_NAME}
         ./src/engine/
         ./src/engine/camera/
         ./src/game/
+        ./src/game/world/
         ./src/game/scenes/
         ./src/game/Client/
         ./src/game/Client/Packets
