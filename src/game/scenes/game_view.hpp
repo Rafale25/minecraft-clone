@@ -173,23 +173,23 @@ class GameView: public View {
             glClearColor(135.0f/255.0f, 206.0f/255.0f, 250.0f/255.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+            // ShadowMap //
             shadowmap.setSunDir(sunDir);
             shadowmap.begin(camera, cube_shadowmapping_shader);
                 render_world(cube_shadowmapping_shader, false);
             shadowmap.end();
 
+            // Skybox //
             glDisable(GL_DEPTH_TEST);
             skybox_shader.use();
             glm::mat4 view_rotation = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), -camera.forward(), glm::vec3(0.0f, 1.0f, 0.0f)); // wtf
             skybox_shader.setVec2("u_resolution", glm::vec2(ctx.width, ctx.height));
             skybox_shader.setMat4("u_view", view_rotation);
             skybox_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
-
-            // printf("%f\n", glm::dot(glm::normalize(sunDir), {0.0f, 1.0f, 0.0f}));
-
             skybox_quad.draw();
             glEnable(GL_DEPTH_TEST);
 
+            // Terrain //
             cube_shader.use();
             cube_shader.setMat4("u_lightSpaceMatrix", shadowmap._lightSpaceMatrix);
             cube_shader.setVec3("u_sun_direction", sunDir);
@@ -197,6 +197,7 @@ class GameView: public View {
             glBindTextureUnit(0, shadowmap._depthTexture._texture);
             render_world(cube_shader);
 
+            // Entities //
             mesh_shader.use();
             mesh_shader.setMat4("u_projectionMatrix", camera.getProjection());
             mesh_shader.setMat4("u_viewMatrix", camera.getView());
@@ -441,6 +442,6 @@ class GameView: public View {
         char input_text_buffer[4096] = {0};
         std::vector<std::string> tchat;
 
-        ThreadPool thread_pool{8};
+        ThreadPool thread_pool{6};
         TaskQueue main_task_queue;
 };
