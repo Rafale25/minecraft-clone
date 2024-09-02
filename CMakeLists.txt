@@ -33,6 +33,7 @@ set(SRC_FILES
     ./src/game/entity.cpp
     ./src/game/shadow_map.cpp
     ./src/game/enums.cpp
+    ./src/game/thread_pool.cpp
     ./src/main.cpp
 )
 
