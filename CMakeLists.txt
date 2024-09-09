@@ -14,28 +14,9 @@ set(CMAKE_CXX_STANDARD 17)
 # include_directories(${GLFW_INCLUDE_DIRS})
 # link_libraries(${GLFW_LIBRARY_DIRS})
 
-set(SRC_FILES
-    ./src/glad/gl.c
-    ./src/engine/stb_image.cpp
-    ./src/engine/context.cpp
-    ./src/engine/texture.cpp
-    ./src/engine/camera/camera.cpp
-    ./src/engine/camera/orbit_camera.cpp
-    ./src/engine/camera/fps_camera.cpp
-    ./src/engine/framebuffer.cpp
-    ./src/engine/command_line_args.cpp
-    ./src/engine/VAO.cpp
-    ./src/game/world/chunk.cpp
-    ./src/game/world/chunk_mesh.cpp
-    ./src/game/world/world.cpp
-    ./src/game/Client/client.cpp
-    ./src/game/texture_manager.cpp
-    ./src/game/entity.cpp
-    ./src/game/shadow_map.cpp
-    ./src/game/enums.cpp
-    ./src/game/thread_pool.cpp
-    ./src/main.cpp
-)
+file(GLOB_RECURSE SRC_C ./src/*.c)
+file(GLOB_RECURSE SRC_CPP ./src/*.cpp)
+
 
 set(GLFW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/glfw)
 
@@ -62,7 +43,8 @@ target_sources(imgui
 )
 target_include_directories(imgui PUBLIC ${IMGUI_DIR})
 
-add_executable(${PROJECT_NAME} ${SRC_FILES})
+# add_executable(${PROJECT_NAME} ${SRC_FILES})
+add_executable(${PROJECT_NAME} ${SRC_CPP} ${SRC_C})
 target_compile_options(${PROJECT_NAME} PRIVATE
     -W -Wall -Wextra
     -Wno-unused-variable

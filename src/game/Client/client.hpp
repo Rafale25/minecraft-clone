@@ -32,6 +32,11 @@ public:
     Client(World& world, std::vector<std::string>& tchat, const char* ip);
     ~Client();
 
+    // Client(const Client&) = delete;
+    // Client& operator=(const Client&) = delete;
+    // Client(Client&&) = delete;
+    // Client& operator=(Client&&) = delete;
+
     void Start();
     void clientThreadFunc();
 

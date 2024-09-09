@@ -16,6 +16,7 @@
 #include "geometry.hpp"
 #include "shadow_map.hpp"
 #include "ServerPacket.hpp"
+// #include "Tchat.hpp"
 
 #include "imgui.h"
 #include <algorithm>
@@ -82,7 +83,7 @@ class GameView: public View {
                 ctx.keystate[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS ? 130.0f : 10.0f
             );
 
-            if (!_cursorEnable) camera.move(delta);
+            if (!_cursor_enabled) camera.move(delta);
             camera.update(dt);
 
             consumeTaskQueue();
@@ -344,9 +345,9 @@ class GameView: public View {
         void onKeyPress(int key)
         {
             if (key == GLFW_KEY_C) {
-                _cursorEnable = !_cursorEnable;
+                _cursor_enabled = !_cursor_enabled;
 
-                if (_cursorEnable)
+                if (_cursor_enabled)
                     glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
                 else
                     glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -397,7 +398,7 @@ class GameView: public View {
 
         void onMouseMotion(int x, int y, int dx, int dy)
         {
-            if (!_cursorEnable)
+            if (!_cursor_enabled)
                 camera.onMouseMotion(x, y, dx, dy);
         }
 
@@ -423,10 +424,12 @@ class GameView: public View {
         Client client{world, tchat, global_argv[1]};
 
         float network_timer = 1.0f;
-        bool _cursorEnable = false;
+
+        bool _cursor_enabled = false;
         bool _show_debug_gui = false;
         bool _wireframe = false;
         bool _vsync = true;
+
         int _chunks_drawn;
 
         FPSCamera camera = {
@@ -444,4 +447,30 @@ class GameView: public View {
 
         ThreadPool thread_pool{6};
         TaskQueue main_task_queue;
+
+
+        /*
+        Make client singleton class
+        */
+
+
+        /*
+        class WorldRenderer {
+            void setRenderState()
+
+            void renderWorld(Camera)
+            void renderWorldDepth(Camera)
+
+            void renderEntities(Camera)
+            void renderEntitiesDepth(Camera)
+
+            void renderSkybox(Camera)
+
+            void renderShadowmap(Camera)
+
+            GLuint ssbo_texture_handles
+
+            uint _chunks_drawn
+        }
+        */
 };
