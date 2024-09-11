@@ -9,16 +9,12 @@
 
 #include "entity.hpp"
 #include "enums.hpp"
-#include "client.hpp"
+#include "ServerPacket.hpp"
 
 struct Chunk;
 class TextureManager;
 
-struct BlockRaycastHit {
-    BlockType blocktype;
-    glm::ivec3 pos;
-    glm::vec3 normal;
-};
+#include "BlockRaycastHit.hpp"
 
 // struct KeyHasher
 // {

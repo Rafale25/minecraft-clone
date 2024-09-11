@@ -39,3 +39,14 @@ enum class TextureName : int {
     OakLogTop,
     OakLeaves
 };
+
+enum PacketId {
+    IDENTIFICATION = 0x00,
+    ADD_ENTITY = 0x01,
+    REMOVE_ENTITY = 0x02,
+    UPDATE_ENTITY = 0x03,
+    CHUNK = 0x04,
+    MONOTYPE_CHUNK = 0x05,
+    CHAT_MESSAGE = 0x06,
+    UPDATE_ENTITY_METADATA = 0x07
+};

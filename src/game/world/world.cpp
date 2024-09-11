@@ -113,11 +113,11 @@ Chunk* World::setChunk(Packet::Server::ChunkPacket* chunk_data)
         chunk = new Chunk();
         chunk->pos = chunk_data->pos;
 
-    // Chrono chrono;
-    const std::lock_guard<std::shared_mutex> lock(chunks_mutex); // TODO: This is where the program waits the most
-                                                                 // How to fix: separate chunks and their mesh, so we can have different mutex for data and rendering
-                                                                 // Can also just optimize rendering as a temporary solution
-    // chrono.log();
+        // Chrono chrono;
+        const std::lock_guard<std::shared_mutex> lock(chunks_mutex); // TODO: This is where the program waits the most
+                                                                    // How to fix: separate chunks and their mesh, so we can have different mutex for data and rendering
+                                                                    // Can also just optimize rendering as a temporary solution
+        // chrono.log();
         chunks[chunk_data->pos] = chunk;
     } else {
         chunk = it->second;

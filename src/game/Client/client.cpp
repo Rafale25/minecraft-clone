@@ -23,6 +23,15 @@
 
 #include "ByteBuffer.hpp"
 
+void decodePacketEntity(ByteBuffer buffer)
+{
+    printf("yolo \n");
+}
+
+void Client::decode(PacketId id, ByteBuffer buffer) {
+    packets[id](buffer);
+}
+
 Packet::Server::ChunkPacket* readChunkPacket(ByteBuffer& buffer)
 {
     auto* chunk_data = new Packet::Server::ChunkPacket;
@@ -92,8 +101,10 @@ Packet::Server::UpdateEntity readUpdateEntityPacket(ByteBuffer buffer)
     return packet;
 }
 
-void Client::init(const char* ip)
+void Client::init(std::vector<std::string>& tchat, const char* ip)
 {
+    _tchat = &tchat;
+
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
 
     sockaddr_in serverAddress;
@@ -291,7 +302,7 @@ void Client::readPacketChatMessage(const uint8_t* buffer) {
         index += 2;
     }
 
-    // tchat.push_back(str);
+    _tchat->push_back(str);
 }
 
 // SEND //

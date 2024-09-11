@@ -10,23 +10,20 @@
 #include "ClientPacket.hpp"
 #include "ServerPacket.hpp"
 
+#include "ByteBuffer.hpp"
+
 class TextureManager;
 class World;
-class ByteBuffer;
+// class ByteBuffer;
 struct Chunk;
 
+
+void decodePacketEntity(ByteBuffer buffer);
+
+// TODO: divide client into Connection and PacketManager
+// Connection //
 class Client
 {
-    enum PacketId {
-        IDENTIFICATION = 0x00,
-        ADD_ENTITY = 0x01,
-        REMOVE_ENTITY = 0x02,
-        UPDATE_ENTITY = 0x03,
-        CHUNK = 0x04,
-        MONOTYPE_CHUNK = 0x05,
-        CHAT_MESSAGE = 0x06,
-        UPDATE_ENTITY_METADATA = 0x07
-    };
 
 private:
     Client() = default;
@@ -37,10 +34,18 @@ private:
     Client(Client&&) = delete;
     Client& operator=(Client&&) = delete;
 
+    std::unordered_map<int, std::function<void(ByteBuffer)>> packets = {
+        { 0x00, decodePacketEntity}
+        // ...
+    };
+
+
 public:
-    void init(const char* ip);
+    void init(std::vector<std::string>& tchat, const char* ip);
     void Start();
     void clientThreadFunc();
+
+    void decode(PacketId id, ByteBuffer buffer);
 
     void sendBreakBlockPacket(const glm::ivec3& world_pos);
     void sendBlockBulkEditPacket(const std::vector<glm::ivec3>& world_pos, BlockType blocktype);
@@ -77,6 +82,7 @@ public:
     int client_socket;
 
     std::thread client_thread;
+
 private:
-    // std::vector<std::string>& tchat;
+    std::vector<std::string>* _tchat;
 };
