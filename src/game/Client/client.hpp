@@ -28,15 +28,17 @@ class Client
         UPDATE_ENTITY_METADATA = 0x07
     };
 
-public:
-    Client(std::vector<std::string>& tchat, const char* ip);
+private:
+    Client() = default;
     ~Client();
 
-    // Client(const Client&) = delete;
-    // Client& operator=(const Client&) = delete;
-    // Client(Client&&) = delete;
-    // Client& operator=(Client&&) = delete;
+    Client(const Client&) = delete;
+    Client& operator=(const Client&) = delete;
+    Client(Client&&) = delete;
+    Client& operator=(Client&&) = delete;
 
+public:
+    void init(const char* ip);
     void Start();
     void clientThreadFunc();
 
@@ -56,6 +58,11 @@ public:
     void readPacketEntityMetadata(ByteBuffer buffer);
     void readPacketChatMessage(const uint8_t* buffer);
 
+    static Client& instance() {
+        static Client instance;
+        return instance;
+    }
+
 private:
     void sendPacket(const void *buf, size_t size);
 
@@ -71,5 +78,5 @@ public:
 
     std::thread client_thread;
 private:
-    std::vector<std::string>& tchat;
+    // std::vector<std::string>& tchat;
 };

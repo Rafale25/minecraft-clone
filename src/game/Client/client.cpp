@@ -92,8 +92,7 @@ Packet::Server::UpdateEntity readUpdateEntityPacket(ByteBuffer buffer)
     return packet;
 }
 
-Client::Client(std::vector<std::string>& tchat, const char* ip):
-    tchat(tchat)
+void Client::init(const char* ip)
 {
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -292,7 +291,7 @@ void Client::readPacketChatMessage(const uint8_t* buffer) {
         index += 2;
     }
 
-    tchat.push_back(str);
+    // tchat.push_back(str);
 }
 
 // SEND //

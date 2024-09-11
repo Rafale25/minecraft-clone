@@ -67,7 +67,9 @@ class GameView: public View {
             cube_shader.use();
             cube_shader.setInt("shadowMap", 0);
 
-            client.Start();
+
+            Client::instance().init(global_argv[1]);
+            Client::instance().Start();
         }
 
         void onUpdate(double time_since_start, float dt)
@@ -112,7 +114,7 @@ class GameView: public View {
                 main_task_queue._task_queue.clear();
             }
 
-            const std::lock_guard<std::mutex> lock(client.new_chunks_mutex);
+            const std::lock_guard<std::mutex> lock(Client::instance().new_chunks_mutex);
 
             // const glm::vec3 camPos = camera.getPosition();
             // std::sort(client.new_chunks.begin(), client.new_chunks.end(),
@@ -121,9 +123,9 @@ class GameView: public View {
             //         return glm::distance2(camPos, glm::vec3(l->pos*16)) > glm::distance2(camPos, glm::vec3(r->pos*16));
             //     });
 
-            while (client.new_chunks.size() > 0) {
-                Packet::Server::ChunkPacket* chunk_data = client.new_chunks.back();
-                client.new_chunks.pop_back();
+            while (Client::instance().new_chunks.size() > 0) {
+                Packet::Server::ChunkPacket* chunk_data = Client::instance().new_chunks.back();
+                Client::instance().new_chunks.pop_back();
 
                 thread_pool.enqueue([this, chunk_data] {
                     Chunk* chunk = World::instance().setChunk(chunk_data);
@@ -137,23 +139,23 @@ class GameView: public View {
 
         void consumeTaskQueue()
         {
-            const std::lock_guard<std::mutex> lock(client.task_queue_mutex);
+            const std::lock_guard<std::mutex> lock(Client::instance().task_queue_mutex);
 
-            for (auto &task: client.task_queue) {
+            for (auto &task: Client::instance().task_queue) {
                 task();
             }
-            client.task_queue.clear();
+            Client::instance().task_queue.clear();
         }
 
         void networkUpdate()
         {
-            if (client.client_id == -1) return;
+            if (Client::instance().client_id == -1) return;
 
             glm::vec3 pos = camera.getPosition();
             float yaw = camera.getYaw();
             float pitch = camera.getPitch();
 
-            client.sendUpdateEntityPacket(pos, yaw, pitch);
+            Client::instance().sendUpdateEntityPacket(pos, yaw, pitch);
         }
 
         void onDraw(double time_since_start, float dt)
@@ -258,7 +260,7 @@ class GameView: public View {
 
             ImGui::Text("RAM: %.3f / %.3f Go", ((double)getCurrentRSS()) / (1024*1024*1024), ((double)getPeakRSS()) / (1024*1024*1024));
 
-            ImGui::Text("new chunks: %ld", client.new_chunks.size());
+            ImGui::Text("new chunks: %ld", Client::instance().new_chunks.size());
             ImGui::Text("thread pools tasks %ld", thread_pool._task_queue.size());
 
             ImGui::Text("draw calls: %d", _chunks_drawn);
@@ -271,7 +273,7 @@ class GameView: public View {
             ImGui::Text("forward: %.2f, %.2f, %.2f", camera.forward().x, camera.forward().y, camera.forward().z);
             ImGui::Text("block in hand: %d", (int)blockInHand);
 
-            ImGui::Text("ClientId: %d", client.client_id);
+            ImGui::Text("ClientId: %d", Client::instance().client_id);
 
             if (ImGui::TreeNode(SC("Entities: " << World::instance().entities.size()))) {
                 for (auto& entity : World::instance().entities) {
@@ -317,7 +319,7 @@ class GameView: public View {
 
         void sendTextMessage() {
             if (strlen(input_text_buffer) <= 0) return;
-            client.sendChatMessagePacket(input_text_buffer);
+            Client::instance().sendChatMessagePacket(input_text_buffer);
             memset(input_text_buffer, 0, sizeof(input_text_buffer));
         }
 
@@ -335,7 +337,7 @@ class GameView: public View {
             }
             }
             }
-            client.sendBlockBulkEditPacket(positions, blocktype);
+            Client::instance().sendBlockBulkEditPacket(positions, blocktype);
         }
 
         void setPlayerPosition(const glm::vec3& p) {
@@ -374,12 +376,12 @@ class GameView: public View {
                 if (ctx.keystate[GLFW_KEY_LEFT_ALT])
                     placeSphere(player_blockraycasthit.pos, bulkEditRadius, BlockType::Air);
                 else
-                    client.sendBreakBlockPacket(player_blockraycasthit.pos);
+                    Client::instance().sendBreakBlockPacket(player_blockraycasthit.pos);
             } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
                 if (ctx.keystate[GLFW_KEY_LEFT_ALT])
                     placeSphere(player_blockraycasthit.pos, bulkEditRadius, blockInHand);
                 else
-                    client.sendPlaceBlockPacket(player_blockraycasthit.pos + glm::ivec3(player_blockraycasthit.normal), blockInHand);
+                    Client::instance().sendPlaceBlockPacket(player_blockraycasthit.pos + glm::ivec3(player_blockraycasthit.normal), blockInHand);
             }
         }
 
@@ -421,7 +423,7 @@ class GameView: public View {
         GLuint ssbo_texture_handles;
 
         // World world;
-        Client client{tchat, global_argv[1]};
+        // Client client{global_argv[1]};
 
         float network_timer = 1.0f;
 
