@@ -31,7 +31,7 @@ GLuint packVertex(int x, int y, int z, int u, int v, int o, int t) {
     return p;
 }
 
-void ChunkMesh::computeVertexBuffer(const World &world, const Chunk* chunk)
+void ChunkMesh::computeVertexBuffer(const Chunk* chunk)
 {
     // TODO: check if chunk is only air, then remove it from world
 
@@ -45,7 +45,7 @@ void ChunkMesh::computeVertexBuffer(const World &world, const Chunk* chunk)
         //     ttttttttooouvzzzzzyyyyyxxxxx
     */
 
-    ChunkExtra chunkextra = ChunkExtra::get(world, chunk->pos);
+    ChunkExtra chunkextra = ChunkExtra::get(chunk->pos);
 
     vertices.clear();
     ebo.clear();

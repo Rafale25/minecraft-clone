@@ -1,7 +1,6 @@
 #include "world.hpp"
 #include "chunk.hpp"
 #include "texture_manager.hpp"
-// #include "entity.hpp"
 
 #include <stdio.h>
 #include <string.h>
@@ -9,10 +8,6 @@
 World::World()
 {
 }
-
-// World::~World()
-// {
-// }
 
 Entity* World::getEntity(int id)
 {

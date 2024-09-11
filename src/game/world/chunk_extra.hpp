@@ -21,17 +21,19 @@ struct ChunkExtra
         return blocks[XYZtoIndex(pos.x, pos.y, pos.z)];
     }
 
-    static ChunkExtra get(const World& world, const glm::ivec3& pos) {
+    static ChunkExtra get(const glm::ivec3& pos) {
         ChunkExtra chunkextra;
 
-        const std::shared_lock<std::shared_mutex> lock(world.chunks_mutex);
+        const std::shared_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
+
+        // TODO: directly copy memory of center chunk instead of using getBlock
 
         for (int z = 0 ; z < 18 ; ++z) {
         for (int y = 0 ; y < 18 ; ++y) {
         for (int x = 0 ; x < 18 ; ++x) {
             int index = x + y*18 + z*18*18;
             glm::ivec3 world_pos = (pos * 16) + glm::ivec3(x-1, y-1, z-1);
-            chunkextra.blocks[index] = world.getBlock(world_pos);
+            chunkextra.blocks[index] = World::instance().getBlock(world_pos);
         }
         }
         }

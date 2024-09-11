@@ -29,7 +29,7 @@ class Client
     };
 
 public:
-    Client(World& world, std::vector<std::string>& tchat, const char* ip);
+    Client(std::vector<std::string>& tchat, const char* ip);
     ~Client();
 
     // Client(const Client&) = delete;
@@ -71,6 +71,5 @@ public:
 
     std::thread client_thread;
 private:
-    World& world;
     std::vector<std::string>& tchat;
 };

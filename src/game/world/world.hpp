@@ -25,7 +25,6 @@ struct BlockRaycastHit {
 //     std::size_t operator()(const glm::ivec3& key) const
 //     {
 //         constexpr int SIZE = 25;
-
 //         return key.x + key.y*SIZE + key.z*SIZE*SIZE;
 //         // return ((key.x * 5209) ^ (key.y * 1811)) ^ (key.z * 7297);
 //     }
@@ -34,10 +33,16 @@ struct BlockRaycastHit {
 
 class World
 {
-public:
+private:
     World();
     ~World() = default;
 
+    World(const World&) = delete;
+    World& operator=(const World&) = delete;
+    World(World&&) = delete;
+    World& operator=(World&&) = delete;
+
+public:
     void addEntity(Entity e);
     void removeEntity(int id);
     void setEntityTransform(int id, const glm::vec3& pos, float yaw, float pitch);
@@ -48,10 +53,13 @@ public:
     BlockRaycastHit BlockRaycast(const glm::vec3& origin, const glm::vec3& direction, int maxSteps) const;
     BlockType getBlock(const glm::ivec3& pos) const;
 
-    //  getBlocks(const glm::ivec3& pos) const;
-
     Chunk* setChunk(Packet::Server::ChunkPacket* chunk_data);
     Chunk* getChunk(const glm::ivec3& pos) const;
+
+    static World& instance() {
+        static World instance;
+        return instance;
+    }
 
 public:
     std::unordered_map<glm::ivec3, Chunk*> chunks;
@@ -60,4 +68,5 @@ public:
 
     std::vector<Entity> entities;
     // std::unordered_map<int, Entity> entities; // TODO: switch to this data structure
+
 };

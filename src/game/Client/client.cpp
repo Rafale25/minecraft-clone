@@ -92,8 +92,7 @@ Packet::Server::UpdateEntity readUpdateEntityPacket(ByteBuffer buffer)
     return packet;
 }
 
-Client::Client(World& world, std::vector<std::string>& tchat, const char* ip):
-    world(world),
+Client::Client(std::vector<std::string>& tchat, const char* ip):
     tchat(tchat)
 {
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -227,7 +226,7 @@ void Client::readPacketAddEntity(ByteBuffer buffer) {
         // e.transform.rotation.y = yaw;
         // e.transform.rotation.x = pitch;
         e.name = std::string(name);
-        world.addEntity(e);
+        World::instance().addEntity(e);
     } );
 }
 
@@ -235,7 +234,7 @@ void Client::readPacketRemoveEntity(ByteBuffer buffer) {
     int entity_id = buffer.getInt();
     const std::lock_guard<std::mutex> lock(task_queue_mutex);
     task_queue.push_front([&]() {
-        world.removeEntity(entity_id);
+        World::instance().removeEntity(entity_id);
     });
 }
 
@@ -243,7 +242,7 @@ void Client::readPacketUpdateEntity(ByteBuffer buffer) {
     auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
     const std::lock_guard<std::mutex> lock(task_queue_mutex);
     task_queue.push_front([&]() {
-        world.setEntityTransform(id, pos, yaw, pitch);
+        World::instance().setEntityTransform(id, pos, yaw, pitch);
     } );
 }
 
@@ -272,7 +271,7 @@ void Client::readPacketEntityMetadata(ByteBuffer buffer) {
     auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
     const std::lock_guard<std::mutex> lock(task_queue_mutex);
     task_queue.push_front([&]() {
-        world.setEntityTransform(id, pos, yaw, pitch);
+        World::instance().setEntityTransform(id, pos, yaw, pitch);
     } );
 }
 

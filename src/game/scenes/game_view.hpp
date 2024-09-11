@@ -32,15 +32,15 @@
 
 #include "clock.hpp"
 
-void update3x3Chunks(const World& world, const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
+void update3x3Chunks(const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
 {
     const glm::ivec3 offsets[] = { {0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
 
     for (const glm::ivec3 &offset: offsets) {
-        if (Chunk* neighbor_chunk = world.getChunk(chunk_pos + offset)) {
+        if (Chunk* neighbor_chunk = World::instance().getChunk(chunk_pos + offset)) {
 
             ChunkMesh new_chunk_mesh;
-            new_chunk_mesh.computeVertexBuffer(world, neighbor_chunk);
+            new_chunk_mesh.computeVertexBuffer(neighbor_chunk);
 
             main_task_queue.push_safe([neighbor_chunk, new_chunk_mesh]() mutable {
                 new_chunk_mesh.updateVAO();
@@ -89,9 +89,9 @@ class GameView: public View {
             consumeTaskQueue();
             consumeNewChunks();
 
-            world.updateEntities();
+            World::instance().updateEntities();
 
-            player_blockraycasthit = world.BlockRaycast(camera.getPosition(), camera.forward(), 16);
+            player_blockraycasthit = World::instance().BlockRaycast(camera.getPosition(), camera.forward(), 16);
 
             network_timer -= dt;
             if (network_timer <= 0.0f) {
@@ -126,11 +126,11 @@ class GameView: public View {
                 client.new_chunks.pop_back();
 
                 thread_pool.enqueue([this, chunk_data] {
-                    Chunk* chunk = world.setChunk(chunk_data);
+                    Chunk* chunk = World::instance().setChunk(chunk_data);
 
                     delete chunk_data;
 
-                    update3x3Chunks(world, chunk->pos, main_task_queue);
+                    update3x3Chunks(chunk->pos, main_task_queue);
                 });
             }
         }
@@ -202,7 +202,7 @@ class GameView: public View {
             mesh_shader.use();
             mesh_shader.setMat4("u_projectionMatrix", camera.getProjection());
             mesh_shader.setMat4("u_viewMatrix", camera.getView());
-            for (auto& entity : world.entities)
+            for (auto& entity : World::instance().entities)
             {
                 mesh_shader.setMat4("u_modelMatrix", entity.smooth_transform.getMatrix());
                 entity.draw();
@@ -225,9 +225,9 @@ class GameView: public View {
 
             _chunks_drawn = 0;
 
-            const std::shared_lock<std::shared_mutex> lock(world.chunks_mutex);
+            const std::shared_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
 
-            for (const auto& [key, chunk] : world.chunks)
+            for (const auto& [key, chunk] : World::instance().chunks)
             {
                 if (chunk->mesh.indices_count == 0 || chunk->mesh.VAO == 0) continue;
 
@@ -273,8 +273,8 @@ class GameView: public View {
 
             ImGui::Text("ClientId: %d", client.client_id);
 
-            if (ImGui::TreeNode(SC("Entities: " << world.entities.size()))) {
-                for (auto& entity : world.entities) {
+            if (ImGui::TreeNode(SC("Entities: " << World::instance().entities.size()))) {
+                for (auto& entity : World::instance().entities) {
                     ImGui::PushID(entity.id);
                     ImGui::Text("id:%d: x:%.2f y:%.2f z:%.2f", entity.id, entity.transform.position.x, entity.transform.position.y, entity.transform.position.z);
                     ImGui::SameLine();
@@ -420,8 +420,8 @@ class GameView: public View {
 
         GLuint ssbo_texture_handles;
 
-        World world;
-        Client client{world, tchat, global_argv[1]};
+        // World world;
+        Client client{tchat, global_argv[1]};
 
         float network_timer = 1.0f;
 
@@ -448,10 +448,6 @@ class GameView: public View {
         ThreadPool thread_pool{6};
         TaskQueue main_task_queue;
 
-
-        /*
-        Make client singleton class
-        */
 
 
         /*
