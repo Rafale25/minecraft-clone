@@ -12,8 +12,6 @@
 
 #include "ByteBuffer.hpp"
 
-#include "Singleton.hpp"
-
 class TextureManager;
 class World;
 // class ByteBuffer;
@@ -24,9 +22,8 @@ void decodePacketEntity(ByteBuffer buffer);
 
 // TODO: divide client into Connection and PacketManager
 // Connection //
-class Client: public Singleton<Client>
+class Client
 {
-    friend Singleton<Client>;
 
 private:
     Client() = default;
@@ -66,10 +63,10 @@ public:
     void readPacketEntityMetadata(ByteBuffer buffer);
     void readPacketChatMessage(const uint8_t* buffer);
 
-    // static Client& instance() {
-    //     static Client instance;
-    //     return instance;
-    // }
+    static Client& instance() {
+        static Client instance;
+        return instance;
+    }
 
 private:
     void sendPacket(const void *buf, size_t size);
