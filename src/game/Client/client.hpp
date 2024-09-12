@@ -18,8 +18,6 @@ class World;
 struct Chunk;
 
 
-void decodePacketEntity(ByteBuffer buffer);
-
 // TODO: divide client into Connection and PacketManager
 // Connection //
 class Client
@@ -34,11 +32,30 @@ private:
     Client(Client&&) = delete;
     Client& operator=(Client&&) = delete;
 
-    std::unordered_map<int, std::function<void(ByteBuffer)>> packets = {
-        { 0x00, decodePacketEntity}
-        // ...
+    static void decodePacketIdentification(ByteBuffer buffer);
+    static void decodePacketAddEntity(ByteBuffer buffer);
+    static void decodePacketRemoveEntity(ByteBuffer buffer);
+    static void decodePacketUpdateEntity(ByteBuffer buffer);
+    static void decodePacketChunk(ByteBuffer buffer);
+    static void decodePacketMonotypeChunk(ByteBuffer buffer);
+    static void decodePacketEntityMetadata(ByteBuffer buffer);
+    static void decodePacketChatMessage(ByteBuffer buffer);
+
+    struct PacketInfo {
+        std::function<void(ByteBuffer)> decode;
+        size_t size;
     };
 
+    const std::unordered_map<PacketId, PacketInfo> packets = {
+        { PacketId::IDENTIFICATION,             { decodePacketIdentification,   sizeof(Packet::Server::Identification)        } },
+        { PacketId::ADD_ENTITY,                 { decodePacketAddEntity,        sizeof(Packet::Server::AddEntity)             } },
+        { PacketId::REMOVE_ENTITY,              { decodePacketRemoveEntity,     sizeof(Packet::Server::RemoveEntity)          } },
+        { PacketId::UPDATE_ENTITY,              { decodePacketUpdateEntity,     sizeof(Packet::Server::UpdateEntity)          } },
+        { PacketId::CHUNK,                      { decodePacketChunk,            sizeof(Packet::Server::ChunkPacket)           } },
+        { PacketId::MONOTYPE_CHUNK,             { decodePacketMonotypeChunk,    sizeof(Packet::Server::MonoChunkPacket)       } },
+        { PacketId::CHAT_MESSAGE,               { decodePacketChatMessage,      sizeof(Packet::Server::ChatMessage)           } },
+        { PacketId::UPDATE_ENTITY_METADATA,     { decodePacketEntityMetadata,   sizeof(Packet::Server::UpdateEntityMetadata)  } },
+    };
 
 public:
     void init(std::vector<std::string>& tchat, const char* ip);
@@ -53,15 +70,6 @@ public:
     void sendUpdateEntityPacket(const glm::vec3& pos, float yaw, float pitch);
     void sendChatMessagePacket(const char *buffer);
     void sendClientMetadataPacket(int render_distance, std::string name);
-
-    void readPacketIdentification(ByteBuffer buffer);
-    void readPacketAddEntity(ByteBuffer buffer);
-    void readPacketRemoveEntity(ByteBuffer buffer);
-    void readPacketUpdateEntity(ByteBuffer buffer);
-    void readPacketSendChunk(ByteBuffer buffer);
-    void readPacketSendMonotypeChunk(ByteBuffer buffer);
-    void readPacketEntityMetadata(ByteBuffer buffer);
-    void readPacketChatMessage(const uint8_t* buffer);
 
     static Client& instance() {
         static Client instance;

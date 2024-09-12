@@ -23,15 +23,6 @@
 
 #include "ByteBuffer.hpp"
 
-void decodePacketEntity(ByteBuffer buffer)
-{
-    printf("yolo \n");
-}
-
-void Client::decode(PacketId id, ByteBuffer buffer) {
-    packets[id](buffer);
-}
-
 Packet::Server::ChunkPacket* readChunkPacket(ByteBuffer& buffer)
 {
     auto* chunk_data = new Packet::Server::ChunkPacket;
@@ -100,6 +91,109 @@ Packet::Server::UpdateEntity readUpdateEntityPacket(ByteBuffer buffer)
 
     return packet;
 }
+
+void Client::decodePacketIdentification(ByteBuffer buffer)
+{
+    Client::instance().client_id = buffer.getInt();
+}
+
+void Client::decodePacketAddEntity(ByteBuffer buffer)
+{
+    Client& client = Client::instance();
+
+    auto [id, pos, yaw, pitch, name] = readAddEntityPacket(buffer);
+    const std::lock_guard<std::mutex> lock(client.task_queue_mutex);
+    client.task_queue.push_front([&]() {
+        Entity e{id};
+        e.transform.position = pos;
+        // e.transform.rotation.y = yaw;
+        // e.transform.rotation.x = pitch;
+        e.name = std::string(name);
+        World::instance().addEntity(e);
+    } );
+}
+
+void Client::decodePacketRemoveEntity(ByteBuffer buffer)
+{
+    Client& client = Client::instance();
+
+    int entity_id = buffer.getInt();
+    const std::lock_guard<std::mutex> lock(client.task_queue_mutex);
+    client.task_queue.push_front([&]() {
+        World::instance().removeEntity(entity_id);
+    });
+}
+
+void Client::decodePacketUpdateEntity(ByteBuffer buffer)
+{
+    Client& client = Client::instance();
+
+    auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
+    const std::lock_guard<std::mutex> lock(client.task_queue_mutex);
+    client.task_queue.push_front([&]() {
+        World::instance().setEntityTransform(id, pos, yaw, pitch);
+    } );
+}
+
+void Client::decodePacketChunk(ByteBuffer buffer)
+{
+    Client& client = Client::instance();
+
+    auto* chunk_data = readChunkPacket(buffer);
+
+    const std::lock_guard<std::mutex> lock(client.new_chunks_mutex);
+
+    // Replace chunk if already in new chunk list to reduce charge on mainthread //
+    auto it = std::find_if(client.new_chunks.begin(), client.new_chunks.end(), [&](const auto& chunk){ return chunk->pos == chunk_data->pos; });
+    if (it != client.new_chunks.end()) {
+        delete *it;
+        *it = chunk_data;
+    } else {
+        client.new_chunks.push_front(chunk_data);
+    }
+}
+
+void Client::decodePacketMonotypeChunk(ByteBuffer buffer)
+{
+    Client& client = Client::instance();
+
+    auto* chunk_data = readFullMonoChunkPacket(buffer);
+    const std::lock_guard<std::mutex> lock(client.new_chunks_mutex);
+    client.new_chunks.push_front(chunk_data);
+}
+
+void Client::decodePacketEntityMetadata(ByteBuffer buffer)
+{
+    // auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
+    // const std::lock_guard<std::mutex> lock(task_queue_mutex);
+    // task_queue.push_front([&]() {
+    //     World::instance().setEntityTransform(id, pos, yaw, pitch);
+    // } );
+}
+
+void Client::decodePacketChatMessage(ByteBuffer buffer)
+{
+    Client& client = Client::instance();
+
+    std::string str = std::string((char*)buffer.getPtr(), 4096);
+
+    // Removes '&[]' from message //
+    size_t index = 0;
+    while (true) {
+        index = str.find("&", index);
+        if (index == std::string::npos) break;
+        str.replace(index, 2, "");
+        index += 2;
+    }
+    // --
+
+    client._tchat->push_back(str);
+}
+
+void Client::decode(PacketId id, ByteBuffer buffer) {
+    packets.at(id).decode(buffer);
+}
+
 
 void Client::init(std::vector<std::string>& tchat, const char* ip)
 {
@@ -180,132 +274,18 @@ void Client::clientThreadFunc()
 
         using namespace Packet;
 
-        uint8_t id = buffer[0];
-        switch (id)
-        {
-            case IDENTIFICATION:
-                recv_full(client_socket, buffer, sizeof(Server::Identification));
-                readPacketIdentification(ByteBuffer(buffer, sizeof(Server::Identification), ByteBuffer::ByteOrder::BE));
-                break;
-            case ADD_ENTITY:
-                recv_full(client_socket, buffer, sizeof(Server::AddEntity));
-                readPacketAddEntity(ByteBuffer(buffer, sizeof(Server::AddEntity), ByteBuffer::ByteOrder::BE));
-                break;
-            case REMOVE_ENTITY:
-                recv_full(client_socket, buffer, sizeof(Server::RemoveEntity));
-                readPacketRemoveEntity(ByteBuffer(buffer, sizeof(Server::RemoveEntity), ByteBuffer::ByteOrder::BE));
-                break;
-            case UPDATE_ENTITY:
-                recv_full(client_socket, buffer, sizeof(Server::UpdateEntity));
-                readPacketUpdateEntity(ByteBuffer(buffer, sizeof(Server::UpdateEntity), ByteBuffer::ByteOrder::BE));
-                break;
-            case CHUNK:
-                recv_full(client_socket, buffer, sizeof(Server::ChunkPacket));
-                readPacketSendChunk(ByteBuffer(buffer, sizeof(Server::ChunkPacket), ByteBuffer::ByteOrder::BE));
-                break;
-            case MONOTYPE_CHUNK:
-                recv_full(client_socket, buffer, sizeof(Server::MonoChunkPacket));
-                readPacketSendMonotypeChunk(ByteBuffer(buffer, sizeof(Server::MonoChunkPacket), ByteBuffer::ByteOrder::BE));
-                break;
-            case CHAT_MESSAGE:
-                recv_full(client_socket, buffer, sizeof(Server::ChatMessage));
-                readPacketChatMessage(buffer);
-                break;
-            case UPDATE_ENTITY_METADATA:
-                recv_full(client_socket, buffer, sizeof(Server::UpdateEntityMetadata));
-                // TODO: Do stuff with it
-                break;
-            default:
-                break;
+        PacketId id = (PacketId)buffer[0];
+
+        if (packets.find(id) == packets.end()) {
+            printf("Invalid Packet id %d", id);
+            return;
         }
+
+        const size_t packet_size = packets.at(id).size;
+        recv_full(client_socket, buffer, packet_size);
+        decode(id, ByteBuffer(buffer, packet_size, ByteBuffer::ByteOrder::BE));
     }
 }
-
-// RECEIVE //
-
-void Client::readPacketIdentification(ByteBuffer buffer) {
-    client_id = buffer.getInt();
-}
-
-void Client::readPacketAddEntity(ByteBuffer buffer) {
-    auto [id, pos, yaw, pitch, name] = readAddEntityPacket(buffer);
-    const std::lock_guard<std::mutex> lock(task_queue_mutex);
-    task_queue.push_front([&]() {
-        Entity e{id};
-        e.transform.position = pos;
-        // e.transform.rotation.y = yaw;
-        // e.transform.rotation.x = pitch;
-        e.name = std::string(name);
-        World::instance().addEntity(e);
-    } );
-}
-
-void Client::readPacketRemoveEntity(ByteBuffer buffer) {
-    int entity_id = buffer.getInt();
-    const std::lock_guard<std::mutex> lock(task_queue_mutex);
-    task_queue.push_front([&]() {
-        World::instance().removeEntity(entity_id);
-    });
-}
-
-void Client::readPacketUpdateEntity(ByteBuffer buffer) {
-    auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
-    const std::lock_guard<std::mutex> lock(task_queue_mutex);
-    task_queue.push_front([&]() {
-        World::instance().setEntityTransform(id, pos, yaw, pitch);
-    } );
-}
-
-void Client::readPacketSendChunk(ByteBuffer buffer) {
-    auto* chunk_data = readChunkPacket(buffer);
-
-    const std::lock_guard<std::mutex> lock(new_chunks_mutex);
-
-    // Replace chunk if already in new chunk list to reduce charge on mainthread //
-    auto it = std::find_if(new_chunks.begin(), new_chunks.end(), [&](const auto& chunk){ return chunk->pos == chunk_data->pos; });
-    if (it != new_chunks.end()) {
-        delete *it;
-        *it = chunk_data;
-    } else {
-        new_chunks.push_front(chunk_data);
-    }
-}
-
-void Client::readPacketSendMonotypeChunk(ByteBuffer buffer) {
-    auto* chunk_data = readFullMonoChunkPacket(buffer);
-    const std::lock_guard<std::mutex> lock(new_chunks_mutex);
-    new_chunks.push_front(chunk_data);
-}
-
-void Client::readPacketEntityMetadata(ByteBuffer buffer) {
-    auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
-    const std::lock_guard<std::mutex> lock(task_queue_mutex);
-    task_queue.push_front([&]() {
-        World::instance().setEntityTransform(id, pos, yaw, pitch);
-    } );
-}
-
-void Client::readPacketChatMessage(const uint8_t* buffer) {
-    std::string str = std::string((char*)buffer, strlen((char*)buffer));
-
-    /* Removes &[] from message */
-    size_t index = 0;
-    while (true) {
-        /* Locate the substring to replace. */
-        index = str.find("&", index);
-        if (index == std::string::npos) break;
-
-        /* Make the replacement. */
-        str.replace(index, 2, "");
-
-        /* Advance index forward so the next iteration doesn't pick it up as well. */
-        index += 2;
-    }
-
-    _tchat->push_back(str);
-}
-
-// SEND //
 
 void Client::sendBreakBlockPacket(const glm::ivec3& world_pos)
 {

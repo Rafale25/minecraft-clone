@@ -20,8 +20,13 @@ public:
     ByteBuffer(uint8_t* buffer, size_t size, ByteOrder byte_order): buffer(buffer), head(buffer), size(size), byte_order(byte_order) {}
 	~ByteBuffer() = default;
 
-    uint8_t peek() {
+    uint8_t peek() const {
         return *head;
+    }
+
+    const uint8_t* getPtr() const
+    {
+        return buffer;
     }
 
     uint8_t get() {
@@ -40,8 +45,7 @@ public:
         memcpy(&value, head, sizeof(uint16_t));
         head += sizeof(uint16_t);
 
-        if (byte_order == BE) return be16toh(value);
-        return le16toh(value);
+        return byte_order == BE ? be16toh(value) : le16toh(value);
     }
 
     uint32_t getInt() {
@@ -49,8 +53,7 @@ public:
         memcpy(&value, head, sizeof(uint32_t));
         head += sizeof(uint32_t);
 
-        if (byte_order == BE) return be32toh(value);
-        return le32toh(value);
+        return byte_order == BE ? be32toh(value) : le32toh(value);
     }
 
     uint64_t getLong() {
@@ -58,8 +61,7 @@ public:
         memcpy(&value, head, sizeof(uint64_t));
         head += sizeof(uint64_t);
 
-        if (byte_order == BE) return be64toh(value);
-        return le64toh(value);
+        return byte_order == BE ? be64toh(value) : le64toh(value);
     }
 
     float getFloat() {
@@ -68,8 +70,7 @@ public:
         memcpy(&value, head, sizeof(uint32_t));
 
         // convert to different endianess
-        if (byte_order == BE) value = be32toh(value);
-        else value = le32toh(value);
+        value =  byte_order == BE ? be32toh(value) : le32toh(value);
 
         // move bytes into float variable without casting
         float float_value;

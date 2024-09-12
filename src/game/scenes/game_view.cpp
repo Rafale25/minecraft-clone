@@ -67,8 +67,6 @@ GameView::GameView(Context& ctx): View(ctx)
 
     Client::instance().init(tchat, global_argv[1]);
     Client::instance().Start();
-
-    Client::instance().decode(PacketId::IDENTIFICATION, ByteBuffer(nullptr, 0, ByteBuffer::BE));
 }
 
 void GameView::onUpdate(double time_since_start, float dt)
