@@ -20,7 +20,7 @@ Shadowmap::Shadowmap(Context& ctx, GLsizei shadow_width, GLsizei shadow_height):
     _depthFBO.attachTexture(_depthTexture._texture, GL_DEPTH_ATTACHMENT);
 }
 
-void Shadowmap::begin(Camera& camera, Program &program)
+void Shadowmap::begin(const Camera& camera, const Program &program)
 {
     glm::mat4 cameraCustomProj = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.3f, _max_shadow_distance);
     auto corners = getFrustumCornersWorldSpace(cameraCustomProj, camera.getView());
@@ -44,7 +44,6 @@ void Shadowmap::end()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, _ctx.width, _ctx.height);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void Shadowmap::setSunDir(const glm::vec3& sunDir)

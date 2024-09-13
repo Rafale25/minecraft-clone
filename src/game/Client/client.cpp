@@ -287,8 +287,6 @@ void Client::clientThreadFunc()
             break;
         }
 
-        using namespace Packet;
-
         PacketId id = (PacketId)buffer[0];
 
         if (packets.find(id) == packets.end()) {

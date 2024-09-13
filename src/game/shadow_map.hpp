@@ -21,7 +21,7 @@ class Shadowmap
 public:
     Shadowmap(Context& ctx, GLsizei shadow_width, GLsizei shadow_height);
 
-    void begin(Camera& camera, Program &program);
+    void begin(const Camera& camera, const Program &program);
     void end();
     void setSunDir(const glm::vec3& sunDir);
 

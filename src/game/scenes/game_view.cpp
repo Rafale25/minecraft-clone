@@ -1,34 +1,15 @@
 #include "game_view.hpp"
 
-#include "context.hpp"
+#include "imgui.h"
 
-#include "view.hpp"
-#include "camera.hpp"
-#include "program.h"
-
-#include "texture_manager.hpp"
 #include "chunk.hpp"
 #include "client.hpp"
 #include "entity.hpp"
 #include "world.hpp"
 
-#include "texture.hpp"
-#include "framebuffer.hpp"
-#include "geometry.hpp"
-#include "shadow_map.hpp"
-#include "ServerPacket.hpp"
-// #include "Tchat.hpp"
-
-#include "imgui.h"
-#include <algorithm>
-#include <string>
-
 #include "command_line_args.h"
 #include "string_helpers.hpp"
-
-#include "Frustum.hpp"
 #include "thread_pool.hpp"
-
 #include "mem_info.hpp"
 
 void update3x3Chunks(const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
@@ -57,13 +38,6 @@ void update3x3Chunks(const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
 GameView::GameView(Context& ctx): View(ctx)
 {
     glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    TextureManager::loadAllTextures();
-    ssbo_texture_handles = createBufferStorage(&TextureManager::Get().textures_handles[0], TextureManager::Get().textures_handles.size() * sizeof(GLuint64));
-
-    cube_shader.use();
-    cube_shader.setInt("shadowMap", 0);
-
 
     Client::instance().init(tchat, global_argv[1]);
     Client::instance().Start();
@@ -157,92 +131,11 @@ void GameView::networkUpdate()
 
 void GameView::onDraw(double time_since_start, float dt)
 {
-    glEnable(GL_MULTISAMPLE); // enabled by default
-
-    glPolygonMode(GL_FRONT_AND_BACK, _wireframe ? GL_LINE : GL_FILL);
-
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CW);
-
-    // glEnable(GL_FRAMEBUFFER_SRGB);
-
-    glClearColor(135.0f/255.0f, 206.0f/255.0f, 250.0f/255.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // ShadowMap //
-    shadowmap.setSunDir(sunDir);
-    shadowmap.begin(camera, cube_shadowmapping_shader);
-        render_world(cube_shadowmapping_shader, false);
-    shadowmap.end();
-
-    // Skybox //
-    glDisable(GL_DEPTH_TEST);
-    skybox_shader.use();
-    glm::mat4 view_rotation = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), -camera.forward(), glm::vec3(0.0f, 1.0f, 0.0f)); // wtf
-    skybox_shader.setVec2("u_resolution", glm::vec2(ctx.width, ctx.height));
-    skybox_shader.setMat4("u_view", view_rotation);
-    skybox_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
-    skybox_quad.draw();
-    glEnable(GL_DEPTH_TEST);
-
-    // Terrain //
-    cube_shader.use();
-    cube_shader.setMat4("u_lightSpaceMatrix", shadowmap._lightSpaceMatrix);
-    cube_shader.setVec3("u_sun_direction", sunDir);
-    cube_shader.setFloat("u_shadow_bias", shadowmap._shadow_bias);
-    glBindTextureUnit(0, shadowmap._depthTexture._texture);
-    render_world(cube_shader);
-
-    // Entities //
-    mesh_shader.use();
-    mesh_shader.setMat4("u_projectionMatrix", camera.getProjection());
-    mesh_shader.setMat4("u_viewMatrix", camera.getView());
-    for (auto& entity : World::instance().entities)
-    {
-        mesh_shader.setMat4("u_modelMatrix", entity.smooth_transform.getMatrix());
-        entity.draw();
-    }
+    world_renderer.render(camera);
 
     ctx.imguiNewFrame();
     if (_show_debug_gui) gui(dt);
     ctx.imguiRender();
-}
-
-void GameView::render_world(const Program &shader, bool use_frustum_culling)
-{
-    shader.use();
-    shader.setMat4("u_projectionMatrix", camera.getProjection());
-    shader.setMat4("u_viewMatrix", camera.getView());
-    shader.setVec3("u_view_position", camera.getPosition());
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_texture_handles);
-
-    Frustum camera_frustum = createFrustumFromCamera(camera, camera.aspect_ratio, glm::radians(camera.fov), camera.near_plane, camera.far_plane);
-
-    _chunks_drawn = 0;
-
-    const std::shared_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
-
-    for (const auto& [key, chunk] : World::instance().chunks)
-    {
-        if (chunk->mesh.indices_count == 0 || chunk->mesh.VAO == 0) continue;
-
-        if (use_frustum_culling) {
-            AABB chunk_aabb = {(chunk->pos * 16), (chunk->pos * 16) + 16};
-            if (!chunk_aabb.isOnFrustum(camera_frustum)) continue;
-        }
-
-        shader.setVec3("u_chunkPos", chunk->pos * 16);
-
-        glBindVertexArray(chunk->mesh.VAO);
-
-        // printf("indices_count: %d; VAO: %d\n", chunk->mesh.indices_count, chunk->mesh.VAO);
-        glDrawElements(GL_TRIANGLES, chunk->mesh.indices_count, GL_UNSIGNED_INT, 0);
-        ++_chunks_drawn;
-    }
 }
 
 void GameView::gui(float dt)
@@ -293,9 +186,9 @@ void GameView::gui(float dt)
         ctx.setVsync(_vsync);
     }
 
-    ImGui::DragFloat3("Sun direction: ", &sunDir.x, 0.01f, -M_PI*2, M_PI*2, "%.2f");
-    ImGui::SliderFloat("Shadow Bias: ", &shadowmap._shadow_bias, 0.000001f, 0.1f, "%.6f");
-    ImGui::SliderFloat("Shadow Distance: ", &shadowmap._max_shadow_distance, 0.3f, 500.0f, "%.2f");
+    // ImGui::DragFloat3("Sun direction: ", &sunDir.x, 0.01f, -M_PI*2, M_PI*2, "%.2f");
+    // ImGui::SliderFloat("Shadow Bias: ", &shadowmap._shadow_bias, 0.000001f, 0.1f, "%.6f");
+    // ImGui::SliderFloat("Shadow Distance: ", &shadowmap._max_shadow_distance, 0.3f, 500.0f, "%.2f");
 
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;
     // if (disable_mouse_wheel)
