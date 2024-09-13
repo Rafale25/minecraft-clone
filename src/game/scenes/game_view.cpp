@@ -161,7 +161,7 @@ void GameView::gui(float dt)
     glm::vec3 camera_pos = camera.getPosition();
     ImGui::Text("position: %.2f, %.2f, %.2f", camera_pos.x, camera_pos.y, camera_pos.z);
     ImGui::Text("forward: %.2f, %.2f, %.2f", camera.forward().x, camera.forward().y, camera.forward().z);
-    ImGui::Text("block in hand: %d", (int)blockInHand);
+    ImGui::Text("block in hand: %d", (int)block_in_hand);
 
     ImGui::Text("ClientId: %d", Client::instance().client_id);
 
@@ -180,8 +180,8 @@ void GameView::gui(float dt)
     }
 
 
-    ImGui::SliderFloat("Bulk Edit Radius: ", &bulkEditRadius, 1.0f, 32.0f, "%.2f");
-    ImGui::Checkbox("Wireframe", &_wireframe);
+    ImGui::SliderFloat("Bulk Edit Radius: ", &bulk_edit_radius, 1.0f, 32.0f, "%.2f");
+    ImGui::Checkbox("Wireframe", &world_renderer._wireframe);
     if (ImGui::Checkbox("VSync", &_vsync)) {
         ctx.setVsync(_vsync);
     }
@@ -265,14 +265,14 @@ void GameView::onMousePress(int x, int y, int button) {
 
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
         if (ctx.keystate[GLFW_KEY_LEFT_ALT])
-            placeSphere(player_blockraycasthit.pos, bulkEditRadius, BlockType::Air);
+            placeSphere(player_blockraycasthit.pos, bulk_edit_radius, BlockType::Air);
         else
             Client::instance().sendBreakBlockPacket(player_blockraycasthit.pos);
     } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
         if (ctx.keystate[GLFW_KEY_LEFT_ALT])
-            placeSphere(player_blockraycasthit.pos, bulkEditRadius, blockInHand);
+            placeSphere(player_blockraycasthit.pos, bulk_edit_radius, block_in_hand);
         else
-            Client::instance().sendPlaceBlockPacket(player_blockraycasthit.pos + glm::ivec3(player_blockraycasthit.normal), blockInHand);
+            Client::instance().sendPlaceBlockPacket(player_blockraycasthit.pos + glm::ivec3(player_blockraycasthit.normal), block_in_hand);
     }
 }
 
@@ -283,10 +283,10 @@ void GameView::onMouseDrag(int x, int y, int dx, int dy)
 
 void GameView::onMouseScroll(int scroll_x, int scroll_y)
 {
-    int block = ((int)blockInHand + scroll_y) % ((int)BlockType::LAST-1);
+    int block = ((int)block_in_hand + scroll_y) % ((int)BlockType::LAST-1);
     if (block < 1)
         block += (int)BlockType::LAST-1;
-    blockInHand = (BlockType)block;
+    block_in_hand = (BlockType)block;
 }
 
 void GameView::onMouseMotion(int x, int y, int dx, int dy)

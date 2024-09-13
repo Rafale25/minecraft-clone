@@ -41,7 +41,6 @@ class GameView: public View {
 
         bool _cursor_enabled = false;
         bool _show_debug_gui = false;
-        bool _wireframe = false; // TODO: duplicate, REMOVE
         bool _vsync = true;
 
         FPSCamera camera = {
@@ -49,8 +48,8 @@ class GameView: public View {
             60.0f, (float)ctx.width / (float)ctx.height, 0.1f, 1000.0f
         };
 
-        BlockType blockInHand = BlockType::Grass;
-        float bulkEditRadius = 4.0f;
+        BlockType block_in_hand = BlockType::Grass;
+        float bulk_edit_radius = 4.0f;
 
         BlockRaycastHit player_blockraycasthit;
 

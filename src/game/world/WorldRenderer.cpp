@@ -31,7 +31,7 @@ void WorldRenderer::setDefaultRenderState()
     glFrontFace(GL_CW);
 
     // glEnable(GL_FRAMEBUFFER_SRGB);
-    glClear(GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void WorldRenderer::render(const Camera &camera)

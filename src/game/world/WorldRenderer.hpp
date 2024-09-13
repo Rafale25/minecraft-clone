@@ -28,12 +28,16 @@ public:
     void renderSkybox(const Camera &camera);
     void renderShadowmap(const Camera &camera);
 
-    int chunks_drawn;
-    bool _wireframe;
-
 private:
     Context &_ctx;
 
+public:
+    Shadowmap shadowmap{_ctx, 4096, 4096};
+    glm::vec3 sunDir = glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f));
+    int chunks_drawn;
+    bool _wireframe;
+
+public:
     GLuint ssbo_texture_handles;
 
     Program cube_shader{"./assets/shaders/cube.vs", "./assets/shaders/cube.fs"};
@@ -41,7 +45,5 @@ private:
     Program mesh_shader{"./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs"};
     Program skybox_shader{"./assets/shaders/skybox.vs", "./assets/shaders/skybox.fs"};
 
-    Shadowmap shadowmap{_ctx, 4096, 4096};
-    glm::vec3 sunDir = glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f));
     Mesh skybox_quad = Geometry::quad_2d();
 };
