@@ -15,6 +15,7 @@ class GameView: public View {
         GameView(Context& ctx);
 
         void onUpdate(double time_since_start, float dt);
+        void onHideView();
 
         void consumeNewChunks();
         void consumeTaskQueue();

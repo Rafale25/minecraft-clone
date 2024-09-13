@@ -39,6 +39,7 @@ public:
     ThreadPool(size_t num_threads);
     ~ThreadPool();
 
+    void stop();
     void enqueue(std::function<void()> task);
 
     std::vector<std::thread> _workers;

@@ -43,6 +43,12 @@ GameView::GameView(Context& ctx): View(ctx)
     Client::instance().Start();
 }
 
+void GameView::onHideView()
+{
+    Client::instance().Stop();
+    thread_pool.stop();
+}
+
 void GameView::onUpdate(double time_since_start, float dt)
 {
 

@@ -25,7 +25,7 @@ class Client
 
 private:
     Client() = default;
-    ~Client();
+    ~Client() = default;
 
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;
@@ -61,7 +61,10 @@ private:
 
 public:
     void init(std::vector<std::string>& tchat, const char* ip);
+
     void Start();
+    void Stop();
+
     void clientThreadFunc();
 
     void sendBreakBlockPacket(const glm::ivec3& world_pos);
@@ -87,10 +90,10 @@ public:
     std::mutex new_chunks_mutex;
 
     int client_id = -1;
-    int client_socket;
-
-    std::thread client_thread;
 
 private:
+    bool _stop_thread;
+    int client_socket;
+    std::thread client_thread;
     std::vector<std::string>* _tchat;
 };

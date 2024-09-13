@@ -258,14 +258,21 @@ void Client::init(std::vector<std::string>& tchat, const char* ip)
     sendClientMetadataPacket(16, "Rafale25");
 }
 
-Client::~Client() {
-    if (client_thread.joinable())
-        client_thread.detach(); /* Detach thread to avoid fatal error */
-}
+// Client::~Client() {
+//     if (client_thread.joinable())
+//         client_thread.detach(); /* Detach thread to avoid fatal error */
+// }
 
 void Client::Start()
 {
+    _stop_thread = false;
     client_thread = std::thread(&Client::clientThreadFunc, this);
+}
+
+void Client::Stop()
+{
+    _stop_thread = true;
+    client_thread.join();
 }
 
 void Client::clientThreadFunc()
@@ -276,7 +283,7 @@ void Client::clientThreadFunc()
 
     uint8_t buffer[5000] = {0};
 
-    while (true)
+    while (!_stop_thread)
     {
         int rv = poll(&fds, 1, 0); // poll (check if server sent anything)
         if (!(rv > 0 && (fds.revents & POLLIN))) continue;

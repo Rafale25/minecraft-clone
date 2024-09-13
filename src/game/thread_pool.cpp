@@ -40,6 +40,11 @@ ThreadPool::ThreadPool(size_t num_threads = std::thread::hardware_concurrency())
 };
 
 ThreadPool::~ThreadPool() {
+    stop();
+};
+
+void ThreadPool::stop()
+{
     {
         // Lock the queue to update the stop flag safely
         std::unique_lock<std::mutex> lock(_task_queue_mutex);
@@ -51,9 +56,10 @@ ThreadPool::~ThreadPool() {
 
     // Joining all worker threads to ensure they have completed their tasks
     for (auto& thread : _workers) {
-        thread.join();
+        if (thread.joinable())
+            thread.join();
     }
-};
+}
 
 void ThreadPool::enqueue(std::function<void()> task)
 {
