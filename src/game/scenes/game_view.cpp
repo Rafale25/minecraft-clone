@@ -153,7 +153,7 @@ void GameView::gui(float dt)
     ImGui::Text("new chunks: %ld", Client::instance().new_chunks.size());
     ImGui::Text("thread pools tasks %ld", thread_pool._task_queue.size());
 
-    ImGui::Text("draw calls: %d", _chunks_drawn);
+    ImGui::Text("draw calls: %d", world_renderer.chunks_drawn);
 
     ImGui::Text("%.4f secs", dt);
     ImGui::Text("%.2f fps", 1.0f / dt);

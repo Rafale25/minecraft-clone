@@ -28,7 +28,7 @@ public:
     void renderSkybox(const Camera &camera);
     void renderShadowmap(const Camera &camera);
 
-    unsigned int _chunks_drawn;
+    int chunks_drawn;
     bool _wireframe;
 
 private:

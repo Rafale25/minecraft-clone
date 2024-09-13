@@ -41,10 +41,8 @@ class GameView: public View {
 
         bool _cursor_enabled = false;
         bool _show_debug_gui = false;
-        bool _wireframe = false;
+        bool _wireframe = false; // TODO: duplicate, REMOVE
         bool _vsync = true;
-
-        int _chunks_drawn;
 
         FPSCamera camera = {
             glm::vec3(10.0f, 25.0, 12.0f), 0.0f, 0.0f,

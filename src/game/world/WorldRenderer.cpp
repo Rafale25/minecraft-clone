@@ -62,7 +62,7 @@ void WorldRenderer::renderTerrain(const Program& program, const Camera &camera, 
 
     Frustum camera_frustum = createFrustumFromCamera(camera, camera.aspect_ratio, glm::radians(camera.fov), camera.near_plane, camera.far_plane);
 
-    _chunks_drawn = 0;
+    chunks_drawn = 0;
 
     const std::shared_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
 
@@ -79,7 +79,7 @@ void WorldRenderer::renderTerrain(const Program& program, const Camera &camera, 
 
         glBindVertexArray(chunk->mesh.VAO);
         glDrawElements(GL_TRIANGLES, chunk->mesh.indices_count, GL_UNSIGNED_INT, 0);
-        ++_chunks_drawn;
+        ++chunks_drawn;
     }
 }
 
