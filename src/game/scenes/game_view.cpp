@@ -276,6 +276,7 @@ void GameView::gui(float dt)
         for (auto& entity : World::instance().entities) {
             ImGui::PushID(entity.id);
             ImGui::Text("id:%d: x:%.2f y:%.2f z:%.2f", entity.id, entity.transform.position.x, entity.transform.position.y, entity.transform.position.z);
+            ImGui::Text("name: %s", entity.name.c_str());
             ImGui::SameLine();
             if (ImGui::Button("teleport")) {
                 setPlayerPosition(entity.transform.position);

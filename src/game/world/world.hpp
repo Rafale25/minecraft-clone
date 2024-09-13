@@ -42,6 +42,7 @@ public:
     void addEntity(Entity e);
     void removeEntity(int id);
     void setEntityTransform(int id, const glm::vec3& pos, float yaw, float pitch);
+    void setEntityName(int id, std::string name);
     Entity* getEntity(int id);
     void updateEntities();
 

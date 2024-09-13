@@ -65,7 +65,7 @@ Packet::Server::ChunkPacket* readFullMonoChunkPacket(ByteBuffer buffer)
 
 Packet::Server::AddEntity readAddEntityPacket(ByteBuffer buffer)
 {
-    Packet::Server::AddEntity packet;
+    Packet::Server::AddEntity packet = {};
 
     packet.id = buffer.getInt();
     packet.position.x = buffer.getFloat();
@@ -80,7 +80,7 @@ Packet::Server::AddEntity readAddEntityPacket(ByteBuffer buffer)
 
 Packet::Server::UpdateEntity readUpdateEntityPacket(ByteBuffer buffer)
 {
-    Packet::Server::UpdateEntity packet;
+    Packet::Server::UpdateEntity packet = {};
 
     packet.entity_id = buffer.getInt();
     packet.position.x = buffer.getFloat();
@@ -88,6 +88,16 @@ Packet::Server::UpdateEntity readUpdateEntityPacket(ByteBuffer buffer)
     packet.position.z = buffer.getFloat();
     packet.yaw = buffer.getFloat();
     packet.pitch = buffer.getFloat();
+
+    return packet;
+}
+
+Packet::Server::UpdateEntityMetadata readUpdateEntityMetadata(ByteBuffer buffer)
+{
+    Packet::Server::UpdateEntityMetadata packet = {};
+
+    packet.entity_id = buffer.getInt();
+    buffer.getN((uint8_t*)packet.name, 64);
 
     return packet;
 }
@@ -102,13 +112,14 @@ void Client::decodePacketAddEntity(ByteBuffer buffer)
     Client& client = Client::instance();
 
     auto [id, pos, yaw, pitch, name] = readAddEntityPacket(buffer);
+
     const std::lock_guard<std::mutex> lock(client.task_queue_mutex);
-    client.task_queue.push_front([&]() {
+    client.task_queue.push_front([=, name=std::string(name)]() { // wtf is this syntax
         Entity e{id};
         e.transform.position = pos;
         // e.transform.rotation.y = yaw;
         // e.transform.rotation.x = pitch;
-        e.name = std::string(name);
+        e.name = name;
         World::instance().addEntity(e);
     } );
 }
@@ -119,7 +130,7 @@ void Client::decodePacketRemoveEntity(ByteBuffer buffer)
 
     int entity_id = buffer.getInt();
     const std::lock_guard<std::mutex> lock(client.task_queue_mutex);
-    client.task_queue.push_front([&]() {
+    client.task_queue.push_front([=]() {
         World::instance().removeEntity(entity_id);
     });
 }
@@ -128,10 +139,11 @@ void Client::decodePacketUpdateEntity(ByteBuffer buffer)
 {
     Client& client = Client::instance();
 
-    auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
+    auto [entity_id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
+
     const std::lock_guard<std::mutex> lock(client.task_queue_mutex);
-    client.task_queue.push_front([&]() {
-        World::instance().setEntityTransform(id, pos, yaw, pitch);
+    client.task_queue.push_front([=]() {
+        World::instance().setEntityTransform(entity_id, pos, yaw, pitch);
     } );
 }
 
@@ -164,11 +176,14 @@ void Client::decodePacketMonotypeChunk(ByteBuffer buffer)
 
 void Client::decodePacketEntityMetadata(ByteBuffer buffer)
 {
-    // auto [id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
-    // const std::lock_guard<std::mutex> lock(task_queue_mutex);
-    // task_queue.push_front([&]() {
-    //     World::instance().setEntityTransform(id, pos, yaw, pitch);
-    // } );
+    Client& client = Client::instance();
+
+    auto [id, name] = readUpdateEntityMetadata(buffer);
+
+    const std::lock_guard<std::mutex> lock(client.task_queue_mutex);
+    client.task_queue.push_front([=, name=std::string(name)]() { // wtf is this syntax
+        World::instance().setEntityName(id, name);
+    } );
 }
 
 void Client::decodePacketChatMessage(ByteBuffer buffer)

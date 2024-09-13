@@ -53,6 +53,13 @@ void World::setEntityTransform(int id, const glm::vec3& pos, float yaw, float pi
     e->transform.rotation = glm::quat(glm::vec3(-pitch, -yaw, 0.0f));
 }
 
+void World::setEntityName(int id, std::string name)
+{
+    Entity* e = getEntity(id);
+    if (e == nullptr) return;
+    e->name = name;
+}
+
 BlockType World::getBlock(const glm::ivec3& pos) const
 {
     // TODO: try using static variables since this function is hot
@@ -99,7 +106,7 @@ BlockRaycastHit World::BlockRaycast(const glm::vec3& origin, const glm::vec3& di
     return {BlockType::Air, mapPos, normal};
 }
 
-#include "clock.hpp"
+// #include "clock.hpp"
 
 Chunk* World::setChunk(Packet::Server::ChunkPacket* chunk_data)
 {
