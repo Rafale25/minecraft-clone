@@ -41,6 +41,8 @@ private:
     static void decodePacketEntityMetadata(ByteBuffer buffer);
     static void decodePacketChatMessage(ByteBuffer buffer);
 
+    void decode(PacketId id, ByteBuffer buffer);
+
     struct PacketInfo {
         std::function<void(ByteBuffer)> decode;
         size_t size;
@@ -61,8 +63,6 @@ public:
     void init(std::vector<std::string>& tchat, const char* ip);
     void Start();
     void clientThreadFunc();
-
-    void decode(PacketId id, ByteBuffer buffer);
 
     void sendBreakBlockPacket(const glm::ivec3& world_pos);
     void sendBlockBulkEditPacket(const std::vector<glm::ivec3>& world_pos, BlockType blocktype);
