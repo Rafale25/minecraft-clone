@@ -258,11 +258,6 @@ void Client::init(std::vector<std::string>& tchat, const char* ip)
     sendClientMetadataPacket(16, "Rafale25");
 }
 
-// Client::~Client() {
-//     if (client_thread.joinable())
-//         client_thread.detach(); /* Detach thread to avoid fatal error */
-// }
-
 void Client::Start()
 {
     _stop_thread = false;

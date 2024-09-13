@@ -35,7 +35,7 @@ public:
     Shadowmap shadowmap{_ctx, 4096, 4096};
     glm::vec3 sunDir = glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f));
     int chunks_drawn;
-    bool _wireframe;
+    bool _wireframe = false;
 
 public:
     GLuint ssbo_texture_handles;
