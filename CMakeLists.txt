@@ -63,8 +63,8 @@ target_include_directories(${PROJECT_NAME}
         ./src/game/
         ./src/game/world/
         ./src/game/scenes/
-        ./src/game/Client/
-        ./src/game/Client/Packets
+        ./src/game/network/Client/
+        ./src/game/network/Client/Packets
         ./src/utils/
         ${IMGUI_DIR}
         ${IMGUI_DIR}/backends
