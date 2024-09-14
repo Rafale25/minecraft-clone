@@ -79,17 +79,20 @@ void GameView::onUpdate(double time_since_start, float dt)
     }
 }
 
+static void executeTaskQueue(TaskQueue &task_queue)
+{
+    // TODO: Don't understand why i can't pop an element from the task queue.
+    // Using the auto for loop for the moment because it works.
+    const std::lock_guard<std::mutex> lock(task_queue._task_queue_mutex);
+    for (auto &task: task_queue._task_queue) {
+        task();
+    }
+    task_queue._task_queue.clear();
+}
+
 void GameView::consumeNewChunks()
 {
-    {
-        // TODO: Don't understand why i can't pop an element from the task queue.
-        // Using the auto for loop for the moment because it works.
-        const std::lock_guard<std::mutex> lock(main_task_queue._task_queue_mutex);
-        for (auto &task: main_task_queue._task_queue) {
-            task();
-        }
-        main_task_queue._task_queue.clear();
-    }
+    executeTaskQueue(main_task_queue);
 
     const std::lock_guard<std::mutex> lock(Client::instance().new_chunks_mutex);
 

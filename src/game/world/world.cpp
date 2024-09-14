@@ -5,8 +5,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "VAO.hpp"
+
 World::World()
 {
+    chunk_vao = createVAO(0, "i");
 }
 
 Entity* World::getEntity(int id)

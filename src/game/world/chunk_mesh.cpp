@@ -7,13 +7,6 @@
 #include "chunk_extra.hpp"
 #include "chunk.hpp"
 
-// ChunkMesh::~ChunkMesh()
-// {
-    // Note: Dangerous to to in destructor in case we pass ChunkMesh by value and create copies
-    // if (VAO != 0)
-    //     deleteAll();
-// }
-
 
 GLuint packVertex(int x, int y, int z, int u, int v, int o, int t) {
     // 4 bytes, 32 bits
@@ -192,23 +185,14 @@ void ChunkMesh::computeVertexBuffer(const Chunk* chunk)
 
 void ChunkMesh::updateVAO()
 {
-    if (VAO == 0) {
-        glCreateVertexArrays(1, &VAO);
+    if (VBO == 0) {
         glCreateBuffers(1, &VBO);
         glCreateBuffers(1, &EBO);
-
-        glEnableVertexArrayAttrib(VAO, 0);
-        glVertexArrayAttribBinding(VAO, 0, 0);
-        glVertexArrayAttribIFormat(VAO, 0, 1, GL_UNSIGNED_INT, 0);
-
-        glVertexArrayVertexBuffer(VAO, 0, VBO, 0, 1 * sizeof(GLuint));
-        glVertexArrayElementBuffer(VAO, EBO);
     }
 
     glNamedBufferData(VBO, vertices.size() * sizeof(GLuint), &vertices[0], GL_STATIC_DRAW);
     glNamedBufferData(EBO, ebo.size() * sizeof(GLuint), &ebo[0], GL_STATIC_DRAW);
 
-    // Can cause crash if still needed
     vertices.clear();
     ebo.clear();
     vertices.shrink_to_fit();
@@ -217,7 +201,6 @@ void ChunkMesh::updateVAO()
 
 void ChunkMesh::deleteAll()
 {
-    glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
 }

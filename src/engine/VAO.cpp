@@ -157,7 +157,9 @@ GLuint createVAO(GLuint buffer, const char * const format, GLuint EBO) {
         relative_offset += node.size;
     }
 
-    glVertexArrayVertexBuffer(VAO, 0, buffer, 0, info.size);
+    if (buffer != 0) { // TODO: make that buffer have to be binded without the createVAO function
+        glVertexArrayVertexBuffer(VAO, 0, buffer, 0, info.size);
+    }
 
     if (EBO != GL_INVALID_INDEX) {
         glVertexArrayElementBuffer(VAO, EBO);

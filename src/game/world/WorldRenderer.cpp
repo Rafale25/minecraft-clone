@@ -64,11 +64,14 @@ void WorldRenderer::renderTerrain(const Program& program, const Camera &camera, 
 
     chunks_drawn = 0;
 
+    GLuint vao = World::instance().chunk_vao;
+    glBindVertexArray(vao);
+
     const std::shared_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
 
     for (const auto& [key, chunk] : World::instance().chunks)
     {
-        if (chunk->mesh.indices_count == 0 || chunk->mesh.VAO == 0) continue;
+        if (chunk->mesh.indices_count == 0 || chunk->mesh.VBO == 0) continue;
 
         if (use_frustum_culling) {
             AABB chunk_aabb = {(chunk->pos * 16), (chunk->pos * 16) + 16};
@@ -77,7 +80,8 @@ void WorldRenderer::renderTerrain(const Program& program, const Camera &camera, 
 
         program.setVec3("u_chunkPos", chunk->pos * 16);
 
-        glBindVertexArray(chunk->mesh.VAO);
+        glVertexArrayVertexBuffer(vao, 0, chunk->mesh.VBO, 0, 1 * sizeof(GLuint));
+        glVertexArrayElementBuffer(vao, chunk->mesh.EBO);
         glDrawElements(GL_TRIANGLES, chunk->mesh.indices_count, GL_UNSIGNED_INT, 0);
         ++chunks_drawn;
     }

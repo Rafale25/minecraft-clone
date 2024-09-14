@@ -66,4 +66,5 @@ public:
     std::vector<Entity> entities;
     // std::unordered_map<int, Entity> entities; // TODO: switch to this data structure
 
+    GLuint chunk_vao;
 };
