@@ -12,7 +12,7 @@
 #include "ThreadPool.hpp"
 #include "mem_info.hpp"
 
-void update3x3Chunks(const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
+static void update3x3Chunks(const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
 {
     const glm::ivec3 offsets[] = { {0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
 
@@ -51,7 +51,6 @@ void GameView::onHideView()
 
 void GameView::onUpdate(double time_since_start, float dt)
 {
-
     glm::vec3 delta = {
         ctx.keystate[GLFW_KEY_A] - ctx.keystate[GLFW_KEY_D],
         ctx.keystate[GLFW_KEY_LEFT_CONTROL] - ctx.keystate[GLFW_KEY_SPACE],
