@@ -148,10 +148,9 @@ void Context::showView(View& view)
     framebuffer_size_callback(window, width, height);
 }
 
-void Context::setVsync(int value)
+void Context::setVsync(bool enable)
 {
-    // TODO: add check for invalid value
-    glfwSwapInterval(value);
+    glfwSwapInterval(enable ? 1 : 0);
 }
 
 void Context::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
