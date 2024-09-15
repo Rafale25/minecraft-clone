@@ -58,6 +58,8 @@ public:
         return instance;
     }
 
+    int getChunkCount() const { return chunks.size(); }
+
 public:
     std::unordered_map<glm::ivec3, Chunk*> chunks;
     // std::unordered_map<glm::ivec3, Chunk*, KeyHasher> chunks;

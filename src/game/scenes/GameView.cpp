@@ -159,10 +159,10 @@ void GameView::gui(float dt)
 
     ImGui::Text("RAM: %.3f / %.3f Go", ((double)getCurrentRSS()) / (1024*1024*1024), ((double)getPeakRSS()) / (1024*1024*1024));
 
-    ImGui::Text("new chunks: %ld", Client::instance().new_chunks.size());
-    ImGui::Text("thread pools tasks %ld", thread_pool._task_queue.size());
+    ImGui::Text("New chunks: %ld", Client::instance().new_chunks.size());
+    ImGui::Text("Thread pool tasks %ld", thread_pool._task_queue.size());
 
-    ImGui::Text("draw calls: %d", world_renderer.chunks_drawn);
+    ImGui::Text("Chunks: %d (%d rendered)", World::instance().getChunkCount(), world_renderer.chunks_drawn);
 
     ImGui::Text("%.4f secs", dt);
     ImGui::Text("%.2f fps", 1.0f / dt);
@@ -195,9 +195,9 @@ void GameView::gui(float dt)
         ctx.setVsync(_vsync);
     }
 
-    // ImGui::DragFloat3("Sun direction: ", &sunDir.x, 0.01f, -M_PI*2, M_PI*2, "%.2f");
-    // ImGui::SliderFloat("Shadow Bias: ", &shadowmap._shadow_bias, 0.000001f, 0.1f, "%.6f");
-    // ImGui::SliderFloat("Shadow Distance: ", &shadowmap._max_shadow_distance, 0.3f, 500.0f, "%.2f");
+    ImGui::DragFloat3("Sun direction: ", &world_renderer.sunDir.x, 0.01f, -M_PI*2, M_PI*2, "%.2f");
+    ImGui::SliderFloat("Shadow Bias: ", &world_renderer.shadowmap._shadow_bias, 0.000001f, 0.001f, "%.6f");
+    ImGui::SliderFloat("Shadow Distance: ", &world_renderer.shadowmap._max_shadow_distance, 0.3f, 500.0f, "%.2f");
 
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;
     // if (disable_mouse_wheel)
