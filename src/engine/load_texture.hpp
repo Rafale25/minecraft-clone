@@ -5,26 +5,27 @@
 
 #include "stb_image.h"
 
-uint32_t loadTexture(const char *path, int format=GL_RGB, int min_filter=GL_LINEAR, int max_filter=GL_LINEAR, int wrap=GL_REPEAT)
+GLuint loadTexture(const char *path, int format=GL_RGB, int min_filter=GL_LINEAR, int max_filter=GL_LINEAR, int wrap=GL_REPEAT)
 {
+    printf("%s\n", path);
+
     GLuint texture;
-    // ---------
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-     // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);	// set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, max_filter);
-    // load image, create texture and generate mipmaps
+
+    glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+    glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, min_filter);
+    glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, max_filter);
+    glTextureParameteri(texture, GL_TEXTURE_WRAP_S, wrap);
+    glTextureParameteri(texture, GL_TEXTURE_WRAP_T, wrap);
+
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
     unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
     if (data)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
+        glTextureStorage2D(texture, 1, GL_RGBA8, width, height);
+        glTextureSubImage2D(texture, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE, data);
+
+        glGenerateTextureMipmap(texture);
     }
     else
     {
