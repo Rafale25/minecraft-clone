@@ -12,11 +12,8 @@
 
 #include "ByteBuffer.hpp"
 
-class TextureManager;
 class World;
-// class ByteBuffer;
 struct Chunk;
-
 
 // TODO: divide client into Connection and PacketManager
 // Connection //

@@ -1,6 +1,5 @@
 #include "World.hpp"
 #include "Chunk.hpp"
-#include "TextureManager.hpp"
 
 #include <stdio.h>
 #include <string.h>

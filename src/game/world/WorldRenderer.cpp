@@ -4,7 +4,7 @@
 #include "World.hpp"
 #include "Chunk.hpp"
 #include "Camera.hpp"
-#include "TextureManager.hpp"
+#include "BlockTextureManager.hpp"
 
 #include <shared_mutex>
 
@@ -13,8 +13,8 @@ WorldRenderer::WorldRenderer(Context &context): _ctx(context)
     cube_shader.use();
     cube_shader.setInt("shadowMap", 0);
 
-    TextureManager::loadAllTextures();
-    ssbo_texture_handles = createBufferStorage(&TextureManager::Get().textures_handles[0], TextureManager::Get().textures_handles.size() * sizeof(GLuint64));
+    BlockTextureManager::loadAllTextures();
+    ssbo_texture_handles = createBufferStorage(&BlockTextureManager::Get().textures_handles[0], BlockTextureManager::Get().textures_handles.size() * sizeof(GLuint64));
 }
 
 void WorldRenderer::setDefaultRenderState()

@@ -1,13 +1,12 @@
-#include "TextureManager.hpp"
-#include "load_texture.hpp"
+#include "BlockTextureManager.hpp"
 
-void TextureManager::_loadAllTextures()
+#include "TextureManager.hpp"
+
+void BlockTextureManager::_loadAllTextures()
 {
-    std::string textures_path = "assets/textures/";
+    const std::string textures_path = "assets/textures/";
 
     for (const auto& [key, value] : block_textures_path) {
-        // TODO: make texture manager to avoid duplicated when calling loadTextures
-
         int width, height, channels;
         stbi_info((textures_path + textures_name[value[0]]).c_str(), &width, &height, &channels);
 
@@ -30,9 +29,9 @@ void TextureManager::_loadAllTextures()
 
         // format = GL_RGB;
 
-        GLuint texture_top = loadTexture((textures_path + textures_name[value[0]]).c_str(), format, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
-        GLuint texture_side = loadTexture((textures_path + textures_name[value[1]]).c_str(), format, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
-        GLuint texture_bot = loadTexture((textures_path + textures_name[value[2]]).c_str(), format, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
+        GLuint texture_top = TextureManager::instance().loadTexture((textures_path + textures_name[value[0]]).c_str(), format, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
+        GLuint texture_side = TextureManager::instance().loadTexture((textures_path + textures_name[value[1]]).c_str(), format, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
+        GLuint texture_bot = TextureManager::instance().loadTexture((textures_path + textures_name[value[2]]).c_str(), format, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
 
         GLuint64 texture_top_handle = glGetTextureHandleARB(texture_top);
         GLuint64 texture_side_handle = glGetTextureHandleARB(texture_side);

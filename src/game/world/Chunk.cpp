@@ -1,9 +1,4 @@
-#include <iostream>
-
 #include "Chunk.hpp"
-#include "TextureManager.hpp"
-#include "World.hpp"
-#include "VAO.hpp"
 
 int Chunk::XYZtoIndex(int x, int y, int z) {
     if (x < 0 || x > 15 || y < 0 || y > 15 || z < 0 || z > 15) return -1;

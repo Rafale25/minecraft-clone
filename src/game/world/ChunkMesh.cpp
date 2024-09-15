@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "World.hpp"
-#include "TextureManager.hpp"
+#include "BlockTextureManager.hpp"
 #include "ChunkExtra.hpp"
 #include "Chunk.hpp"
 
@@ -56,7 +56,7 @@ void ChunkMesh::computeVertexBuffer(const Chunk* chunk)
         // const BlockMetadata block_metadata = blocksMetadata[(int)block];
         const glm::ivec3 local_pos = glm::ivec3(x, y, z);
         // const glm::ivec3 world_pos = (pos * 16) + local_pos;
-        auto [texture_top_handle, texture_side_handle, texture_bot_handle] = TextureManager::Get().block_textures_ids[block];
+        auto [texture_top_handle, texture_side_handle, texture_bot_handle] = BlockTextureManager::Get().block_textures_ids[block];
 
         BlockType nb; // neighbour block
         BlockMetadata nbmtd; // neighbour block metadata

@@ -5,10 +5,8 @@
 
 #include "stb_image.h"
 
-GLuint loadTexture(const char *path, int format=GL_RGB, int min_filter=GL_LINEAR, int max_filter=GL_LINEAR, int wrap=GL_REPEAT)
+GLuint createTextureFromPath(const char *path, int format=GL_RGB, int min_filter=GL_LINEAR, int max_filter=GL_LINEAR, int wrap=GL_REPEAT)
 {
-    printf("%s\n", path);
-
     GLuint texture;
 
     glCreateTextures(GL_TEXTURE_2D, 1, &texture);
@@ -17,14 +15,16 @@ GLuint loadTexture(const char *path, int format=GL_RGB, int min_filter=GL_LINEAR
     glTextureParameteri(texture, GL_TEXTURE_WRAP_S, wrap);
     glTextureParameteri(texture, GL_TEXTURE_WRAP_T, wrap);
 
+    glBindTexture(GL_TEXTURE_2D, texture);
+
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
     unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
     if (data)
     {
-        glTextureStorage2D(texture, 1, GL_RGBA8, width, height);
+        const int MAX_LEVELS = 4;
+        glTextureStorage2D(texture, MAX_LEVELS, GL_RGBA8, width, height);
         glTextureSubImage2D(texture, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE, data);
-
         glGenerateTextureMipmap(texture);
     }
     else

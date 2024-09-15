@@ -8,17 +8,17 @@
 
 #include "enums.hpp"
 
-class TextureManager
+class BlockTextureManager
 {
 public:
-    TextureManager(const TextureManager&) = delete;
-    TextureManager& operator=(const TextureManager&) = delete;
-    TextureManager(TextureManager&&) = delete;
-    TextureManager& operator=(TextureManager&&) = delete;
+    BlockTextureManager(const BlockTextureManager&) = delete;
+    BlockTextureManager& operator=(const BlockTextureManager&) = delete;
+    BlockTextureManager(BlockTextureManager&&) = delete;
+    BlockTextureManager& operator=(BlockTextureManager&&) = delete;
 
-    static TextureManager& Get()
+    static BlockTextureManager& Get()
     {
-        static TextureManager _instance;
+        static BlockTextureManager _instance;
         return _instance;
     }
 
@@ -27,7 +27,7 @@ public:
 private:
     void _loadAllTextures();
 
-    TextureManager() {}
+    BlockTextureManager() = default;
 
     std::unordered_map<TextureName, const char* const> textures_name = {
         { TextureName::GrassTop,    "grass_block_top.png"},

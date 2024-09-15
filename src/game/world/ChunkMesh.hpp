@@ -3,8 +3,6 @@
 #include <vector>
 #include <glad/gl.h>
 
-class World;
-class TextureManager;
 struct Chunk;
 
 struct ChunkMesh {

@@ -12,7 +12,6 @@
 #include "ServerPacket.hpp"
 
 struct Chunk;
-class TextureManager;
 
 #include "BlockRaycastHit.hpp"
 
