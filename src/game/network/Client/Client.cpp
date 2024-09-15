@@ -12,10 +12,10 @@
 
 #include <string>
 
-#include "client.hpp"
-#include "chunk.hpp"
-#include "world.hpp"
-#include "entity.hpp"
+#include "Client.hpp"
+#include "Chunk.hpp"
+#include "World.hpp"
+#include "Entity.hpp"
 #include "utils/print_buffer.hpp"
 
 #include "utils/recv_full.hpp"

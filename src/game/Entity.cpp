@@ -1,4 +1,4 @@
-#include "entity.hpp"
+#include "Entity.hpp"
 #include <iostream>
 
 #include "VAO.hpp"

@@ -1,8 +1,8 @@
 #include <iostream>
 
-#include "chunk.hpp"
-#include "texture_manager.hpp"
-#include "world.hpp"
+#include "Chunk.hpp"
+#include "TextureManager.hpp"
+#include "World.hpp"
 #include "VAO.hpp"
 
 int Chunk::XYZtoIndex(int x, int y, int z) {

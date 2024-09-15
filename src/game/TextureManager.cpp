@@ -1,4 +1,4 @@
-#include "texture_manager.hpp"
+#include "TextureManager.hpp"
 #include "load_texture.hpp"
 
 void TextureManager::_loadAllTextures()

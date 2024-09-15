@@ -1,11 +1,11 @@
-#include "chunk_mesh.hpp"
+#include "ChunkMesh.hpp"
 
 #include <stdio.h>
 
-#include "world.hpp"
-#include "texture_manager.hpp"
-#include "chunk_extra.hpp"
-#include "chunk.hpp"
+#include "World.hpp"
+#include "TextureManager.hpp"
+#include "ChunkExtra.hpp"
+#include "Chunk.hpp"
 
 
 GLuint packVertex(int x, int y, int z, int u, int v, int o, int t) {

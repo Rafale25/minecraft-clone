@@ -1,7 +1,7 @@
 #pragma once
 
 #include "glad/gl.h"
-#include "transform.h"
+#include "Transform.h"
 #include <string>
 
 class Entity

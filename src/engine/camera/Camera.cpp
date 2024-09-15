@@ -1,4 +1,4 @@
-#include "camera.hpp"
+#include "Camera.hpp"
 
 #include <glm/gtx/rotate_vector.hpp>
 

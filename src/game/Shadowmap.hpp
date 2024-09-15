@@ -3,8 +3,8 @@
 #include <glad/gl.h>
 #include <glm/glm.hpp>
 
-#include "framebuffer.hpp"
-#include "texture.hpp"
+#include "Framebuffer.hpp"
+#include "Texture.hpp"
 
 class Camera;
 class Context;

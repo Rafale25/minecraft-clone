@@ -1,15 +1,15 @@
-#include "game_view.hpp"
+#include "GameView.hpp"
 
 #include "imgui.h"
 
-#include "chunk.hpp"
-#include "client.hpp"
-#include "entity.hpp"
-#include "world.hpp"
+#include "Chunk.hpp"
+#include "Client.hpp"
+#include "Entity.hpp"
+#include "World.hpp"
 
 #include "command_line_args.h"
 #include "string_helpers.hpp"
-#include "thread_pool.hpp"
+#include "ThreadPool.hpp"
 #include "mem_info.hpp"
 
 void update3x3Chunks(const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)

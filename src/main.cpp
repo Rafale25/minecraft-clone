@@ -1,6 +1,6 @@
 #include "command_line_args.h"
-#include "context.hpp"
-#include "game_view.hpp"
+#include "Context.hpp"
+#include "GameView.hpp"
 
 const int SCR_WIDTH = 1280;
 const int SCR_HEIGHT = 720;

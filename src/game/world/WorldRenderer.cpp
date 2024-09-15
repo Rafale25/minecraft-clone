@@ -1,10 +1,10 @@
 #include "WorldRenderer.hpp"
 
 #include "Frustum.hpp"
-#include "world.hpp"
-#include "chunk.hpp"
-#include "camera.hpp"
-#include "texture_manager.hpp"
+#include "World.hpp"
+#include "Chunk.hpp"
+#include "Camera.hpp"
+#include "TextureManager.hpp"
 
 #include <shared_mutex>
 

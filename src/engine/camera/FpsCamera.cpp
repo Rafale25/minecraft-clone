@@ -1,4 +1,4 @@
-#include "fps_camera.hpp"
+#include "FpsCamera.hpp"
 
 // #include <cmath>
 #include <glm/gtc/matrix_transform.hpp>

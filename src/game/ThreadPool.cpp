@@ -1,7 +1,6 @@
-#include "thread_pool.hpp"
+#include "ThreadPool.hpp"
 
 #include <iostream>
-
 
 ThreadPool::ThreadPool(size_t num_threads = std::thread::hardware_concurrency()) {
     std::cout << "num_threads: " << num_threads << std::endl;

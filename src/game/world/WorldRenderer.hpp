@@ -2,11 +2,11 @@
 
 #include "glad/gl.h"
 
-#include "context.hpp"
-#include "program.h"
-#include "shadow_map.hpp"
+#include "Context.hpp"
+#include "Program.h"
+#include "Shadowmap.hpp"
 
-#include "geometry.hpp"
+#include "Geometry.hpp"
 
 class Camera;
 

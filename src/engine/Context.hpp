@@ -3,7 +3,7 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
-#include "view.hpp"
+#include "View.hpp"
 
 // TODO: separate view from context (make a ViewManager)
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "camera.hpp"
+#include "Camera.hpp"
 
 class OrbitCamera: public Camera {
 public:

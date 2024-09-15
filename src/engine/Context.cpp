@@ -1,6 +1,6 @@
 #include <iostream>
-#include "context.hpp"
-#include "view.hpp"
+#include "Context.hpp"
+#include "View.hpp"
 
 // #include "imgui.h"
 #include "imgui_impl_glfw.h"

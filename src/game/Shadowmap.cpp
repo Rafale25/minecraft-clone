@@ -1,12 +1,12 @@
-#include "shadow_map.hpp"
+#include "Shadowmap.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "context.hpp"
-#include "program.h"
-#include "camera.hpp"
-#include "texture.hpp"
-#include "framebuffer.hpp"
+#include "Context.hpp"
+#include "Program.h"
+#include "Camera.hpp"
+#include "Texture.hpp"
+#include "Framebuffer.hpp"
 
 static const float borderColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 

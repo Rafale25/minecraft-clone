@@ -1,4 +1,4 @@
-#include "texture.hpp"
+#include "Texture.hpp"
 
 Texture::Texture(GLsizei width, GLsizei height, GLenum format, GLenum min_filter, GLenum mag_filter, GLenum wrap) {
     _width = width;

@@ -1,4 +1,4 @@
-#include "framebuffer.hpp"
+#include "Framebuffer.hpp"
 
 Framebuffer::Framebuffer(GLenum draw_buffer, GLenum read_buffer) {
     glCreateFramebuffers(1, &_framebuffer);

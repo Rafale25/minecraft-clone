@@ -1,8 +1,8 @@
 #include "Frustum.hpp"
 
 #include <glm/glm.hpp>
-#include "transform.h"
-#include "camera.hpp"
+#include "Transform.h"
+#include "Camera.hpp"
 
 float Plane::getSignedDistanceToPlane(const glm::vec3& point) const
 {

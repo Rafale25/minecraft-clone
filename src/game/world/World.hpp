@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #include "glm/gtx/hash.hpp"
 
-#include "entity.hpp"
+#include "Entity.hpp"
 #include "enums.hpp"
 #include "ServerPacket.hpp"
 
