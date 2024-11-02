@@ -35,8 +35,7 @@ public:
 // https://www.geeksforgeeks.org/thread-pool-in-cpp/
 class ThreadPool {
 public:
-    // ThreadPool(size_t num_threads = std::thread::hardware_concurrency());
-    ThreadPool(size_t num_threads);
+    ThreadPool(size_t num_threads = std::thread::hardware_concurrency());
     ~ThreadPool();
 
     void stop();
