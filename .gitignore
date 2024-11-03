@@ -37,3 +37,7 @@
 .vscode
 CMakeCache.txt
 *.ini
+
+.idea
+cmake-build-debug
+cmake-build-release

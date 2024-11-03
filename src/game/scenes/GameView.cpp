@@ -208,7 +208,7 @@ void GameView::gui(float dt)
     }
     ImGui::EndChild();
 
-    ImGui::InputText("", input_text_buffer, IM_ARRAYSIZE(input_text_buffer));
+    ImGui::InputText("##inputText", input_text_buffer, IM_ARRAYSIZE(input_text_buffer));
     ImGui::SameLine();
     if (ImGui::Button("Send")) {
         sendTextMessage();
