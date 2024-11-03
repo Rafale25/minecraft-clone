@@ -25,6 +25,7 @@ enum class BlockType : uint8_t {
 struct BlockMetadata
 {
     bool transparent;
+    // bool liquid;
     // ...
 };
 

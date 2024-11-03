@@ -209,7 +209,6 @@ void Client::decode(PacketId id, ByteBuffer buffer) {
     packets.at(id).decode(buffer);
 }
 
-
 void Client::init(std::vector<std::string>& tchat, const char* ip)
 {
     _tchat = &tchat;

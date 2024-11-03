@@ -53,16 +53,13 @@ void ChunkMesh::computeVertexBuffer(const Chunk* chunk)
 
         if (block == BlockType::Air) continue;
 
-        // const BlockMetadata block_metadata = blocksMetadata[(int)block];
         const glm::ivec3 local_pos = glm::ivec3(x, y, z);
-        // const glm::ivec3 world_pos = (pos * 16) + local_pos;
         auto [texture_top_handle, texture_side_handle, texture_bot_handle] = BlockTextureManager::Get().block_textures_ids[block];
 
         BlockType nb; // neighbour block
         BlockMetadata nbmtd; // neighbour block metadata
 
         // front
-        // nb = world.getBlock(world_pos + glm::ivec3(0, 0, -1));
         nb = chunkextra.getBlock(local_pos + glm::ivec3(0, 0, -1));
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
@@ -81,7 +78,6 @@ void ChunkMesh::computeVertexBuffer(const Chunk* chunk)
         }
 
         // back
-        // nb = world.getBlock(world_pos + glm::ivec3(0, 0, 1));
         nb = chunkextra.getBlock(local_pos + glm::ivec3(0, 0, 1));
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
@@ -100,7 +96,6 @@ void ChunkMesh::computeVertexBuffer(const Chunk* chunk)
         }
 
         // down
-        // nb = world.getBlock(world_pos + glm::ivec3(0, -1, 0));
         nb = chunkextra.getBlock(local_pos + glm::ivec3(0, -1, 0));
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
@@ -119,7 +114,6 @@ void ChunkMesh::computeVertexBuffer(const Chunk* chunk)
         }
 
         // top
-        // nb = world.getBlock(world_pos + glm::ivec3(0, 1, 0));
         nb = chunkextra.getBlock(local_pos + glm::ivec3(0, 1, 0));
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
@@ -138,7 +132,6 @@ void ChunkMesh::computeVertexBuffer(const Chunk* chunk)
         }
 
         // left
-        // nb = world.getBlock(world_pos + glm::ivec3(-1, 0, 0));
         nb = chunkextra.getBlock(local_pos + glm::ivec3(-1, 0, 0));
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
@@ -157,7 +150,6 @@ void ChunkMesh::computeVertexBuffer(const Chunk* chunk)
         }
 
         // right
-        // nb = world.getBlock(world_pos + glm::ivec3(1, 0, 0));
         nb = chunkextra.getBlock(local_pos + glm::ivec3(1, 0, 0));
         nbmtd = blocksMetadata[(int)nb];
         if (nbmtd.transparent) {
@@ -181,7 +173,6 @@ void ChunkMesh::computeVertexBuffer(const Chunk* chunk)
 
     indices_count = ebo.size();
 }
-
 
 void ChunkMesh::updateVAO()
 {
