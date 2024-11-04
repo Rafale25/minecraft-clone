@@ -41,3 +41,8 @@ CMakeCache.txt
 .idea
 cmake-build-debug
 cmake-build-release
+
+perf.data
+perf.data.old
+
+.clang-format
