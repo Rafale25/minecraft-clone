@@ -109,6 +109,15 @@ BlockRaycastHit World::BlockRaycast(const glm::vec3& origin, const glm::vec3& di
 }
 
 // #include "clock.hpp"
+uint hashBlocks(const uint8_t* values) {
+    uint h = 1;
+
+    for (int i = 0 ; i < 4096 ; ++i) {
+        h *= (1779033703 + 2*(uint)values[i]);
+    }
+
+    return h;
+}
 
 Chunk* World::setChunk(Packet::Server::ChunkPacket* chunk_data)
 {
@@ -128,7 +137,14 @@ Chunk* World::setChunk(Packet::Server::ChunkPacket* chunk_data)
                                                                     // Can also just optimize rendering as a temporary solution
         // chrono.log();
         chunks[chunk_data->pos] = chunk;
-    } else {
+    } else { // if found
+        uint8_t hash_existing_chunk = hashBlocks((uint8_t*)chunk_data->blocks);
+        uint8_t hash_new_chunk = hashBlocks((uint8_t*)it->second->blocks);
+
+        if (hash_existing_chunk == hash_new_chunk) {
+            return nullptr;
+        }
+
         chunk = it->second;
     }
 

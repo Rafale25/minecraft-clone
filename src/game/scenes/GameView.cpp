@@ -78,36 +78,32 @@ void GameView::onUpdate(double time_since_start, float dt)
     }
 }
 
-static void executeTaskQueue(TaskQueue &task_queue)
-{
-    // TODO: Don't understand why i can't pop an element from the task queue.
-    // Using the auto for loop for the moment because it works.
-    const std::lock_guard<std::mutex> lock(task_queue._task_queue_mutex);
-    for (auto &task: task_queue._task_queue) {
-        task();
-    }
-    task_queue._task_queue.clear();
-}
-
 void GameView::consumeNewChunks()
 {
-    executeTaskQueue(main_task_queue);
+    main_task_queue.execute();
 
     const std::lock_guard<std::mutex> lock(Client::instance().new_chunks_mutex);
 
+    // NOTE: the chunks are sent to be queued before having the chance to be sorted by distance (the solution is to sort the chunks on the server)
     // const glm::vec3 camPos = camera.getPosition();
-    // std::sort(client.new_chunks.begin(), client.new_chunks.end(),
-    //     [this, camPos](const Packet::Server::ChunkPacket* l, const Packet::Server::ChunkPacket* r)
+    // std::sort(Client::instance().new_chunks.begin(), Client::instance().new_chunks.end(),
+    //     [camPos](const Packet::Server::ChunkPacket* l, const Packet::Server::ChunkPacket* r)
     //     {
     //         return glm::distance2(camPos, glm::vec3(l->pos*16)) > glm::distance2(camPos, glm::vec3(r->pos*16));
     //     });
 
+    // TODO: instead of updating neigbours chunks directly, set the chunks all at once and add to an unordered_map the chunks to update the mesh, then dispatch all thoses
+
     while (Client::instance().new_chunks.size() > 0) {
+
         Packet::Server::ChunkPacket* chunk_data = Client::instance().new_chunks.back();
         Client::instance().new_chunks.pop_back();
 
         thread_pool.enqueue([this, chunk_data] {
             Chunk* chunk = World::instance().setChunk(chunk_data);
+            if (chunk == nullptr) {
+                return;
+            }
 
             delete chunk_data;
 

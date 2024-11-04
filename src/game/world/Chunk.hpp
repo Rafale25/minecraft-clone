@@ -21,4 +21,6 @@ struct Chunk
     BlockType blocks[4096]; // 16x16x16
 
     static int XYZtoIndex(int x, int y, int z);
+
+    uint hash();
 };

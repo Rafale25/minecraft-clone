@@ -8,3 +8,5 @@
 #          --verbose \
 #          --log-file=valgrind-out.txt \
 #          ./build/Minecraft_Clone "162.19.137.231"
+
+# sysctl kernel.perf_event_paranoid=3
