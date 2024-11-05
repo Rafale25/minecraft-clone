@@ -244,7 +244,20 @@ void Client::init(std::vector<std::string>& tchat, const char* ip)
         printf("Error connecting %d - %s\n", errno, strerror(errno));
         exit(0);
     } else if (res > 0) {
+
+        socklen_t lon = sizeof(int);
+        int valopt;
+
+        if (getsockopt(client_socket, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0) {
+            fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno));
+            exit(0);
+        }
+        if (valopt) { // Check the value returned...
+            fprintf(stderr, "Error in delayed connection() %d - %s\n", valopt, strerror(valopt));
+            exit(0);
+        }
         printf("Successfully connected to %s\n", ip);
+
     } else {
         printf("Connection timeout.\n");
         exit(0);
