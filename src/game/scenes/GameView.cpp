@@ -26,10 +26,9 @@ static void update3x3Chunks(const glm::ivec3& chunk_pos, TaskQueue& main_task_qu
                 new_chunk_mesh.updateVAO();
 
                 auto old_mesh = neighbor_chunk->mesh;
-                // neighbor_chunk->mesh.deleteAll(); // this being before the assignation is a potential race condition (could cause a segfault is the render try to use the variable)
                 neighbor_chunk->mesh = new_chunk_mesh;
 
-                old_mesh.deleteAll();
+                old_mesh.deleteAll();  // need this after, because if before the assignation its a potential race condition (could cause a segfault is the render try to use the variable)
             });
         }
     }
