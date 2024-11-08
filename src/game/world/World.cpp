@@ -80,19 +80,20 @@ BlockType World::getBlock(const glm::ivec3& pos) const
     return it->second->blocks[index];
 }
 
-BlockRaycastHit World::BlockRaycast(const glm::vec3& origin, const glm::vec3& direction, int maxSteps) const
+BlockRaycastHit World::blockRaycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance) const
 {
-    glm::vec3 rayPos = origin;
+    const glm::vec3 rayPos = origin;
+    const glm::vec3 deltaDist = abs(glm::vec3(glm::length(direction)) / direction);
+	const glm::vec3 rayStep = sign(direction);
+
     glm::vec3 mapPos = glm::ivec3(glm::floor(rayPos));
 
-    glm::vec3 deltaDist = abs(glm::vec3(glm::length(direction)) / direction);
-	glm::vec3 rayStep = sign(direction);
-	glm::vec3 sideDist = (sign(direction) * (mapPos - rayPos) + (sign(direction) * 0.5f) + 0.5f) * deltaDist;
-
+    glm::vec3 sideDist = (sign(direction) * (mapPos - rayPos) + (sign(direction) * 0.5f) + 0.5f) * deltaDist;
 	glm::vec3 mask;
     glm::vec3 normal;
 
-	for (int i = 0; i < maxSteps; i++) {
+    #define MAX_ITERATION 500
+	for (int i = 0; i < MAX_ITERATION; i++) {
         auto block = getBlock(mapPos);
         normal = -mask * rayStep;
 
@@ -103,6 +104,10 @@ BlockRaycastHit World::BlockRaycast(const glm::vec3& origin, const glm::vec3& di
 		mask = glm::step(sideDist, glm::vec3(sideDist.y, sideDist.z, sideDist.x)) * glm::step(sideDist, glm::vec3(sideDist.z, sideDist.x, sideDist.y));
 		sideDist += mask * deltaDist;
 		mapPos += mask * rayStep;
+
+        if (glm::distance(rayPos, mapPos) > maxDistance) {
+            break;
+        }
 	}
 
     return {BlockType::Air, mapPos, normal};

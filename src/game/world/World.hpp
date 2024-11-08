@@ -45,8 +45,7 @@ public:
     Entity* getEntity(int id);
     void updateEntities();
 
-    // TODO: change maxsteps by a maxDistance
-    BlockRaycastHit BlockRaycast(const glm::vec3& origin, const glm::vec3& direction, int maxSteps) const;
+    BlockRaycastHit blockRaycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance) const;
     BlockType getBlock(const glm::ivec3& pos) const;
 
     Chunk* setChunk(Packet::Server::ChunkPacket* chunk_data);

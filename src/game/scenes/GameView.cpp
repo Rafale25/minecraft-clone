@@ -69,7 +69,7 @@ void GameView::onUpdate(double time_since_start, float dt)
 
     World::instance().updateEntities();
 
-    player_blockraycasthit = World::instance().BlockRaycast(camera.getPosition(), camera.forward(), 16);
+    player_blockraycasthit = World::instance().blockRaycast(camera.getPosition(), camera.forward(), 16);
 
     network_timer -= dt;
     if (network_timer <= 0.0f) {
