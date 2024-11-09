@@ -162,3 +162,11 @@ Chunk* World::getChunk(const glm::ivec3& pos) const
         return it->second;
     return nullptr;
 }
+
+Chunk* World::getChunkUnsafe(const glm::ivec3& pos) const
+{
+    auto it = chunks.find(pos);
+    if (it != chunks.end())
+        return it->second;
+    return nullptr;
+}
