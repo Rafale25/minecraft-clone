@@ -57,6 +57,6 @@ class GameView: public View {
         char input_text_buffer[4096] = {0};
         std::vector<std::string> tchat;
 
-        ThreadPool thread_pool{6};
+        ThreadPool thread_pool{8};
         TaskQueue main_task_queue;
 };

@@ -50,6 +50,7 @@ public:
 
     Chunk* setChunk(Packet::Server::ChunkPacket* chunk_data);
     Chunk* getChunk(const glm::ivec3& pos) const;
+    Chunk *getChunkUnsafe(const glm::ivec3 &pos) const; // Do not use mutex
 
     static World& instance() {
         static World instance;
