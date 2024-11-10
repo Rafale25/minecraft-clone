@@ -3,7 +3,7 @@
 // #include <cmath>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "lerp.hpp"
+#include "lerp.h"
 
 glm::mat4 FPSCamera::getView() const
 {

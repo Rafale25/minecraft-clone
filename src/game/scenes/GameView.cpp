@@ -8,9 +8,9 @@
 #include "World.hpp"
 
 #include "command_line_args.h"
-#include "string_helpers.hpp"
-#include "ThreadPool.hpp"
-#include "mem_info.hpp"
+#include "string_helpers.h"
+#include "ThreadPool.h"
+#include "mem_info.h"
 
 static void update3x3Chunks(const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
 {

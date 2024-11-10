@@ -10,7 +10,7 @@
 #include "ClientPacket.hpp"
 #include "ServerPacket.hpp"
 
-#include "ByteBuffer.hpp"
+#include "ByteBuffer.h"
 
 class World;
 struct Chunk;

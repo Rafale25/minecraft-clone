@@ -11,6 +11,8 @@
 #include <string.h>
 #include <cstring>
 
+#include "clock.h"
+
 struct ChunkExtra
 {
     BlockType blocks[18*18*18];

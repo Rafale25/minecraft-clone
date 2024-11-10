@@ -16,12 +16,12 @@
 #include "Chunk.hpp"
 #include "World.hpp"
 #include "Entity.hpp"
-#include "utils/print_buffer.hpp"
+#include "utils/print_buffer.h"
 
-#include "utils/recv_full.hpp"
-#include "utils/byte_manipulation.hpp"
+#include "utils/recv_full.h"
+#include "utils/byte_manipulation.h"
 
-#include "ByteBuffer.hpp"
+#include "ByteBuffer.h"
 
 Packet::Server::ChunkPacket* readChunkPacket(ByteBuffer& buffer)
 {

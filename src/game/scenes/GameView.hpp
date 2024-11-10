@@ -8,7 +8,7 @@
 #include "Entity.hpp"
 #include "WorldRenderer.hpp"
 #include "BlockRaycastHit.hpp"
-#include "ThreadPool.hpp"
+#include "ThreadPool.h"
 
 class GameView: public View {
     public:
@@ -57,6 +57,6 @@ class GameView: public View {
         char input_text_buffer[4096] = {0};
         std::vector<std::string> tchat;
 
-        ThreadPool thread_pool{8};
+        ThreadPool thread_pool{1};
         TaskQueue main_task_queue;
 };
