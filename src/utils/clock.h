@@ -66,8 +66,9 @@ public:
 
         auto& timing = _timings.at(name);
 
-        auto duration = t - timing.t;
+        duration<double, std::milli> duration = t - timing.t;
         timing.current_average = (timing.current_average * timing.count + duration.count()) / (timing.count + 1);
+        // timing.current_average = duration.count();
         timing.count += 1;
     }
 
@@ -75,7 +76,7 @@ public:
         std::string result;
 
         for (const auto& [name, timing] : _timings) {
-            result += std::format("{}: {}ns \n", name, timing.current_average);
+            result += std::format("{}: {:.4f}ms \n", name, timing.current_average);
         }
 
         return result;

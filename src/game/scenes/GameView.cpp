@@ -12,6 +12,8 @@
 #include "ThreadPool.h"
 #include "mem_info.h"
 
+#include "clock.h"
+
 static void update3x3Chunks(const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
 {
     const glm::ivec3 offsets[] = { {0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
@@ -150,6 +152,8 @@ void GameView::gui(float dt)
     // ImGui::End();
 
     ImGui::Begin("Debug");
+
+    ImGui::Text("%s", SimpleProfiler::instance().dump().c_str());
 
     ImGui::Text("RAM: %.3f / %.3f Go", ((double)getCurrentRSS()) / (1024*1024*1024), ((double)getPeakRSS()) / (1024*1024*1024));
 
