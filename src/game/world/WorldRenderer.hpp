@@ -36,6 +36,7 @@ public:
     glm::vec3 sunDir = glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f));
     int chunks_drawn;
     bool _wireframe = false;
+    bool _ambient_occlusion = true;
 
 public:
     GLuint ssbo_texture_handles;

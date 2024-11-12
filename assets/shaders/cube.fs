@@ -30,6 +30,7 @@ out vec4 FragColor;
 uniform vec3 u_sun_direction;
 uniform vec3 u_view_position;
 uniform float u_shadow_bias;
+uniform bool u_ambient_occlusion_enabled;
 
 uniform sampler2D shadowMap;
 
@@ -103,7 +104,9 @@ void main()
 
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse)) * color.rgb;
 
-    lighting *= fs_in.ambient_occlusion;// * ambient_occlusion;
+    if (u_ambient_occlusion_enabled) {
+        lighting *= fs_in.ambient_occlusion;
+    }
 
     FragColor = vec4(lighting, 1.0);
 

@@ -46,6 +46,7 @@ void WorldRenderer::render(const Camera &camera)
     cube_shader.setMat4("u_lightSpaceMatrix", shadowmap._lightSpaceMatrix);
     cube_shader.setVec3("u_sun_direction", sunDir);
     cube_shader.setFloat("u_shadow_bias", shadowmap._shadow_bias);
+    cube_shader.setFloat("u_ambient_occlusion_enabled", _ambient_occlusion);
     glBindTextureUnit(0, shadowmap._depthTexture._texture);
     renderTerrain(cube_shader, camera);
 

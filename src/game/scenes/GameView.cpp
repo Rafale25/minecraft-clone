@@ -189,6 +189,8 @@ void GameView::gui(float dt)
 
     ImGui::SliderFloat("Bulk Edit Radius: ", &bulk_edit_radius, 1.0f, 32.0f, "%.2f");
     ImGui::Checkbox("Wireframe", &world_renderer._wireframe);
+    ImGui::Checkbox("Ambient occlusion", &world_renderer._ambient_occlusion);
+
     if (ImGui::Checkbox("VSync", &_vsync)) {
         ctx.setVsync(_vsync);
     }
@@ -205,6 +207,7 @@ void GameView::gui(float dt)
         ImGui::TextWrapped("%s", msg.c_str());
         ImGui::Spacing();
     }
+
     ImGui::EndChild();
 
     ImGui::InputText("##inputText", input_text_buffer, IM_ARRAYSIZE(input_text_buffer));
