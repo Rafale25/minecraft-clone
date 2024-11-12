@@ -20,7 +20,12 @@ enum class BlockType : uint8_t {
     OakLog = 4,
     OakLeaves = 5,
     LAST, // do not use as block
+
 };
+
+bool operator==(const BlockType&, const int&);
+bool operator>(const BlockType&, const int&);
+bool operator<(const BlockType&, const int&);
 
 struct BlockMetadata
 {

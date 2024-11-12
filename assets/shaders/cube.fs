@@ -21,6 +21,7 @@ in VS_OUT {
     in vec2 uv;
     flat in uint orientation;
     flat in uint texture_id;
+    float ambient_occlusion;
     in vec4 FragPosLightSpace;
 } fs_in;
 
@@ -101,6 +102,8 @@ void main()
         shadow = 1.0;
 
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse)) * color.rgb;
+
+    lighting *= fs_in.ambient_occlusion;// * ambient_occlusion;
 
     FragColor = vec4(lighting, 1.0);
 

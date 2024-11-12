@@ -8,6 +8,7 @@ out VS_OUT {
     out vec2 uv;
     flat out uint orientation;
     flat uint texture_id;
+    float ambient_occlusion;
     out vec4 FragPosLightSpace;
 } vs_out;
 
@@ -18,13 +19,14 @@ uniform mat4 u_lightSpaceMatrix;
 
 void main()
 {
-    int a_x =           int((a_packedVertex >> 0)  & 31);
-    int a_y =           int((a_packedVertex >> 5)  & 31);
-    int a_z =           int((a_packedVertex >> 10) & 31);
-    int a_u =           int((a_packedVertex >> 15) & 1);
-    int a_v =           int((a_packedVertex >> 16) & 1);
-    uint a_orientation =   ((a_packedVertex >> 17) & 7);
-    uint a_texture_id =    ((a_packedVertex >> 20) & 255);
+    int a_x =                   int((a_packedVertex >> 0)  & 31);
+    int a_y =                   int((a_packedVertex >> 5)  & 31);
+    int a_z =                   int((a_packedVertex >> 10) & 31);
+    int a_u =                   int((a_packedVertex >> 15) & 1);
+    int a_v =                   int((a_packedVertex >> 16) & 1);
+    uint a_orientation =           ((a_packedVertex >> 17) & 7);
+    uint a_texture_id =            ((a_packedVertex >> 20) & 255);
+    uint a_ambient_occlusion =     ((a_packedVertex >> 28) & 7);
 
     ivec3 a_position = ivec3(a_x, a_y, a_z);
     ivec2 a_uv = ivec2(a_u, a_v);
@@ -37,5 +39,6 @@ void main()
     vs_out.uv = a_uv;
     vs_out.orientation = (a_orientation);
     vs_out.texture_id = a_texture_id;
+    vs_out.ambient_occlusion = float(a_ambient_occlusion) / 3.0;
     gl_Position = position;
 }

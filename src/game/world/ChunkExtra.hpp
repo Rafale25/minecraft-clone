@@ -22,7 +22,7 @@ struct ChunkExtra
         return (x+1) + (y+1)*18 + (z+1)*18*18;
     }
 
-    BlockType getBlock(const glm::ivec3& pos) {
+    BlockType getBlock(const glm::ivec3& pos) const {
         return blocks[XYZtoIndex(pos.x, pos.y, pos.z)];
     }
 

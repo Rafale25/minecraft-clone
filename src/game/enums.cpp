@@ -9,3 +9,7 @@ extern const BlockMetadata blocksMetadata[] =
     [(int)BlockType::OakLog]     = {.transparent = false},
     [(int)BlockType::OakLeaves]  = {.transparent = true},
 };
+
+bool operator==(const BlockType& a, const int& b) { return static_cast<int>(a) == b; }
+bool operator>(const BlockType& a, const int& b) { return static_cast<int>(a) > b; }
+bool operator<(const BlockType& a, const int& b) { return static_cast<int>(a) < b; }
