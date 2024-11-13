@@ -37,6 +37,11 @@ private:
         { TextureName::OakLog,      "oak_log.png"},
         { TextureName::OakLogTop,   "oak_log_top.png"},
         { TextureName::OakLeaves,   "azalea_leaves.png"},
+
+        { TextureName::Glass,       "glass.png"},
+        { TextureName::Water,       "water.png"},
+        { TextureName::Sand,        "sand.png"},
+        { TextureName::Snow,        "snow.png"},
     };
 
     std::unordered_map<BlockType, std::array<TextureName, 3>> block_textures_path = {
@@ -45,6 +50,10 @@ private:
         { BlockType::Stone,     { TextureName::Stone,       TextureName::Stone,     TextureName::Stone      }},
         { BlockType::OakLog,    { TextureName::OakLogTop,   TextureName::OakLog,    TextureName::OakLogTop  }},
         { BlockType::OakLeaves, { TextureName::OakLeaves,   TextureName::OakLeaves, TextureName::OakLeaves  }},
+        { BlockType::Glass,     { TextureName::Glass,       TextureName::Glass,     TextureName::Glass      }},
+        { BlockType::Water,     { TextureName::Water,       TextureName::Water,     TextureName::Water      }},
+        { BlockType::Sand,      { TextureName::Sand,        TextureName::Sand,      TextureName::Sand       }},
+        { BlockType::Snow,      { TextureName::Snow,        TextureName::Snow,      TextureName::Snow       }},
     };
 
 public:

@@ -19,8 +19,11 @@ enum class BlockType : uint8_t {
     Stone = 3,
     OakLog = 4,
     OakLeaves = 5,
+    Glass = 6,
+    Water = 7,
+    Sand = 8,
+    Snow = 9,
     LAST, // do not use as block
-
 };
 
 bool operator==(const BlockType&, const int&);
@@ -34,7 +37,23 @@ struct BlockMetadata
     // ...
 };
 
-extern const BlockMetadata blocksMetadata[];
+// extern const BlockMetadata blocksMetadata[];
+
+inline constexpr BlockMetadata blocksMetadata[] =
+{
+    [(int)BlockType::Air]        = {.transparent = true},
+    [(int)BlockType::Grass]      = {.transparent = false},
+    [(int)BlockType::Dirt]       = {.transparent = false},
+    [(int)BlockType::Stone]      = {.transparent = false},
+    [(int)BlockType::OakLog]     = {.transparent = false},
+    [(int)BlockType::OakLeaves]  = {.transparent = true},
+
+    [(int)BlockType::Glass]  = {.transparent = true},
+    [(int)BlockType::Water]  = {.transparent = false},
+    [(int)BlockType::Sand]  = {.transparent = false},
+    [(int)BlockType::Snow]  = {.transparent = false},
+};
+
 
 enum class TextureName : int {
     GrassTop,
@@ -43,7 +62,11 @@ enum class TextureName : int {
     Stone,
     OakLog,
     OakLogTop,
-    OakLeaves
+    OakLeaves,
+    Glass,
+    Water,
+    Sand,
+    Snow,
 };
 
 enum PacketId {
