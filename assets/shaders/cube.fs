@@ -105,7 +105,7 @@ void main()
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse)) * color.rgb;
 
     if (u_ambient_occlusion_enabled) {
-        lighting *= fs_in.ambient_occlusion;
+        lighting *= sqrt(fs_in.ambient_occlusion);
     }
 
     FragColor = vec4(lighting, 1.0);
