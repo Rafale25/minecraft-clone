@@ -76,6 +76,29 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
     return shadow;
 }
 
+const float fog_start = 150.0;
+const float fog_end = 350.0;
+const vec3 fog_color = vec3(0.8);
+
+// float calcLinearFogFactor()
+// {
+//     float camera_to_pixel_dist = length(fs_in.frag_pos - u_view_position);
+//     float fog_range = fog_end - fog_start;
+//     float fog_dist = fog_end - camera_to_pixel_dist;
+//     float fog_factor = fog_dist / fog_range;
+//     fog_factor = clamp(fog_factor, 0.0, 1.0);
+//     return fog_factor;
+// }
+
+float calcExpFogFactor()
+{
+    const float exp_fog_density = 0.2;
+    float camera_to_pixel_dist = length(fs_in.frag_pos - u_view_position);
+    float dist_ratio = 4.0 * camera_to_pixel_dist / fog_end;
+    float fog_factor = exp(-dist_ratio*exp_fog_density * dist_ratio*exp_fog_density);
+    return fog_factor;
+}
+
 void main()
 {
     vec4 color = texture(sampler2D(texture_handles[fs_in.texture_id]), fs_in.uv).rgba;
@@ -107,6 +130,9 @@ void main()
     if (u_ambient_occlusion_enabled) {
         lighting *= sqrt(fs_in.ambient_occlusion);
     }
+
+    // Fog
+    lighting = mix(fog_color, lighting, calcExpFogFactor());
 
     FragColor = vec4(lighting, 1.0);
 
