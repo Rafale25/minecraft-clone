@@ -1,4 +1,4 @@
 #pragma once
 
-extern int global_argc;
-extern char **global_argv;
+inline int global_argc;
+inline char **global_argv;

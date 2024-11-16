@@ -12,6 +12,8 @@
 
 #include <string>
 
+#include "command_line_args.h"
+
 #include "Client.hpp"
 #include "Chunk.hpp"
 #include "World.hpp"
@@ -267,7 +269,10 @@ void Client::init(std::vector<std::string>& tchat, const char* ip)
     opts = opts & (~O_NONBLOCK);
     fcntl(client_socket, F_SETFL, opts);
 
-    sendClientMetadataPacket(8, "Rafale25");
+    int render_distance = 8;
+    if (global_argc > 2)
+        render_distance = std::atoi(global_argv[2]);
+    sendClientMetadataPacket(render_distance, "Rafale25");
 }
 
 void Client::Start()

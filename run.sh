@@ -1,5 +1,5 @@
 # ./build/Minecraft_Clone "127.0.0.1"
-./build/Minecraft_Clone "162.19.137.231"
+./build/Minecraft_Clone "162.19.137.231" 16
 # sudo perf record -g ./build/Minecraft_Clone "162.19.137.231"
 # gdb ./build/Minecraft_Clone
 # valgrind --leak-check=full \
