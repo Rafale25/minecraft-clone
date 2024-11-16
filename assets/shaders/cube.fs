@@ -31,6 +31,7 @@ uniform vec3 u_sun_direction;
 uniform vec3 u_view_position;
 uniform float u_shadow_bias;
 uniform bool u_ambient_occlusion_enabled;
+uniform mat4 u_lightSpaceMatrix;
 
 uniform sampler2D shadowMap;
 
@@ -76,6 +77,20 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
     return shadow;
 }
 
+float shadowFast(vec4 lightSpacePos)
+{
+  vec3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
+  if (projCoords.z > 1.0) return 1.0;
+  projCoords = projCoords * 0.5 + 0.5;
+  if (any(lessThan(projCoords.xy, vec2(0))) || any(greaterThan(projCoords.xy, vec2(1)))) return 1.0;
+  float closestDepth = texture(shadowMap, projCoords.xy).r;
+
+  float currentDepth = projCoords.z;
+  float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
+
+  return shadow;
+}
+
 const float fog_start = 150.0;
 const float fog_end = 350.0;
 const vec3 fog_color = vec3(0.8);
@@ -97,6 +112,42 @@ float calcExpFogFactor()
     float dist_ratio = 4.0 * camera_to_pixel_dist / fog_end;
     float fog_factor = exp(-dist_ratio*exp_fog_density * dist_ratio*exp_fog_density);
     return fog_factor;
+}
+
+float volumetric_light()
+{
+    #define STEP_SIZE 0.3
+    #define MAX_STEPS 32
+
+    const vec3 start = u_view_position;
+    const vec3 end = fs_in.frag_pos;
+    const float len = distance(start, end);
+
+    // const float STEP_SIZE = len / MAX_STEPS;
+
+    const vec3 dir = normalize(fs_in.frag_pos - u_view_position);
+    float dist = rand(fs_in.frag_pos.xz) * STEP_SIZE;
+
+    float accum = 0.0;
+
+    int step = 0;
+    while (step < MAX_STEPS && dist < len - 0.001) {
+        step += 1;
+        dist += STEP_SIZE;
+        vec3 p = start + dir * dist;
+
+        accum += 1.0 - shadowFast(u_lightSpaceMatrix * vec4(p, 1.0));
+    }
+
+    const float u_beer_power = 1.0;
+    const float u_powder_power = 1.0;
+    const float intensity = 0.025;
+
+    const float d = accum * STEP_SIZE * intensity;
+    const float powder = 1.0 - exp(-d * 2.0 * u_powder_power);
+    const float beer = exp(-d * u_beer_power);
+
+    return (1.0 - beer) * powder;
 }
 
 void main()
@@ -132,7 +183,10 @@ void main()
     }
 
     // Fog
-    lighting = mix(fog_color, lighting, calcExpFogFactor());
+    // lighting = mix(fog_color, lighting, calcExpFogFactor());
+
+    float vlight = volumetric_light();
+    lighting += vlight;
 
     FragColor = vec4(lighting, 1.0);
 
