@@ -20,6 +20,9 @@ static void update3x3Chunks(const glm::ivec3& chunk_pos, TaskQueue& main_task_qu
 
     for (const glm::ivec3 &offset: offsets) {
         if (Chunk* neighbor_chunk = World::instance().getChunk(chunk_pos + offset)) {
+            // const std::unique_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
+
+            // PROBLEM: neighbor_chunk might be deleted when passed to computeVertexBuffer
 
             ChunkMesh new_chunk_mesh;
             new_chunk_mesh.computeVertexBuffer(neighbor_chunk);
@@ -76,6 +79,31 @@ void GameView::onUpdate(double time_since_start, float dt)
     if (network_timer <= 0.0f) {
         network_timer = 1.0f / 20.0f;
         networkUpdate();
+    }
+
+    {
+        const std::unique_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
+
+        std::vector<glm::ivec3> pos_to_delete;
+
+        auto& world_chunks = World::instance().chunks;
+        for (const auto& [pos, chunk] : world_chunks ) {
+            if (glm::distance(camera.getPosition(), glm::vec3(chunk->pos) * 16.0f) > 500.0f) {
+                // it->second->mesh.deleteAll();
+                // delete it->second;
+                // it = world_chunks.erase(it);
+                pos_to_delete.push_back(pos);
+            }
+        }
+
+        // const std::unique_lock<std::mutex> lock2(World::instance().delete_chunks_mutex);
+
+        for (const auto &pos : pos_to_delete) {
+            // printf("delete pos %d %d %d\n", pos.x, pos.y, pos.z);
+            world_chunks.at(pos)->mesh.deleteAll();
+            delete world_chunks.at(pos);
+            world_chunks.erase(pos);
+        }
     }
 }
 
