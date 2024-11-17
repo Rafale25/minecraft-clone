@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.31.0)
+cmake_minimum_required(VERSION 3.24.0)
 
 set(PROJECT_ROOT ./)
 set(PROJECT_NAME "Minecraft_Clone")
