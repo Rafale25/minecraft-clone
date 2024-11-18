@@ -190,6 +190,8 @@ void GameView::gui(float dt)
     ImGui::SliderFloat("Bulk Edit Radius: ", &bulk_edit_radius, 1.0f, 32.0f, "%.2f");
     ImGui::Checkbox("Wireframe", &world_renderer._wireframe);
     ImGui::Checkbox("Ambient occlusion", &world_renderer._ambient_occlusion);
+    ImGui::Checkbox("AO squared", &world_renderer._AO_squared);
+    ImGui::SliderFloat("AO strength: ", &world_renderer._ambient_occlusion_strength, 0.0f, 1.0f, "%.2f");
 
     if (ImGui::Checkbox("VSync", &_vsync)) {
         ctx.setVsync(_vsync);

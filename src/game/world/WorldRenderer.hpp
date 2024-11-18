@@ -37,6 +37,8 @@ public:
     int chunks_drawn;
     bool _wireframe = false;
     bool _ambient_occlusion = true;
+    float _ambient_occlusion_strength = 0.9;
+    bool _AO_squared = true;
 
 public:
     GLuint ssbo_texture_handles;

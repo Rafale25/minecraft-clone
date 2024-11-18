@@ -30,7 +30,9 @@ out vec4 FragColor;
 uniform vec3 u_sun_direction;
 uniform vec3 u_view_position;
 uniform float u_shadow_bias;
-uniform bool u_ambient_occlusion_enabled;
+uniform bool u_ambient_occlusion_enabled = true;
+uniform float u_ambient_occlusion_strength = 0.9;
+uniform bool u_AO_squared = true;
 
 uniform sampler2D shadowMap;
 
@@ -128,7 +130,8 @@ void main()
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse)) * color.rgb;
 
     if (u_ambient_occlusion_enabled) {
-        lighting *= sqrt(fs_in.ambient_occlusion);
+        const float ao = u_AO_squared ? sqrt(fs_in.ambient_occlusion) : fs_in.ambient_occlusion;
+        lighting = mix(lighting * (1.0 - u_ambient_occlusion_strength), lighting, ao);
     }
 
     // Fog
