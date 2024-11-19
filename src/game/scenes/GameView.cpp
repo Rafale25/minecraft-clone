@@ -16,9 +16,13 @@
 
 static void update3x3Chunks(const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
 {
-    const glm::ivec3 offsets[] = { {0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} };
+    // constexpr glm::ivec3 offsets[] = { {0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} }; // center + adjacents
 
-    for (const glm::ivec3 &offset: offsets) {
+    for (int z = -1 ; z <= 1; ++z) {
+    for (int y = -1 ; y <= 1; ++y) {
+    for (int x = -1 ; x <= 1; ++x) {
+        const glm::ivec3 offset = {x, y, z};
+    // for (const glm::ivec3 &offset: offsets) {
         if (Chunk* neighbor_chunk = World::instance().getChunk(chunk_pos + offset)) {
 
             ChunkMesh new_chunk_mesh;
@@ -33,6 +37,9 @@ static void update3x3Chunks(const glm::ivec3& chunk_pos, TaskQueue& main_task_qu
                 old_mesh.deleteAll();  // need this after, because if before the assignation its a potential race condition (could cause a segfault is the render try to use the variable)
             });
         }
+    // }
+    }
+    }
     }
 }
 
