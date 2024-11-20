@@ -37,8 +37,6 @@ struct BlockMetadata
     // ...
 };
 
-// extern const BlockMetadata blocksMetadata[];
-
 inline constexpr BlockMetadata blocksMetadata[] =
 {
     [(int)BlockType::Air]        = {.transparent = true},
