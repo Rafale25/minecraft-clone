@@ -30,6 +30,9 @@ int vertexAO(int side1, int side2, int corner) {
     return 3 - (side1 + side2 + corner);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wc99-designator"
+
 const glm::ivec3 orientation_dir[] = {
     [Orientation::Top]     = glm::ivec3(0, 1, 0),
     [Orientation::Bottom]  = glm::ivec3(0, -1, 0),
@@ -171,6 +174,8 @@ const int infos[][50] = {
     },
 };
 
+#pragma GCC diagnostic pop
+
 inline void ChunkMesh::makeFace(
     int x, int y, int z,
     const ChunkExtra &chunkextra,
@@ -280,18 +285,24 @@ void ChunkMesh::computeVertexBuffer(const Chunk* chunk)
     }
     }
 
-    indices_count = ebo.size();
+    // indices_count = ebo.size();
 }
 
-void ChunkMesh::updateVAO()
+void ChunkMesh::updateVAO(BufferAllocator& buffer_allocator_vertices, BufferAllocator& buffer_allocator_indices, const BufferSlot& previous_slot_vertices, const BufferSlot& previous_slot_indices)
 {
-    if (VBO == 0) {
-        glCreateBuffers(1, &VBO);
-        glCreateBuffers(1, &EBO);
+    if (vertices.size() == 0 || ebo.size() == 0) return;
+
+    if (previous_slot_vertices.id == -1) {
+        slot_vertices = buffer_allocator_vertices.allocate(vertices.size() * sizeof(GLuint), &vertices[0]);
+    } else {
+        slot_vertices = buffer_allocator_vertices.updateAllocation(previous_slot_vertices.id, vertices.size() * sizeof(GLuint), &vertices[0]);
     }
 
-    glNamedBufferData(VBO, vertices.size() * sizeof(GLuint), &vertices[0], GL_STATIC_DRAW);
-    glNamedBufferData(EBO, ebo.size() * sizeof(GLuint), &ebo[0], GL_STATIC_DRAW);
+    if (previous_slot_indices.id == -1) {
+        slot_indices = buffer_allocator_indices.allocate(ebo.size() * sizeof(GLuint), &ebo[0]);
+    } else {
+        slot_indices = buffer_allocator_indices.updateAllocation(previous_slot_indices.id, ebo.size() * sizeof(GLuint), &ebo[0]);
+    }
 
     vertices.clear();
     ebo.clear();
@@ -301,6 +312,4 @@ void ChunkMesh::updateVAO()
 
 void ChunkMesh::deleteAll()
 {
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
 }

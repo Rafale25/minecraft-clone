@@ -14,34 +14,7 @@
 
 #include "clock.h"
 
-static void update3x3Chunks(const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
-{
-    // constexpr glm::ivec3 offsets[] = { {0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} }; // center + adjacents
 
-    for (int z = -1 ; z <= 1; ++z) {
-    for (int y = -1 ; y <= 1; ++y) {
-    for (int x = -1 ; x <= 1; ++x) {
-        const glm::ivec3 offset = {x, y, z};
-    // for (const glm::ivec3 &offset: offsets) {
-        if (Chunk* neighbor_chunk = World::instance().getChunk(chunk_pos + offset)) {
-
-            ChunkMesh new_chunk_mesh;
-            new_chunk_mesh.computeVertexBuffer(neighbor_chunk);
-
-            main_task_queue.push_safe([neighbor_chunk, new_chunk_mesh]() mutable {
-                new_chunk_mesh.updateVAO();
-
-                auto old_mesh = neighbor_chunk->mesh;
-                neighbor_chunk->mesh = new_chunk_mesh;
-
-                old_mesh.deleteAll();  // need this after, because if before the assignation its a potential race condition (could cause a segfault is the render try to use the variable)
-            });
-        }
-    // }
-    }
-    }
-    }
-}
 
 GameView::GameView(Context& ctx): View(ctx)
 {
@@ -86,6 +59,37 @@ void GameView::onUpdate(double time_since_start, float dt)
     }
 }
 
+void GameView::update3x3Chunks(const glm::ivec3& chunk_pos)
+{
+    // constexpr glm::ivec3 offsets[] = { {0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} }; // center + adjacents
+    // constexpr glm::ivec3 offsets[] = { {0, 0, 0} }; // center
+
+    for (int z = -1 ; z <= 1; ++z) {
+    for (int y = -1 ; y <= 1; ++y) {
+    for (int x = -1 ; x <= 1; ++x) {
+    // for (const glm::ivec3 &offset: offsets) {
+        const glm::ivec3 offset = {x, y, z};
+        if (Chunk* neighbor_chunk = World::instance().getChunk(chunk_pos + offset)) {
+
+            ChunkMesh new_chunk_mesh;
+            new_chunk_mesh.computeVertexBuffer(neighbor_chunk);
+
+            main_task_queue.push_safe([&, neighbor_chunk, new_chunk_mesh]() mutable {
+                auto old_mesh = neighbor_chunk->mesh;
+                new_chunk_mesh.updateVAO(world_renderer.buffer_allocator_vertices, world_renderer.buffer_allocator_indices, old_mesh.slot_vertices, old_mesh.slot_indices);
+                neighbor_chunk->mesh = new_chunk_mesh;
+
+                // if (old_mesh.slot_vertices.id != -1)
+                //     world_renderer.buffer_allocator_vertices.deallocate(old_mesh.slot_vertices.id);
+                // if (old_mesh.slot_indices.id != -1)
+                //     world_renderer.buffer_allocator_indices.deallocate(old_mesh.slot_indices.id);
+            });
+        }
+    }
+    }
+    }
+}
+
 void GameView::consumeNewChunks()
 {
     main_task_queue.execute();
@@ -115,7 +119,7 @@ void GameView::consumeNewChunks()
 
             delete chunk_data;
 
-            update3x3Chunks(chunk->pos, main_task_queue);
+            update3x3Chunks(chunk->pos);
         });
     }
 }
@@ -148,6 +152,7 @@ void GameView::onDraw(double time_since_start, float dt)
     ctx.imguiNewFrame();
     if (_show_debug_gui) gui(dt);
     ctx.imguiRender();
+
 }
 
 void GameView::gui(float dt)
@@ -197,7 +202,6 @@ void GameView::gui(float dt)
     ImGui::SliderFloat("Bulk Edit Radius: ", &bulk_edit_radius, 1.0f, 32.0f, "%.2f");
     ImGui::Checkbox("Wireframe", &world_renderer._wireframe);
     ImGui::Checkbox("Ambient occlusion", &world_renderer._ambient_occlusion);
-    ImGui::Checkbox("AO squared", &world_renderer._AO_squared);
     ImGui::SliderFloat("AO strength: ", &world_renderer._ambient_occlusion_strength, 0.0f, 1.0f, "%.2f");
 
     if (ImGui::Checkbox("VSync", &_vsync)) {

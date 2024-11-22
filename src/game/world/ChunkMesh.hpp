@@ -7,18 +7,18 @@
 
 #include "enums.hpp"
 
+#include "BufferAllocator.hpp"
+
 struct Chunk;
 struct ChunkExtra;
+class BufferAllocator;
 
 struct ChunkMesh {
-    GLuint VBO, EBO;
-    GLsizei indices_count;
+    BufferSlot slot_vertices = invalid_buffer_slot;
+    BufferSlot slot_indices = invalid_buffer_slot;
 
     std::vector<GLuint> vertices;
     std::vector<GLuint> ebo;
-
-    ChunkMesh(): VBO(0), EBO(0), indices_count(0) {}
-    ~ChunkMesh() = default;
 
     void makeFace(
         int x,
@@ -32,7 +32,7 @@ struct ChunkMesh {
     );
 
     void computeVertexBuffer(const Chunk *chunk);
-    void updateVAO();
+    void updateVAO(BufferAllocator& buffer_allocator_vertices, BufferAllocator& buffer_allocator_indices, const BufferSlot& slot_vertices, const BufferSlot& slot_indices);
 
     void deleteAll();
 };

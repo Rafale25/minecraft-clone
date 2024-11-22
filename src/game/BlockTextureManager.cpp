@@ -4,7 +4,7 @@
 
 void BlockTextureManager::_loadAllTextures()
 {
-    const std::string textures_path = "assets/textures/";
+    const std::string textures_path = "./assets/textures/";
 
     for (const auto& [key, value] : block_textures_path) {
         int width, height, channels;
@@ -33,13 +33,17 @@ void BlockTextureManager::_loadAllTextures()
         GLuint texture_side = TextureManager::instance().loadTexture((textures_path + textures_name[value[1]]).c_str(), format, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
         GLuint texture_bot = TextureManager::instance().loadTexture((textures_path + textures_name[value[2]]).c_str(), format, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
 
+        // GLuint64 texture_top_handle = 0;
+        // GLuint64 texture_side_handle = 0;
+        // GLuint64 texture_bot_handle = 0;
+
         GLuint64 texture_top_handle = glGetTextureHandleARB(texture_top);
         GLuint64 texture_side_handle = glGetTextureHandleARB(texture_side);
         GLuint64 texture_bot_handle = glGetTextureHandleARB(texture_bot);
 
-        glMakeTextureHandleResidentARB(texture_top_handle);
-        glMakeTextureHandleResidentARB(texture_side_handle);
-        glMakeTextureHandleResidentARB(texture_bot_handle);
+        if (glIsTextureHandleResidentARB(texture_top_handle)) glMakeTextureHandleResidentARB(texture_top_handle);
+        if (glIsTextureHandleResidentARB(texture_side_handle)) glMakeTextureHandleResidentARB(texture_side_handle);
+        if (glIsTextureHandleResidentARB(texture_bot_handle)) glMakeTextureHandleResidentARB(texture_bot_handle);
 
         uint id_base_offset = textures_handles.size();
         uint texture_top_id = id_base_offset + 0;

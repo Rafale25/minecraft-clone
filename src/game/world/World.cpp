@@ -8,8 +8,6 @@
 
 World::World()
 {
-    // TODO: move this VAO into WorldRenderer
-    chunk_vao = createVAO(0, "i");
 }
 
 Entity* World::getEntity(int id)

@@ -17,6 +17,8 @@ class GameView: public View {
         void onUpdate(double time_since_start, float dt);
         void onHideView();
 
+        void update3x3Chunks(const glm::ivec3& chunk_pos);
+
         void consumeNewChunks();
         void consumeTaskQueue();
         void networkUpdate();
@@ -57,6 +59,6 @@ class GameView: public View {
         char input_text_buffer[4096] = {0};
         std::vector<std::string> tchat;
 
-        ThreadPool thread_pool{8};
+        ThreadPool thread_pool{1};
         TaskQueue main_task_queue;
 };

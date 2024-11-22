@@ -11,6 +11,20 @@ void GLFW_error(int error, const char* description)
     fprintf(stderr, "%s\n", description);
 }
 
+void GLAPIENTRY
+MessageCallback( GLenum source,
+                 GLenum type,
+                 GLuint id,
+                 GLenum severity,
+                 GLsizei length,
+                 const GLchar* message,
+                 const void* userParam )
+{
+  fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+           ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
+            type, severity, message );
+}
+
 Context::Context(int width, int height, const char *title, int maximized, int samples)
 {
     if(glfwPlatformSupported(GLFW_PLATFORM_WIN32)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WIN32);
@@ -21,6 +35,7 @@ Context::Context(int width, int height, const char *title, int maximized, int sa
         fprintf(stderr, "Error: could not find acceptable platform for GLFW\n");
         abort();
     }
+
 
     if (!glfwInit()) {
         std::cout << "Failed to initialize GLFW!" << std::endl;
@@ -61,6 +76,10 @@ Context::Context(int width, int height, const char *title, int maximized, int sa
         std::cout << "Failed to initialize OpenGL context" << std::endl;
         return;
     }
+
+    // During init, enable debug output
+    glEnable              ( GL_DEBUG_OUTPUT );
+    glDebugMessageCallback( MessageCallback, 0 );
 
     imguiInit();
 

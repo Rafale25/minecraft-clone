@@ -7,6 +7,7 @@
 #include "Shadowmap.hpp"
 
 #include "Geometry.hpp"
+#include "BufferAllocator.hpp"
 
 class Camera;
 
@@ -37,8 +38,7 @@ public:
     int chunks_drawn;
     bool _wireframe = false;
     bool _ambient_occlusion = true;
-    float _ambient_occlusion_strength = 0.9;
-    bool _AO_squared = true;
+    float _ambient_occlusion_strength = 0.67;
 
 public:
     GLuint ssbo_texture_handles;
@@ -49,4 +49,12 @@ public:
     Program skybox_shader{"./assets/shaders/skybox.vs", "./assets/shaders/skybox.fs"};
 
     Mesh skybox_quad = Geometry::quad_2d();
+
+    BufferAllocator buffer_allocator_vertices{"BufferAllocatorVertice", 30'000 * sizeof(int), 100'000};
+    BufferAllocator buffer_allocator_indices{"BufferAllocatorIndices", 30'000 * sizeof(int), 100'000};
+
+    GLuint chunk_vao;
+    GLuint draw_command_buffer;
+    GLuint ssbo_chunk_positions;
+
 };

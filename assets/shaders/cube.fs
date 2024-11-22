@@ -3,7 +3,7 @@
 
 float rand(vec2 co){ return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453); }
 
-layout(binding = 0, std430) readonly buffer ssbo {
+layout(binding = 0, std430) readonly buffer ssbo_texture_handles {
     sampler2D texture_handles[];
 };
 
@@ -32,7 +32,6 @@ uniform vec3 u_view_position;
 uniform float u_shadow_bias;
 uniform bool u_ambient_occlusion_enabled = true;
 uniform float u_ambient_occlusion_strength = 0.9;
-uniform bool u_AO_squared = true;
 
 uniform sampler2D shadowMap;
 
@@ -103,7 +102,8 @@ float calcExpFogFactor()
 
 void main()
 {
-    vec4 color = texture(sampler2D(texture_handles[fs_in.texture_id]), fs_in.uv).rgba;
+    // vec4 color = texture(sampler2D(texture_handles[fs_in.texture_id]), fs_in.uv).rgba;
+    vec4 color = vec4(0.1, 0.8, 0.2, 1.0);
     vec3 normal = orientation_normal_table[fs_in.orientation];
     vec3 lightColor = vec3(255.0, 244.0, 196.0) / 255.0;
 
@@ -130,8 +130,7 @@ void main()
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse)) * color.rgb;
 
     if (u_ambient_occlusion_enabled) {
-        const float ao = u_AO_squared ? sqrt(fs_in.ambient_occlusion) : fs_in.ambient_occlusion;
-        lighting = mix(lighting * (1.0 - u_ambient_occlusion_strength), lighting, ao);
+        lighting = mix(lighting * (1.0 - u_ambient_occlusion_strength), lighting, fs_in.ambient_occlusion);
     }
 
     // Fog
