@@ -12,12 +12,8 @@ WorldRenderer::WorldRenderer(Context &context): _ctx(context)
 {
     chunk_vao = createVAO(0, "i");
 
-    glCreateBuffers(1, &draw_command_buffer);
-    const int max_commands = 5'000;
-    glNamedBufferStorage(draw_command_buffer, sizeof(DrawElementsIndirectCommand) * max_commands, nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-    glCreateBuffers(1, &ssbo_chunk_positions);
-    glNamedBufferStorage(ssbo_chunk_positions, sizeof(GLfloat)*4 * max_commands, nullptr, GL_DYNAMIC_STORAGE_BIT);
+    draw_command_buffer = createBufferStorage(nullptr, sizeof(DrawElementsIndirectCommand) * MAX_COMMANDS, GL_DYNAMIC_STORAGE_BIT);
+    ssbo_chunk_positions = createBufferStorage(nullptr, sizeof(GLfloat)*4 * MAX_COMMANDS, GL_DYNAMIC_STORAGE_BIT);
 
     cube_shader.use();
     cube_shader.setInt("shadowMap", 0);

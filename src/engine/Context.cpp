@@ -48,7 +48,6 @@ Context::Context(int width, int height, const char *title, int maximized, int sa
         abort();
     }
 
-
     if (!glfwInit()) {
         std::cout << "Failed to initialize GLFW!" << std::endl;
         return;
