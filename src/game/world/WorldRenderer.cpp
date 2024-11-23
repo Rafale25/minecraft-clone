@@ -13,7 +13,7 @@ WorldRenderer::WorldRenderer(Context &context): _ctx(context)
     chunk_vao = createVAO(0, "i");
 
     glCreateBuffers(1, &draw_command_buffer);
-    const int max_commands = 100'000;
+    const int max_commands = 5'000;
     glNamedBufferStorage(draw_command_buffer, sizeof(DrawElementsIndirectCommand) * max_commands, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
     glCreateBuffers(1, &ssbo_chunk_positions);
@@ -69,7 +69,7 @@ void WorldRenderer::renderTerrain(const Program& program, const Camera &camera, 
     program.setMat4("u_projectionMatrix", camera.getProjection());
     program.setMat4("u_viewMatrix", camera.getView());
     program.setVec3("u_view_position", camera.getPosition());
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_texture_handles);
+    // glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_texture_handles);
 
     Frustum camera_frustum = createFrustumFromCamera(camera, camera.aspect_ratio, glm::radians(camera.fov), camera.near_plane, camera.far_plane);
 
@@ -113,6 +113,8 @@ void WorldRenderer::renderTerrain(const Program& program, const Camera &camera, 
 
     glNamedBufferSubData(ssbo_chunk_positions, 0, sizeof(GLfloat) * 4 * chunk_positions.size(), (const void *)chunk_positions.data());
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo_chunk_positions);
+
+    // glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_texture_handles);
 
     // printf("commands %d\n", commands.size());
     // for (DrawElementsIndirectCommand &cmd : commands) {

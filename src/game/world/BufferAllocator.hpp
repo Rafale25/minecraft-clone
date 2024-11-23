@@ -6,8 +6,8 @@
 #include <stack>
 
 typedef struct {
-    int32_t start; // startByte;
-    int32_t size; // sizeBytes;
+    int32_t start; // bytes;
+    int32_t size; // bytes;
     int32_t id;
 } BufferSlot;
 
@@ -21,14 +21,13 @@ typedef struct {
     uint32_t baseInstance;
 } DrawElementsIndirectCommand;
 
-// static const int BUFFER_SIZE = 5e8; // 500 mb
-// static const int MAX_DRAW_COMMANDS = 50'000;
+// NOTE: Crash when max size exceed int32_t max
+static constexpr uint64_t MAX_BUFFER_SIZE = 20e8; // 2000 mb
 
 class BufferAllocator {
 public:
     BufferAllocator(const char* name, uint32_t slot_size, uint32_t max_slots);
 
-    // size in bytes
     BufferSlot allocate(uint32_t size, const void * data);
     void deallocate(int id);
     BufferSlot updateAllocation(uint32_t id, uint32_t size, const void * data);
@@ -37,8 +36,8 @@ public:
 
 private:
     const char *_name;
-    uint32_t _slot_size;
-    uint32_t _max_slots;
+    size_t _slot_size;
+    size_t _max_slots;
 
     GLuint _buffer;
 

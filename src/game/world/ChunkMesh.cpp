@@ -284,8 +284,6 @@ void ChunkMesh::computeVertexBuffer(const Chunk* chunk)
     }
     }
     }
-
-    // indices_count = ebo.size();
 }
 
 void ChunkMesh::updateVAO(BufferAllocator& buffer_allocator_vertices, BufferAllocator& buffer_allocator_indices, const BufferSlot& previous_slot_vertices, const BufferSlot& previous_slot_indices)

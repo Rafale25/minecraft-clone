@@ -4,14 +4,23 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
+
+#define PRINT_ERRORS
 
 BufferAllocator::BufferAllocator(const char* name, uint32_t slot_size, uint32_t max_slots): _name(name), _slot_size(slot_size), _max_slots(max_slots) {
     printf("Slotsize: %d\n", slot_size);
+    printf("MAxSlot: %d\n", max_slots);
 
     glCreateBuffers(1, &_buffer);
-    const uint buffer_size = slot_size * max_slots;
+    const uint64_t buffer_size = slot_size * max_slots;
 
-    printf("Buffer size: %d\n", buffer_size);
+    if (buffer_size > MAX_BUFFER_SIZE) {
+        fprintf(stderr, "Error BufferAllocator: %s - Trying to allocated %lu which is more than the maximum of %lu\n", name, buffer_size, MAX_BUFFER_SIZE);
+        abort();
+    }
+
+    printf("Buffer size: %ld\n", buffer_size);
 
     glNamedBufferStorage(_buffer, buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
@@ -23,23 +32,35 @@ BufferAllocator::BufferAllocator(const char* name, uint32_t slot_size, uint32_t 
 
 BufferSlot BufferAllocator::allocate(uint32_t size, const void * data) {
     if (size == 0) {
-        // printf("Error: %s - Trying to allocate size of 0!\n", _name);
+        #ifdef PRINT_ERRORS
+        fprintf(stderr, "Error: %s - Trying to allocate size of 0!\n", _name);
+        #endif
+
         return invalid_buffer_slot;
     }
 
     if (size > _slot_size) {
-        printf("Error: %s - Allocate size demanded %d is higher than maximum slot size of %d\n", _name, size, _slot_size);
+        #ifdef PRINT_ERRORS
+        fprintf(stderr, "Error: %s - Allocate size demanded %d is higher than maximum slot size of %ld\n", _name, size, _slot_size);
+        exit(0);
+        #endif
+
         return invalid_buffer_slot;
     }
     if (_free_slots.size() <= 0) {
-        // printf("Error: %s - No free slot in buffer\n", _name);
+        #ifdef PRINT_ERRORS
+        fprintf(stderr, "Error: %s - No free slot in buffer\n", _name);
+        #endif
+
         return invalid_buffer_slot;
     }
 
-    // printf("Info: %s - Allocating %d\n", _name, size);
-
     uint32_t id = _free_slots.top();
     _free_slots.pop();
+
+    #ifdef PRINT_ERRORS
+    // printf("Info: %s - Allocating %d - ID %d == %ld\n", _name, size, id, id * _slot_size + size);
+    #endif
 
     BufferSlot b = {
         .start = (int) (id * _slot_size),
@@ -59,12 +80,16 @@ BufferSlot BufferAllocator::allocate(uint32_t size, const void * data) {
 
 BufferSlot BufferAllocator::updateAllocation(uint32_t id, uint32_t size, const void *data) {
     if (size == 0) {
-        // printf("Error: %s - Trying to allocate size of 0!\n", _name);
+        #ifdef PRINT_ERRORS
+        fprintf(stderr, "Error: %s - Trying to allocate size of 0!\n", _name);
+        #endif
         return invalid_buffer_slot;
     }
 
     if (size > _slot_size) {
-        // printf("Error: %s - Allocate size demanded %d is higher than maximum slot size of %d!\n", _name, size, _slot_size);
+        #ifdef PRINT_ERRORS
+        fprintf(stderr, "Error: %s - Allocate size demanded %d is higher than maximum slot size of %ld!\n", _name, size, _slot_size);
+        #endif
         return invalid_buffer_slot;
     }
 
@@ -86,7 +111,9 @@ BufferSlot BufferAllocator::updateAllocation(uint32_t id, uint32_t size, const v
 
 void BufferAllocator::deallocate(int id) {
     if (id == -1) {
+        #ifdef PRINT_ERRORS
         printf("Error: %s - Tried to deallocated indalid id %d!\n", _name, id);
+        #endif
         return;
     }
     _free_slots.push(id);
