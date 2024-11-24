@@ -89,7 +89,7 @@ Context::Context(int width, int height, const char *title, int maximized, int sa
     }
 
     // During init, enable debug output
-    glEnable              ( GL_DEBUG_OUTPUT );
+    // glEnable              ( GL_DEBUG_OUTPUT );
     glDebugMessageCallback( MessageCallback, 0 );
 
     imguiInit();

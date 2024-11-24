@@ -102,8 +102,9 @@ float calcExpFogFactor()
 
 void main()
 {
+    vec4 color = texture(sampler2D(texture_handles[0]), fs_in.uv).rgba;
     // vec4 color = texture(sampler2D(texture_handles[fs_in.texture_id]), fs_in.uv).rgba;
-    vec4 color = vec4(0.1, 0.8, 0.2, 1.0);
+    // vec4 color = vec4(0.1, 0.8, 0.2, 1.0);
     vec3 normal = orientation_normal_table[fs_in.orientation];
     vec3 lightColor = vec3(255.0, 244.0, 196.0) / 255.0;
 

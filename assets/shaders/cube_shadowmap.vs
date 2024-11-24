@@ -3,6 +3,10 @@
 
 layout (location = 0) in int a_packedVertex;
 
+layout(binding = 1, std430) readonly buffer ssbo_chunk_positions {
+    vec4 chunk_positions[];
+};
+
 out VS_OUT {
     out vec2 uv;
     flat uint texture_id;
@@ -22,9 +26,10 @@ void main()
     uint a_texture_id =    ((a_packedVertex >> 20) & 255);
 
     ivec3 a_position = ivec3(a_x, a_y, a_z);
+
     ivec2 a_uv = ivec2(a_u, a_v);
 
-    vec3 world_pos = u_chunkPos + a_position;
+    vec3 world_pos = chunk_positions[gl_DrawID].xyz + a_position;
     vec4 position = u_lightSpaceMatrix * vec4(world_pos, 1.0);
 
     vs_out.uv = a_uv;
