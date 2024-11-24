@@ -34,7 +34,6 @@ struct ChunkExtra
         // memset(chunkextra_test.blocks, 0, 18*18*18);
 
         const std::shared_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
-        // const std::lock_guard<std::shared_mutex> lock(World::instance().chunks_mutex);
 
         // GOOD DATA //
         // for (int z = 0 ; z < 18 ; ++z) {

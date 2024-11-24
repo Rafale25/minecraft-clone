@@ -14,8 +14,6 @@
 
 #include "clock.h"
 
-
-
 GameView::GameView(Context& ctx): View(ctx)
 {
     glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -57,9 +55,36 @@ void GameView::onUpdate(double time_since_start, float dt)
         network_timer = 1.0f / 20.0f;
         networkUpdate();
     }
+
+    {
+        const std::unique_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
+
+        std::vector<glm::ivec3> pos_to_delete;
+
+        auto& world_chunks = World::instance().chunks;
+        for (const auto& [pos, chunk] : world_chunks ) {
+            if (glm::distance(camera.getPosition(), glm::vec3(chunk->pos) * 16.0f) > world_renderer.chunk_view_distance) {
+                pos_to_delete.push_back(pos);
+            }
+        }
+
+        for (const auto &pos : pos_to_delete) {
+            // printf("delete pos %d %d %d\n", pos.x, pos.y, pos.z);
+            Chunk* chunk = world_chunks.at(pos);
+            if (chunk == nullptr) continue;
+
+            if (chunk->mesh.slot_vertices.id != -1)
+                world_renderer.buffer_allocator_vertices.deallocate(chunk->mesh.slot_vertices.id);
+            if (chunk->mesh.slot_indices.id != -1)
+                world_renderer.buffer_allocator_indices.deallocate(chunk->mesh.slot_indices.id);
+
+            world_chunks.erase(pos);
+            delete chunk;
+        }
+    }
 }
 
-void GameView::update3x3Chunks(const glm::ivec3& chunk_pos)
+void GameView::update3x3Chunks(const glm::ivec3& center_chunk_pos)
 {
     // constexpr glm::ivec3 offsets[] = { {0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} }; // center + adjacents
     // constexpr glm::ivec3 offsets[] = { {0, 0, 0} }; // center
@@ -69,20 +94,19 @@ void GameView::update3x3Chunks(const glm::ivec3& chunk_pos)
     for (int x = -1 ; x <= 1; ++x) {
     // for (const glm::ivec3 &offset: offsets) {
         const glm::ivec3 offset = {x, y, z};
-        if (Chunk* neighbor_chunk = World::instance().getChunk(chunk_pos + offset)) {
+        const glm::ivec3 chunk_pos = center_chunk_pos + offset;
+        if (Chunk* chunk = World::instance().getChunk(chunk_pos)) {
 
-            ChunkMesh new_chunk_mesh;
-            new_chunk_mesh.computeVertexBuffer(neighbor_chunk);
+            ChunkMesh new_chunk_mesh = {};
+            new_chunk_mesh.computeVertexBuffer(chunk);
 
-            main_task_queue.push_safe([&, neighbor_chunk, new_chunk_mesh]() mutable {
-                auto old_mesh = neighbor_chunk->mesh;
+            main_task_queue.push_safe([this, chunk_pos, new_chunk_mesh]() mutable {
+                Chunk* c = World::instance().getChunk(chunk_pos);
+                if (c == nullptr) return;
+
+                auto old_mesh = c->mesh;
                 new_chunk_mesh.updateVAO(world_renderer.buffer_allocator_vertices, world_renderer.buffer_allocator_indices, old_mesh.slot_vertices, old_mesh.slot_indices);
-                neighbor_chunk->mesh = new_chunk_mesh;
-
-                // if (old_mesh.slot_vertices.id != -1)
-                //     world_renderer.buffer_allocator_vertices.deallocate(old_mesh.slot_vertices.id);
-                // if (old_mesh.slot_indices.id != -1)
-                //     world_renderer.buffer_allocator_indices.deallocate(old_mesh.slot_indices.id);
+                c->mesh = new_chunk_mesh;
             });
         }
     }

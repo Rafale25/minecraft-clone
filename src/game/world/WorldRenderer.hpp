@@ -50,9 +50,10 @@ public:
 
     Mesh skybox_quad = Geometry::quad_2d();
 
-    const uint32_t MAX_COMMANDS = 5'000;
-    BufferAllocator buffer_allocator_vertices{"BufferAllocatorVertice", 20'000 * sizeof(int), MAX_COMMANDS};
-    BufferAllocator buffer_allocator_indices{"BufferAllocatorIndices", 20'000 * sizeof(int), MAX_COMMANDS};
+    const float chunk_view_distance = 16.0f * 16.0f + 64.0f;
+    const uint32_t MAX_COMMANDS = 10'000;
+    BufferAllocator buffer_allocator_vertices{"BufferAllocatorVertice", 22'000 * sizeof(int), MAX_COMMANDS};
+    BufferAllocator buffer_allocator_indices{"BufferAllocatorIndices", 22'000 * sizeof(int), MAX_COMMANDS};
 
     GLuint chunk_vao;
     GLuint draw_command_buffer;

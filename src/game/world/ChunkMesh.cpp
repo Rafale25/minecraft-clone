@@ -288,7 +288,14 @@ void ChunkMesh::computeVertexBuffer(const Chunk* chunk)
 
 void ChunkMesh::updateVAO(BufferAllocator& buffer_allocator_vertices, BufferAllocator& buffer_allocator_indices, const BufferSlot& previous_slot_vertices, const BufferSlot& previous_slot_indices)
 {
-    if (vertices.size() == 0 || ebo.size() == 0) return;
+    if (vertices.size() == 0 || ebo.size() == 0) {
+        if (previous_slot_vertices.id != -1)
+            buffer_allocator_vertices.deallocate(previous_slot_vertices.id);
+        if (previous_slot_indices.id != -1)
+            buffer_allocator_indices.deallocate(previous_slot_indices.id);
+
+        return;
+    }
 
     if (previous_slot_vertices.id == -1) {
         slot_vertices = buffer_allocator_vertices.allocate(vertices.size() * sizeof(GLuint), &vertices[0]);
