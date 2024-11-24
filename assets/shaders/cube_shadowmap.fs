@@ -12,10 +12,9 @@ in VS_OUT {
 
 void main()
 {
-    // vec4 color = texture(sampler2D(texture_handles[fs_in.texture_id]), fs_in.uv).rgba;
-    // vec4 color = texture(sampler2D(texture_handles[0]), fs_in.uv).rgba;
+    vec4 color = texture(sampler2D(texture_handles[fs_in.texture_id]), fs_in.uv).rgba;
 
-    // if (color.a < 0.65) { // magic value
-    //     discard;
-    // }
+    if (color.a < 0.65) { // magic value
+        discard;
+    }
 }
