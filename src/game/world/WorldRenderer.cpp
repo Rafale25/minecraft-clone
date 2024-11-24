@@ -19,7 +19,7 @@ WorldRenderer::WorldRenderer(Context &context): _ctx(context)
     cube_shader.setInt("shadowMap", 0);
 
     BlockTextureManager::loadAllTextures();
-    ssbo_texture_handles = createBufferStorage(&BlockTextureManager::Get().textures_handles[0], BlockTextureManager::Get().textures_handles.size() * sizeof(GLuint64));
+    ssbo_texture_handles = createBufferStorage(BlockTextureManager::Get().textures_handles.data(), BlockTextureManager::Get().textures_handles.size() * sizeof(GLuint64));
 }
 
 void WorldRenderer::setDefaultRenderState()
@@ -76,8 +76,6 @@ void WorldRenderer::renderTerrain(const Program& program, const Camera &camera, 
 
     const std::shared_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
 
-    program.setVec3("u_chunkPos", {0.0f, 0.0f, 0.0f});
-
     for (const auto& [key, chunk] : World::instance().chunks)
     {
         if (chunk->mesh.slot_vertices.id == -1) continue;
@@ -108,9 +106,8 @@ void WorldRenderer::renderTerrain(const Program& program, const Camera &camera, 
     glNamedBufferSubData(draw_command_buffer, 0, sizeof(DrawElementsIndirectCommand) * commands.size(), (const void *)commands.data());
 
     glNamedBufferSubData(ssbo_chunk_positions, 0, sizeof(GLfloat) * 4 * chunk_positions.size(), (const void *)chunk_positions.data());
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_texture_handles);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo_chunk_positions);
-
-    // glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_texture_handles);
 
     // printf("commands %d\n", commands.size());
     // for (DrawElementsIndirectCommand &cmd : commands) {

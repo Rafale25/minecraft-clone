@@ -3,7 +3,7 @@
 
 float rand(vec2 co){ return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453); }
 
-layout(binding = 0, std430) readonly buffer ssbo_texture_handles {
+layout(std430, binding = 0) readonly buffer ssbo_texture_handles {
     sampler2D texture_handles[];
 };
 

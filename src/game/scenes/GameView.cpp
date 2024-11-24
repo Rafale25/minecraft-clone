@@ -159,9 +159,9 @@ void GameView::gui(float dt)
 {
     // ImGui::ShowDemoWindow();
 
-    // ImGui::Begin("Shadow map");
-    // ImGui::Image((ImTextureID)(intptr_t)shadowmap._depthTexture->_texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
-    // ImGui::End();
+    ImGui::Begin("Shadow map");
+    ImGui::Image((ImTextureID)(intptr_t) world_renderer.shadowmap._depthTexture._texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
+    ImGui::End();
 
     ImGui::Begin("Debug");
 
