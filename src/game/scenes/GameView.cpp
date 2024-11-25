@@ -103,7 +103,7 @@ void GameView::update3x3Chunks(const glm::ivec3& center_chunk_pos)
             ChunkMesh new_chunk_mesh = {};
             new_chunk_mesh.computeVertexBuffer(chunk);
 
-            main_task_queue.push_safe([this, chunk_pos, new_mesh = (new_chunk_mesh)]() mutable {
+            main_task_queue.push_safe([this, chunk_pos, new_mesh = std::move(new_chunk_mesh)]() mutable {
                 Chunk* c = World::instance().getChunk(chunk_pos);
                 if (c == nullptr) return;
 
