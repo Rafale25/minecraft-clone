@@ -42,7 +42,6 @@ BufferSlot BufferAllocator::allocate(uint32_t size, const void * data) {
     if (size > _slot_size) {
         #ifdef PRINT_ERRORS
         fprintf(stderr, "Error: %s - Allocate size demanded %d is higher than maximum slot size of %ld\n", _name, size, _slot_size);
-        exit(0);
         #endif
 
         return invalid_buffer_slot;

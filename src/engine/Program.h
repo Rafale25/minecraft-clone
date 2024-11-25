@@ -79,12 +79,18 @@ public:
             glCompileShader(geometry);
             checkCompileErrors(geometry, "GEOMETRY");
         }
+
         // shader Program
         ID = glCreateProgram();
         glAttachShader(ID, vertex);
         glAttachShader(ID, fragment);
         if (geometryPath != nullptr)
             glAttachShader(ID, geometry);
+
+        // Call this line to prevent this OpenGL warning : Program/shader state performance warning: Vertex shader in program <n> is being recompiled based on GL state
+        // https://stackoverflow.com/questions/57454921/what-causes-glsl-recompilation-of-vertex-shader-based-on-state
+        glEnableVertexAttribArray(0);
+
         glLinkProgram(ID);
         checkCompileErrors(ID, "PROGRAM");
         // delete the shaders as they're linked into our program now and no longer necessery

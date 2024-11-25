@@ -95,18 +95,21 @@ void GameView::update3x3Chunks(const glm::ivec3& center_chunk_pos)
     // for (const glm::ivec3 &offset: offsets) {
         const glm::ivec3 offset = {x, y, z};
         const glm::ivec3 chunk_pos = center_chunk_pos + offset;
+
+        const std::unique_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
+
         if (Chunk* chunk = World::instance().getChunk(chunk_pos)) {
 
             ChunkMesh new_chunk_mesh = {};
             new_chunk_mesh.computeVertexBuffer(chunk);
 
-            main_task_queue.push_safe([this, chunk_pos, new_chunk_mesh]() mutable {
+            main_task_queue.push_safe([this, chunk_pos, new_mesh = (new_chunk_mesh)]() mutable {
                 Chunk* c = World::instance().getChunk(chunk_pos);
                 if (c == nullptr) return;
 
                 auto old_mesh = c->mesh;
-                new_chunk_mesh.updateVAO(world_renderer.buffer_allocator_vertices, world_renderer.buffer_allocator_indices, old_mesh.slot_vertices, old_mesh.slot_indices);
-                c->mesh = new_chunk_mesh;
+                new_mesh.updateVAO(world_renderer.buffer_allocator_vertices, world_renderer.buffer_allocator_indices, old_mesh.slot_vertices, old_mesh.slot_indices);
+                c->mesh = new_mesh;
             });
         }
     }
