@@ -96,7 +96,7 @@ void GameView::update3x3Chunks(const glm::ivec3& center_chunk_pos)
         const glm::ivec3 offset = {x, y, z};
         const glm::ivec3 chunk_pos = center_chunk_pos + offset;
 
-        const std::unique_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
+        // const std::unique_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
 
         if (Chunk* chunk = World::instance().getChunk(chunk_pos)) {
 
