@@ -32,12 +32,14 @@ public:
     void deallocate(int id);
     BufferSlot updateAllocation(uint32_t id, uint32_t size, const void * data);
 
-    GLuint getBufferObject();
+    GLuint getBufferObject() const { return _buffer; };
+    int getFreeSlotsCount() const { return _free_slots.size(); };
+    int getMaxSlotsCount() const { return _max_slots; };
 
 private:
     const char *_name;
-    size_t _slot_size;
-    size_t _max_slots;
+    const size_t _slot_size;
+    const size_t _max_slots;
 
     GLuint _buffer;
 

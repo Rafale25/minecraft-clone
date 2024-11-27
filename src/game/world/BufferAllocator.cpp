@@ -117,7 +117,3 @@ void BufferAllocator::deallocate(int id) {
     }
     _free_slots.push(id);
 }
-
-GLuint BufferAllocator::getBufferObject() {
-    return _buffer;
-}
