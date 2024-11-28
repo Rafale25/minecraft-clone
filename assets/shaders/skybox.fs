@@ -31,10 +31,9 @@ void main()
     vec2 uv = (gl_FragCoord.xy - 0.5*u_resolution.xy) / u_resolution.y;
     vec3 ray = normalize((inverse(mat4(mat3(u_view))) * vec4(uv.x, uv.y, -0.87, 1.0)).xyz); // why 0.87 ???
 
-    // float fov_y_scale = tan(radians(60.0) / 2.0);//radians(60.0);
-    // vec3 ray = vec3(uv.x*fov_y_scale, uv.y*fov_y_scale, 0.87) * mat3(u_view);
-    // vec3 rayOrigin = -(u_view_matrix[3].xyz)*mat3(u_view_matrix);
-
+    // http://blog.hvidtfeldts.net/index.php/2014/01/combining-ray-tracing-and-polygons/
+    // float fov_y_scale = tan(radians(60.0) / 2.0); //radians(60.0);
+    // vec3 ray = vec3(uv.x*fov_y_scale, uv.y*fov_y_scale, -1.0) * mat3(u_view);
 
     vec3 tint = vec3(1);
     if ( ground && ray.y < .0 )
