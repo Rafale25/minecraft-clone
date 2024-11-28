@@ -142,9 +142,8 @@ void WorldRenderer::renderSkybox(const Camera &camera)
 {
     glDisable(GL_DEPTH_TEST);
     skybox_shader.use();
-    glm::mat4 view_rotation = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), -camera.forward(), glm::vec3(0.0f, 1.0f, 0.0f)); // wtf
     skybox_shader.setVec2("u_resolution", glm::vec2(_ctx.width, _ctx.height));
-    skybox_shader.setMat4("u_view", view_rotation);
+    skybox_shader.setMat4("u_view", camera.getView());
     skybox_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
     skybox_quad.draw();
     glEnable(GL_DEPTH_TEST);
