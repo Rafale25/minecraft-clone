@@ -14,6 +14,15 @@
 
 #include "clock.h"
 
+/*
+    HOW TO FIX CONCURRENT BUGS :
+
+        - Make that the chunks list can only be modified by the main thread at a specific moment
+        - Make that threads can't write to the chunk list, only read
+        - Need a second "concurrent" vector list for threads to write to
+
+*/
+
 GameView::GameView(Context& ctx): View(ctx)
 {
     glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -56,31 +65,36 @@ void GameView::onUpdate(double time_since_start, float dt)
         networkUpdate();
     }
 
-    {
-        const std::unique_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
+    deleteFarChunks();
+}
 
-        std::vector<glm::ivec3> pos_to_delete;
+void GameView::deleteFarChunks()
+{
+    const std::unique_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
 
-        auto& world_chunks = World::instance().chunks;
-        for (const auto& [pos, chunk] : world_chunks ) {
-            if (glm::distance(camera.getPosition(), glm::vec3(chunk->pos) * 16.0f) > world_renderer.chunk_view_distance) {
-                pos_to_delete.push_back(pos);
-            }
+    std::vector<glm::ivec3> pos_to_delete;
+
+    auto& world_chunks = World::instance().chunks;
+    for (const auto& [pos, chunk] : world_chunks ) {
+        if (glm::distance(camera.getPosition(), glm::vec3(chunk->pos) * 16.0f) > world_renderer.chunk_view_distance) {
+            pos_to_delete.push_back(pos);
         }
+    }
 
-        for (const auto &pos : pos_to_delete) {
-            // printf("delete pos %d %d %d\n", pos.x, pos.y, pos.z);
-            Chunk* chunk = world_chunks.at(pos);
-            if (chunk == nullptr) continue;
+    for (const auto &pos : pos_to_delete) {
+        // printf("delete pos %d %d %d\n", pos.x, pos.y, pos.z);
+        Chunk* chunk = world_chunks.at(pos);
+        if (chunk == nullptr) continue;
+        if (chunk->mesh.slot_vertices.id == -1) continue;
+        if (chunk->mesh.slot_indices.id == -1) continue;
 
-            if (chunk->mesh.slot_vertices.id != -1)
-                world_renderer.buffer_allocator_vertices.deallocate(chunk->mesh.slot_vertices.id);
-            if (chunk->mesh.slot_indices.id != -1)
-                world_renderer.buffer_allocator_indices.deallocate(chunk->mesh.slot_indices.id);
+        if (chunk->mesh.slot_vertices.id != -1)
+            world_renderer.buffer_allocator_vertices.deallocate(chunk->mesh.slot_vertices.id);
+        if (chunk->mesh.slot_indices.id != -1)
+            world_renderer.buffer_allocator_indices.deallocate(chunk->mesh.slot_indices.id);
 
-            world_chunks.erase(pos);
-            delete chunk;
-        }
+        world_chunks.erase(pos);
+        delete chunk;
     }
 }
 
@@ -186,15 +200,18 @@ void GameView::gui(float dt)
 {
     // ImGui::ShowDemoWindow();
 
-    ImGui::Begin("Shadow map");
-    ImGui::Image((ImTextureID)(intptr_t) world_renderer.shadowmap._depthTexture._texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
-    ImGui::End();
+    // ImGui::Begin("Shadow map");
+    // ImGui::Image((ImTextureID)(intptr_t) world_renderer.shadowmap._depthTexture._texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
+    // ImGui::End();
 
     ImGui::Begin("Debug");
 
     ImGui::Text("%s", SimpleProfiler::instance().dump().c_str());
 
     ImGui::Text("RAM: %.3f / %.3f Go", ((double)getCurrentRSS()) / (1024*1024*1024), ((double)getPeakRSS()) / (1024*1024*1024));
+
+    ImGui::Text("BufferVertices: %d / %d", world_renderer.buffer_allocator_vertices.getFreeSlotsCount(), world_renderer.buffer_allocator_vertices.getMaxSlotsCount());
+    ImGui::Text("BufferIndices: %d / %d", world_renderer.buffer_allocator_indices.getFreeSlotsCount(), world_renderer.buffer_allocator_indices.getMaxSlotsCount());
 
     ImGui::Text("New chunks: %ld", Client::instance().new_chunks.size());
     ImGui::Text("Thread pool tasks %ld", thread_pool._task_queue.size());
