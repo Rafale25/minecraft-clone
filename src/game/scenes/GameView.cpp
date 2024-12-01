@@ -21,6 +21,34 @@
         - Make that threads can't write to the chunk list, only read
         - Need a second "concurrent" vector list for threads to write to
 
+
+current:
+    chunks
+
+    client write to chunks (write)
+
+    main_thread dispatch
+        works to do on chunks inside chunks_buffer (write)
+
+    poolthread get neighbours chunks (read)
+    poolthread create VBO of chunk inside chunks (write)
+
+    main_thread delete from chunks (write)
+
+    main_thread draw chunks (read)
+
+new idea:
+
+    chunks
+    chunks_buffer
+
+    client -> chunks_buffer
+
+    main_thread dispatch
+        works to do on chunks inside chunks_buffer
+
+    main_thread move chunks from chunks_buffer to chunks
+
 */
 
 GameView::GameView(Context& ctx): View(ctx)
@@ -52,7 +80,9 @@ void GameView::onUpdate(double time_since_start, float dt)
     if (!_cursor_enabled) camera.move(delta);
     camera.update(dt);
 
-    consumeTaskQueue();
+    Client::instance().task_queue.execute();
+    main_task_queue.execute();
+
     consumeNewChunks();
 
     World::instance().updateEntities();
@@ -70,7 +100,7 @@ void GameView::onUpdate(double time_since_start, float dt)
 
 void GameView::deleteFarChunks()
 {
-    const std::unique_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
+    const std::lock_guard<std::shared_mutex> lock(World::instance().chunks_mutex);
 
     std::vector<glm::ivec3> pos_to_delete;
 
@@ -110,7 +140,7 @@ void GameView::update3x3Chunks(const glm::ivec3& center_chunk_pos)
         const glm::ivec3 offset = {x, y, z};
         const glm::ivec3 chunk_pos = center_chunk_pos + offset;
 
-        // const std::unique_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
+        // const std::lock_guard<std::shared_mutex> lock(World::instance().chunks_mutex);
 
         if (Chunk* chunk = World::instance().getChunk(chunk_pos)) {
 
@@ -133,8 +163,6 @@ void GameView::update3x3Chunks(const glm::ivec3& center_chunk_pos)
 
 void GameView::consumeNewChunks()
 {
-    main_task_queue.execute();
-
     const std::lock_guard<std::mutex> lock(Client::instance().new_chunks_mutex);
 
     // NOTE: the chunks are sent to be queued before having the chance to be sorted by distance (the solution is to sort the chunks on the server)
@@ -165,20 +193,8 @@ void GameView::consumeNewChunks()
     }
 }
 
-void GameView::consumeTaskQueue()
-{
-    const std::lock_guard<std::mutex> lock(Client::instance().task_queue_mutex);
-
-    for (auto &task: Client::instance().task_queue) {
-        task();
-    }
-    Client::instance().task_queue.clear();
-}
-
 void GameView::networkUpdate()
 {
-    if (Client::instance().client_id == -1) return;
-
     glm::vec3 pos = camera.getPosition();
     float yaw = camera.getYaw();
     float pitch = camera.getPitch();
