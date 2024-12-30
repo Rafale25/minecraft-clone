@@ -1,5 +1,10 @@
-# ./build/Minecraft_Clone "127.0.0.1"
-./build/Minecraft_Clone "162.19.137.231" 16
+envParams='__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia DRI_PRIME=1'
+ipAddress='162.19.137.231'
+renderDistance='16'
+programPath='./build/Minecraft_Clone'
+
+bash -c "$envParams $programPath $ipAddress $renderDistance"
+
 # sudo perf record -g ./build/Minecraft_Clone "162.19.137.231"
 # gdb ./build/Minecraft_Clone
 # valgrind --leak-check=full \
