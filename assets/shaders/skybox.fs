@@ -1,14 +1,17 @@
 #version 460 core
 
-#define ground true
+#define GROUND true
 
 out vec4 FragColor;
 
 uniform vec2 u_resolution;
 uniform mat4 u_view;
+uniform mat4 u_projection;
+uniform float u_FOV;
 
 uniform float u_sunDotAngle;
 
+// https://www.shadertoy.com/view/4ljBRy
 // quick and pretty sky colour
 vec3 SkyColour(vec3 ray)
 {
@@ -25,21 +28,26 @@ vec3 SkyColourMorning(vec3 ray)
    return exp2(-ray.y/vec3(.1,.2,.8))*vec3(1,.75,.5); // dusk
 }
 
-// https://www.shadertoy.com/view/4ljBRy
+vec3 skyray(vec2 uv, float fieldOfView, float aspectRatio)
+{
+    float d = 0.5 / tan(fieldOfView / 2.0);
+    return vec3((uv.x - 0.5) * aspectRatio, uv.y - 0.5, -d);
+}
+
 void main()
 {
     vec2 uv = (gl_FragCoord.xy - 0.5*u_resolution.xy) / u_resolution.y;
-    vec3 ray = normalize((inverse(u_view) * vec4(uv.x, uv.y, 0.87, 1.0)).xyz); // why 0.87 ???
+    vec3 ray = mat3(inverse(u_view)) * skyray(uv + 0.5, u_FOV, u_resolution.x / u_resolution.y);
 
     vec3 tint = vec3(1);
-    if ( ground && ray.y < .0 )
+    if ( GROUND && ray.y < 0.0 )
     {
         ray.y = -ray.y;
     	tint = mix( vec3(.2), tint, pow(1.-ray.y,10.) );
     }
 
-    vec3 skyColorMorning = SkyColourMorning(ray);
-    vec3 skyColorZenit = SkyColour(ray);
+    vec3 skyColorMorning = SkyColourMorning(ray.xyz);
+    vec3 skyColorZenit = SkyColour(ray.xyz);
 
     vec3 color = mix(skyColorMorning, skyColorZenit, clamp(u_sunDotAngle, 0.0, 1.0));
     color *= tint;
