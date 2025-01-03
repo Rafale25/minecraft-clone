@@ -10,11 +10,16 @@
 
 WorldRenderer::WorldRenderer(Context &context): _ctx(context)
 {
+    chunk_vao = createVAO(0, "i");
+
+    draw_command_buffer = createBufferStorage(nullptr, sizeof(DrawElementsIndirectCommand) * MAX_COMMANDS, GL_DYNAMIC_STORAGE_BIT);
+    ssbo_chunk_positions = createBufferStorage(nullptr, sizeof(GLfloat)*4 * MAX_COMMANDS, GL_DYNAMIC_STORAGE_BIT);
+
     cube_shader.use();
     cube_shader.setInt("shadowMap", 0);
 
     BlockTextureManager::loadAllTextures();
-    ssbo_texture_handles = createBufferStorage(&BlockTextureManager::Get().textures_handles[0], BlockTextureManager::Get().textures_handles.size() * sizeof(GLuint64));
+    ssbo_texture_handles = createBufferStorage(BlockTextureManager::Get().textures_handles.data(), BlockTextureManager::Get().textures_handles.size() * sizeof(GLuint64));
 }
 
 void WorldRenderer::setDefaultRenderState()
@@ -48,7 +53,6 @@ void WorldRenderer::render(const Camera &camera)
     cube_shader.setFloat("u_shadow_bias", shadowmap._shadow_bias);
     cube_shader.setFloat("u_ambient_occlusion_enabled", _ambient_occlusion);
     cube_shader.setFloat("u_ambient_occlusion_strength", _ambient_occlusion_strength);
-    cube_shader.setBool("u_AO_squared", _AO_squared);
 
     glBindTextureUnit(0, shadowmap._depthTexture._texture);
     renderTerrain(cube_shader, camera);
@@ -61,33 +65,56 @@ void WorldRenderer::renderTerrain(const Program& program, const Camera &camera, 
     program.setMat4("u_projectionMatrix", camera.getProjection());
     program.setMat4("u_viewMatrix", camera.getView());
     program.setVec3("u_view_position", camera.getPosition());
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_texture_handles);
+    // glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_texture_handles);
 
     Frustum camera_frustum = createFrustumFromCamera(camera, camera.aspect_ratio, glm::radians(camera.fov), camera.near_plane, camera.far_plane);
 
     chunks_drawn = 0;
 
-    GLuint vao = World::instance().chunk_vao;
-    glBindVertexArray(vao);
+    std::vector<DrawElementsIndirectCommand> commands;
+    std::vector<glm::vec4> chunk_positions;
 
     const std::shared_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
 
     for (const auto& [key, chunk] : World::instance().chunks)
     {
-        if (chunk->mesh.indices_count == 0 || chunk->mesh.VBO == 0) continue;
+        if (chunk->mesh.slot_vertices.id == -1) continue;
+        if (chunk->mesh.slot_indices.id == -1) continue;
 
         if (use_frustum_culling) {
             AABB chunk_aabb = {(chunk->pos * 16), (chunk->pos * 16) + 16};
             if (!chunk_aabb.isOnFrustum(camera_frustum)) continue;
         }
 
-        program.setVec3("u_chunkPos", chunk->pos * 16);
+        chunk_positions.push_back(glm::vec4(chunk->pos * 16, 1.0f));
 
-        glVertexArrayVertexBuffer(vao, 0, chunk->mesh.VBO, 0, 1 * sizeof(GLuint));
-        glVertexArrayElementBuffer(vao, chunk->mesh.EBO);
-        glDrawElements(GL_TRIANGLES, chunk->mesh.indices_count, GL_UNSIGNED_INT, 0);
+        commands.emplace_back(
+            chunk->mesh.slot_indices.size / sizeof(GLuint),
+            1,
+            chunk->mesh.slot_indices.start / sizeof(GLuint),
+            chunk->mesh.slot_vertices.start / sizeof(GLuint),
+            0
+        );
+
         ++chunks_drawn;
     }
+    glBindVertexArray(chunk_vao);
+    glVertexArrayVertexBuffer(chunk_vao, 0, buffer_allocator_vertices.getBufferObject(), 0, 1 * sizeof(GLuint));
+    glVertexArrayElementBuffer(chunk_vao, buffer_allocator_indices.getBufferObject());
+
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, draw_command_buffer);
+    glNamedBufferSubData(draw_command_buffer, 0, sizeof(DrawElementsIndirectCommand) * commands.size(), (const void *)commands.data());
+
+    glNamedBufferSubData(ssbo_chunk_positions, 0, sizeof(GLfloat) * 4 * chunk_positions.size(), (const void *)chunk_positions.data());
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_texture_handles);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo_chunk_positions);
+
+    // printf("commands %d\n", commands.size());
+    // for (DrawElementsIndirectCommand &cmd : commands) {
+    //     printf("Cmd: %d %d %d %d %d\n", cmd.count, cmd.instanceCount, cmd.firstIndex, cmd.baseVertex, cmd.baseInstance);
+    // }
+
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (const void *)0, commands.size(), 0);
 }
 
 void WorldRenderer::renderTerrainDepth(const Camera &camera)

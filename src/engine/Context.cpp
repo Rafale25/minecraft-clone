@@ -6,9 +6,37 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-void GLFW_error(int error, const char* description)
+static void GLFW_error(int error, const char* description)
 {
     fprintf(stderr, "%s\n", description);
+}
+
+static constexpr const char * GL_ERROR_SEVERITY[] = {
+    [GL_DEBUG_SEVERITY_HIGH] = "HIGH",
+    [GL_DEBUG_SEVERITY_MEDIUM] = "MEDIUM",
+    [GL_DEBUG_SEVERITY_LOW] = "LOW",
+    [GL_DEBUG_SEVERITY_NOTIFICATION] = "INFO",
+};
+
+static constexpr const char * GL_ERROR_TYPE[] = {
+    [GL_DEBUG_TYPE_ERROR] = "ERROR",
+    [GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR] = "DEPRECATED_BEHAVIOR",
+    [GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR] = "UNDEFINED_BEHAVIOR",
+    [GL_DEBUG_TYPE_PORTABILITY] = "TYPE_PORTABILITY",
+    [GL_DEBUG_TYPE_PERFORMANCE] = "PERFORMANCE",
+    [GL_DEBUG_TYPE_PUSH_GROUP] = "PUSH_GROUP",
+    [GL_DEBUG_TYPE_POP_GROUP] = "POP_GROUP",
+    [GL_DEBUG_TYPE_OTHER] = "OTHER",
+};
+
+static void GLAPIENTRY
+MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+    // if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) return;
+
+    fprintf(stderr, "[OpenGL %s] - %s - %s\n", GL_ERROR_TYPE[type], GL_ERROR_SEVERITY[severity], message);
+    if (type == GL_DEBUG_TYPE_ERROR && severity == GL_DEBUG_SEVERITY_HIGH)
+        abort();
 }
 
 Context::Context(int width, int height, const char *title, int maximized, int samples)
@@ -61,6 +89,10 @@ Context::Context(int width, int height, const char *title, int maximized, int sa
         std::cout << "Failed to initialize OpenGL context" << std::endl;
         return;
     }
+
+    // During init, enable debug output
+    glEnable              ( GL_DEBUG_OUTPUT );
+    glDebugMessageCallback( MessageCallback, 0 );
 
     imguiInit();
 

@@ -115,8 +115,7 @@ void Client::decodePacketAddEntity(ByteBuffer buffer)
 
     auto [id, pos, yaw, pitch, name] = readAddEntityPacket(buffer);
 
-    const std::lock_guard<std::mutex> lock(client.task_queue_mutex);
-    client.task_queue.push_front([=, name=std::string(name)]() { // wtf is this syntax
+    client.task_queue.push_safe([=, name=std::string(name)]() { // wtf is this syntax
         Entity e{id};
         e.transform.position = pos;
         // e.transform.rotation.y = yaw;
@@ -131,8 +130,7 @@ void Client::decodePacketRemoveEntity(ByteBuffer buffer)
     Client& client = Client::instance();
 
     int entity_id = buffer.getInt();
-    const std::lock_guard<std::mutex> lock(client.task_queue_mutex);
-    client.task_queue.push_front([=]() {
+    client.task_queue.push_safe([=]() {
         World::instance().removeEntity(entity_id);
     });
 }
@@ -143,8 +141,7 @@ void Client::decodePacketUpdateEntity(ByteBuffer buffer)
 
     auto [entity_id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
 
-    const std::lock_guard<std::mutex> lock(client.task_queue_mutex);
-    client.task_queue.push_front([=]() {
+    client.task_queue.push_safe([=]() {
         World::instance().setEntityTransform(entity_id, pos, yaw, pitch);
     } );
 }
@@ -182,8 +179,7 @@ void Client::decodePacketEntityMetadata(ByteBuffer buffer)
 
     auto [id, name] = readUpdateEntityMetadata(buffer);
 
-    const std::lock_guard<std::mutex> lock(client.task_queue_mutex);
-    client.task_queue.push_front([=, name=std::string(name)]() { // wtf is this syntax
+    client.task_queue.push_safe([=, name=std::string(name)]() {
         World::instance().setEntityName(id, name);
     } );
 }
@@ -383,6 +379,8 @@ void Client::sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blockty
 
 void Client::sendUpdateEntityPacket(const glm::vec3& pos, float yaw, float pitch)
 {
+    if (client_id == -1) return;
+
     Packet::Client::UpdateEntity packet = {};
 
     packet.id = Packet::Client::PACKET_UPDATE_ENTITY; // update entity //

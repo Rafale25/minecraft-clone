@@ -1,7 +1,10 @@
 #version 460 core
-#extension GL_ARB_bindless_texture : require
 
 layout (location = 0) in uint a_packedVertex;
+
+layout(binding = 1, std430) readonly buffer ssbo_chunk_positions {
+    vec4 chunk_positions[];
+};
 
 out VS_OUT {
     out vec3 frag_pos;
@@ -14,7 +17,6 @@ out VS_OUT {
 
 uniform mat4 u_projectionMatrix;
 uniform mat4 u_viewMatrix;
-uniform vec3 u_chunkPos;
 uniform mat4 u_lightSpaceMatrix;
 
 void main()
@@ -31,7 +33,7 @@ void main()
     ivec3 a_position = ivec3(a_x, a_y, a_z);
     ivec2 a_uv = ivec2(a_u, a_v);
 
-    vec3 world_pos = u_chunkPos + a_position;
+    vec3 world_pos = chunk_positions[gl_DrawID].xyz + a_position;
     vec4 position = u_projectionMatrix * u_viewMatrix * vec4(world_pos, 1.0);
 
     vs_out.FragPosLightSpace = u_lightSpaceMatrix * vec4(world_pos, 1.0);

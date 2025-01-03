@@ -14,34 +14,42 @@
 
 #include "clock.h"
 
-static void update3x3Chunks(const glm::ivec3& chunk_pos, TaskQueue& main_task_queue)
-{
-    // constexpr glm::ivec3 offsets[] = { {0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} }; // center + adjacents
+/*
+    HOW TO FIX CONCURRENT BUGS :
 
-    for (int z = -1 ; z <= 1; ++z) {
-    for (int y = -1 ; y <= 1; ++y) {
-    for (int x = -1 ; x <= 1; ++x) {
-        const glm::ivec3 offset = {x, y, z};
-    // for (const glm::ivec3 &offset: offsets) {
-        if (Chunk* neighbor_chunk = World::instance().getChunk(chunk_pos + offset)) {
+        - Make that the chunks list can only be modified by the main thread at a specific moment
+        - Make that threads can't write to the chunk list, only read
+        - Need a second "concurrent" vector list for threads to write to
 
-            ChunkMesh new_chunk_mesh;
-            new_chunk_mesh.computeVertexBuffer(neighbor_chunk);
 
-            main_task_queue.push_safe([neighbor_chunk, new_chunk_mesh]() mutable {
-                new_chunk_mesh.updateVAO();
+current:
+    chunks
 
-                auto old_mesh = neighbor_chunk->mesh;
-                neighbor_chunk->mesh = new_chunk_mesh;
+    client write to chunks (write)
 
-                old_mesh.deleteAll();  // need this after, because if before the assignation its a potential race condition (could cause a segfault is the render try to use the variable)
-            });
-        }
-    // }
-    }
-    }
-    }
-}
+    main_thread dispatch
+        works to do on chunks inside chunks_buffer (write)
+
+    poolthread get neighbours chunks (read)
+    poolthread create VBO of chunk inside chunks (write)
+
+    main_thread delete from chunks (write)
+
+    main_thread draw chunks (read)
+
+new idea:
+
+    chunks
+    chunks_buffer
+
+    client -> chunks_buffer
+
+    main_thread dispatch
+        works to do on chunks inside chunks_buffer
+
+    main_thread move chunks from chunks_buffer to chunks
+
+*/
 
 GameView::GameView(Context& ctx): View(ctx)
 {
@@ -72,7 +80,9 @@ void GameView::onUpdate(double time_since_start, float dt)
     if (!_cursor_enabled) camera.move(delta);
     camera.update(dt);
 
-    consumeTaskQueue();
+    Client::instance().task_queue.execute();
+    main_task_queue.execute();
+
     consumeNewChunks();
 
     World::instance().updateEntities();
@@ -84,12 +94,75 @@ void GameView::onUpdate(double time_since_start, float dt)
         network_timer = 1.0f / 20.0f;
         networkUpdate();
     }
+
+    deleteFarChunks();
+}
+
+void GameView::deleteFarChunks()
+{
+    const std::lock_guard<std::shared_mutex> lock(World::instance().chunks_mutex);
+
+    std::vector<glm::ivec3> pos_to_delete;
+
+    auto& world_chunks = World::instance().chunks;
+    for (const auto& [pos, chunk] : world_chunks ) {
+        if (glm::distance(camera.getPosition(), glm::vec3(chunk->pos) * 16.0f) > world_renderer.chunk_view_distance) {
+            pos_to_delete.push_back(pos);
+        }
+    }
+
+    for (const auto &pos : pos_to_delete) {
+        // printf("delete pos %d %d %d\n", pos.x, pos.y, pos.z);
+        Chunk* chunk = world_chunks.at(pos);
+        if (chunk == nullptr) continue;
+        if (chunk->mesh.slot_vertices.id == -1) continue;
+        if (chunk->mesh.slot_indices.id == -1) continue;
+
+        if (chunk->mesh.slot_vertices.id != -1)
+            world_renderer.buffer_allocator_vertices.deallocate(chunk->mesh.slot_vertices.id);
+        if (chunk->mesh.slot_indices.id != -1)
+            world_renderer.buffer_allocator_indices.deallocate(chunk->mesh.slot_indices.id);
+
+        world_chunks.erase(pos);
+        delete chunk;
+    }
+}
+
+void GameView::update3x3Chunks(const glm::ivec3& center_chunk_pos)
+{
+    // constexpr glm::ivec3 offsets[] = { {0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} }; // center + adjacents
+    // constexpr glm::ivec3 offsets[] = { {0, 0, 0} }; // center
+
+    for (int z = -1 ; z <= 1; ++z) {
+    for (int y = -1 ; y <= 1; ++y) {
+    for (int x = -1 ; x <= 1; ++x) {
+    // for (const glm::ivec3 &offset: offsets) {
+        const glm::ivec3 offset = {x, y, z};
+        const glm::ivec3 chunk_pos = center_chunk_pos + offset;
+
+        // const std::lock_guard<std::shared_mutex> lock(World::instance().chunks_mutex);
+
+        if (Chunk* chunk = World::instance().getChunk(chunk_pos)) {
+
+            ChunkMesh new_chunk_mesh = {};
+            new_chunk_mesh.computeVertexBuffer(chunk);
+
+            main_task_queue.push_safe([this, chunk_pos, new_mesh = std::move(new_chunk_mesh)]() mutable {
+                Chunk* c = World::instance().getChunk(chunk_pos);
+                if (c == nullptr) return;
+
+                auto old_mesh = c->mesh;
+                new_mesh.updateVAO(world_renderer.buffer_allocator_vertices, world_renderer.buffer_allocator_indices, old_mesh.slot_vertices, old_mesh.slot_indices);
+                c->mesh = new_mesh;
+            });
+        }
+    }
+    }
+    }
 }
 
 void GameView::consumeNewChunks()
 {
-    main_task_queue.execute();
-
     const std::lock_guard<std::mutex> lock(Client::instance().new_chunks_mutex);
 
     // NOTE: the chunks are sent to be queued before having the chance to be sorted by distance (the solution is to sort the chunks on the server)
@@ -115,25 +188,13 @@ void GameView::consumeNewChunks()
 
             delete chunk_data;
 
-            update3x3Chunks(chunk->pos, main_task_queue);
+            update3x3Chunks(chunk->pos);
         });
     }
 }
 
-void GameView::consumeTaskQueue()
-{
-    const std::lock_guard<std::mutex> lock(Client::instance().task_queue_mutex);
-
-    for (auto &task: Client::instance().task_queue) {
-        task();
-    }
-    Client::instance().task_queue.clear();
-}
-
 void GameView::networkUpdate()
 {
-    if (Client::instance().client_id == -1) return;
-
     glm::vec3 pos = camera.getPosition();
     float yaw = camera.getYaw();
     float pitch = camera.getPitch();
@@ -148,6 +209,7 @@ void GameView::onDraw(double time_since_start, float dt)
     ctx.imguiNewFrame();
     if (_show_debug_gui) gui(dt);
     ctx.imguiRender();
+
 }
 
 void GameView::gui(float dt)
@@ -155,7 +217,7 @@ void GameView::gui(float dt)
     // ImGui::ShowDemoWindow();
 
     // ImGui::Begin("Shadow map");
-    // ImGui::Image((ImTextureID)(intptr_t)shadowmap._depthTexture->_texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
+    // ImGui::Image((ImTextureID)(intptr_t) world_renderer.shadowmap._depthTexture._texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
     // ImGui::End();
 
     ImGui::Begin("Debug");
@@ -163,6 +225,9 @@ void GameView::gui(float dt)
     ImGui::Text("%s", SimpleProfiler::instance().dump().c_str());
 
     ImGui::Text("RAM: %.3f / %.3f Go", ((double)getCurrentRSS()) / (1024*1024*1024), ((double)getPeakRSS()) / (1024*1024*1024));
+
+    ImGui::Text("BufferVertices: %d / %d", world_renderer.buffer_allocator_vertices.getFreeSlotsCount(), world_renderer.buffer_allocator_vertices.getMaxSlotsCount());
+    ImGui::Text("BufferIndices: %d / %d", world_renderer.buffer_allocator_indices.getFreeSlotsCount(), world_renderer.buffer_allocator_indices.getMaxSlotsCount());
 
     ImGui::Text("New chunks: %ld", Client::instance().new_chunks.size());
     ImGui::Text("Thread pool tasks %ld", thread_pool._task_queue.size());
@@ -197,7 +262,6 @@ void GameView::gui(float dt)
     ImGui::SliderFloat("Bulk Edit Radius: ", &bulk_edit_radius, 1.0f, 32.0f, "%.2f");
     ImGui::Checkbox("Wireframe", &world_renderer._wireframe);
     ImGui::Checkbox("Ambient occlusion", &world_renderer._ambient_occlusion);
-    ImGui::Checkbox("AO squared", &world_renderer._AO_squared);
     ImGui::SliderFloat("AO strength: ", &world_renderer._ambient_occlusion_strength, 0.0f, 1.0f, "%.2f");
 
     if (ImGui::Checkbox("VSync", &_vsync)) {

@@ -11,6 +11,7 @@
 #include "ServerPacket.hpp"
 
 #include "ByteBuffer.h"
+#include "ThreadPool.h"
 
 class World;
 struct Chunk;
@@ -80,8 +81,7 @@ private:
     void sendPacket(const void *buf, size_t size);
 
 public:
-    std::deque<std::function<void()>> task_queue;
-    std::mutex task_queue_mutex;
+    TaskQueue task_queue;
 
     std::deque<Packet::Server::ChunkPacket*> new_chunks;
     std::mutex new_chunks_mutex;
