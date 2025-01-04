@@ -1,6 +1,6 @@
 #version 460 core
 
-#define GROUND true
+#define GROUND false
 
 out vec4 FragColor;
 

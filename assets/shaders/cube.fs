@@ -1,7 +1,7 @@
 #version 460 core
 #extension GL_ARB_bindless_texture : require
 
-#define GROUND true
+#define GROUND false
 
 float rand(vec2 co){ return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453); }
 
@@ -189,7 +189,7 @@ void main()
     }
 
     // Fog
-    lighting = mix(fog_color, lighting, calcExpFogFactor());
+    lighting = mix(skyColor, lighting, calcExpFogFactor());
 
     FragColor = vec4(lighting, 1.0);
 
