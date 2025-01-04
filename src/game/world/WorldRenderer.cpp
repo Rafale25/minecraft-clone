@@ -54,6 +54,10 @@ void WorldRenderer::render(const Camera &camera)
     cube_shader.setFloat("u_ambient_occlusion_enabled", _ambient_occlusion);
     cube_shader.setFloat("u_ambient_occlusion_strength", _ambient_occlusion_strength);
 
+    cube_shader.setVec2("u_resolution", glm::vec2(_ctx.width, _ctx.height));
+    cube_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
+    cube_shader.setFloat("u_FOV", glm::radians(camera.fov));
+
     glBindTextureUnit(0, shadowmap._depthTexture._texture);
     renderTerrain(cube_shader, camera);
     renderEntities(camera);

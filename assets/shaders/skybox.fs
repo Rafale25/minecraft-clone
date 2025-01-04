@@ -4,11 +4,10 @@
 
 out vec4 FragColor;
 
-uniform vec2 u_resolution;
 uniform mat4 u_view;
 uniform mat4 u_projection;
+uniform vec2 u_resolution;
 uniform float u_FOV;
-
 uniform float u_sunDotAngle;
 
 // https://www.shadertoy.com/view/4ljBRy
@@ -34,11 +33,7 @@ vec3 skyray(vec2 uv, float fieldOfView, float aspectRatio)
     return vec3((uv.x - 0.5) * aspectRatio, uv.y - 0.5, -d);
 }
 
-void main()
-{
-    vec2 uv = (gl_FragCoord.xy - 0.5*u_resolution.xy) / u_resolution.y;
-    vec3 ray = mat3(inverse(u_view)) * skyray(uv + 0.5, u_FOV, u_resolution.x / u_resolution.y);
-
+vec3 getSkyColor(vec3 ray) {
     vec3 tint = vec3(1);
     if ( GROUND && ray.y < 0.0 )
     {
@@ -55,6 +50,16 @@ void main()
     // corrections
     color = 0.6 + (clamp(color, 0.0, 1.0) - 0.6);
     color = pow(color, vec3(1.0/2.2));
+
+    return color;
+}
+
+void main()
+{
+    vec2 uv = (gl_FragCoord.xy - 0.5*u_resolution.xy) / u_resolution.y;
+    vec3 ray = mat3(inverse(u_view)) * skyray(uv + 0.5, u_FOV, u_resolution.x / u_resolution.y);
+
+    vec3 color = getSkyColor(ray);
 
     FragColor = vec4(color, 1.0);
     // FragColor = vec4(ray, 1.0);
