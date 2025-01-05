@@ -21,34 +21,6 @@
         - Make that threads can't write to the chunk list, only read
         - Need a second "concurrent" vector list for threads to write to
 
-
-current:
-    chunks
-
-    client write to chunks (write)
-
-    main_thread dispatch
-        works to do on chunks inside chunks_buffer (write)
-
-    poolthread get neighbours chunks (read)
-    poolthread create VBO of chunk inside chunks (write)
-
-    main_thread delete from chunks (write)
-
-    main_thread draw chunks (read)
-
-new idea:
-
-    chunks
-    chunks_buffer
-
-    client -> chunks_buffer
-
-    main_thread dispatch
-        works to do on chunks inside chunks_buffer
-
-    main_thread move chunks from chunks_buffer to chunks
-
 */
 
 GameView::GameView(Context& ctx): View(ctx)
@@ -95,7 +67,7 @@ void GameView::onUpdate(double time_since_start, float dt)
         networkUpdate();
     }
 
-    deleteFarChunks();
+    // deleteFarChunks();
 }
 
 void GameView::deleteFarChunks()
