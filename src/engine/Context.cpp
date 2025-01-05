@@ -11,30 +11,38 @@ static void GLFW_error(int error, const char* description)
     fprintf(stderr, "%s\n", description);
 }
 
-static constexpr const char * GL_ERROR_SEVERITY[] = {
-    [GL_DEBUG_SEVERITY_HIGH] = "HIGH",
-    [GL_DEBUG_SEVERITY_MEDIUM] = "MEDIUM",
-    [GL_DEBUG_SEVERITY_LOW] = "LOW",
-    [GL_DEBUG_SEVERITY_NOTIFICATION] = "INFO",
-};
+static std::string errorSeverity(int severity) {
+    switch (severity)
+    {
+        case GL_DEBUG_SEVERITY_HIGH:            return "HIGH";
+        case GL_DEBUG_SEVERITY_MEDIUM:          return "MEDIUM";
+        case GL_DEBUG_SEVERITY_LOW:             return "LOW";
+        case GL_DEBUG_SEVERITY_NOTIFICATION:    return "INFO";
+        default:                                return "UNKNOWN";
+    }
+}
 
-static constexpr const char * GL_ERROR_TYPE[] = {
-    [GL_DEBUG_TYPE_ERROR] = "ERROR",
-    [GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR] = "DEPRECATED_BEHAVIOR",
-    [GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR] = "UNDEFINED_BEHAVIOR",
-    [GL_DEBUG_TYPE_PORTABILITY] = "TYPE_PORTABILITY",
-    [GL_DEBUG_TYPE_PERFORMANCE] = "PERFORMANCE",
-    [GL_DEBUG_TYPE_PUSH_GROUP] = "PUSH_GROUP",
-    [GL_DEBUG_TYPE_POP_GROUP] = "POP_GROUP",
-    [GL_DEBUG_TYPE_OTHER] = "OTHER",
-};
+static std::string errorType(int type) {
+    switch (type)
+    {
+        case GL_DEBUG_TYPE_ERROR:               return "ERROR";
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: return "DEPRECATED_BEHAVIOR";
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  return "UNDEFINED_BEHAVIOR";
+        case GL_DEBUG_TYPE_PORTABILITY:         return "TYPE_PORTABILITY";
+        case GL_DEBUG_TYPE_PERFORMANCE:         return "PERFORMANCE";
+        case GL_DEBUG_TYPE_PUSH_GROUP:          return "PUSH_GROUP";
+        case GL_DEBUG_TYPE_POP_GROUP:           return "POP_GROUP";
+        case GL_DEBUG_TYPE_OTHER:               return "OTHER";
+        default:                                return "UNKNOWN";
+    }
+}
 
 static void GLAPIENTRY
 MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {
     // if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) return;
 
-    fprintf(stderr, "[OpenGL %s] - %s - %s\n", GL_ERROR_TYPE[type], GL_ERROR_SEVERITY[severity], message);
+    fprintf(stderr, "[OpenGL %s] - %s - %s\n", errorType(type).c_str(), errorSeverity(severity).c_str(), message);
     if (type == GL_DEBUG_TYPE_ERROR && severity == GL_DEBUG_SEVERITY_HIGH)
         abort();
 }
