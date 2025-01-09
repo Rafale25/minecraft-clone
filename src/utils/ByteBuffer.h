@@ -84,6 +84,6 @@ public:
 private:
     uint8_t* buffer;
     uint8_t* head;
-    size_t size;
+    __attribute__((unused)) size_t size;
     ByteOrder byte_order;
 };
