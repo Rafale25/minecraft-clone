@@ -36,13 +36,13 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     -Wno-unused-parameter
     -Wno-strict-aliasing
     # -fno-omit-frame-pointer
-    # -fsanitize=address
+    -fsanitize=address
     # -fsanitize=leak
     -g3
 )
 
-# target_compile_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
-# target_link_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
+target_compile_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
+target_link_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
@@ -51,6 +51,7 @@ target_include_directories(${PROJECT_NAME}
         ./src/engine/
         ./src/engine/camera/
         ./src/game/
+        ./src/game/renderer
         ./src/game/world/
         ./src/game/scenes/
         ./src/game/network/Client/
