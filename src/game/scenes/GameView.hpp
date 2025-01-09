@@ -19,7 +19,6 @@ public:
     void onUpdate(double time_since_start, float dt);
     void onHideView();
 
-    void update3x3Chunks(const glm::ivec3& chunk_pos);
     void deleteFarChunks();
     void consumeNewChunks();
     void networkUpdate();
