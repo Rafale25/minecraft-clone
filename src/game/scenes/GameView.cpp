@@ -14,6 +14,8 @@
 
 #include "clock.h"
 
+#include <unordered_set>
+
 /*
     HOW TO FIX CONCURRENT BUGS :
 
@@ -97,46 +99,42 @@ void GameView::deleteFarChunks()
     }
 }
 
-void GameView::update3x3Chunks(const glm::ivec3& center_chunk_pos)
-{
-    // constexpr glm::ivec3 offsets[] = { {0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} }; // center + adjacents
-    // constexpr glm::ivec3 offsets[] = { {0, 0, 0} }; // center
-    // for (const glm::ivec3 &offset: offsets) {
-
-    for (int z = -1 ; z <= 1; ++z) {
-    for (int y = -1 ; y <= 1; ++y) {
-    for (int x = -1 ; x <= 1; ++x) {
-        const glm::ivec3 offset = {x, y, z};
-        const glm::ivec3 chunk_pos = center_chunk_pos + offset;
-
-        Chunk* chunk = World::instance().getChunk(chunk_pos);
-        if (chunk != nullptr) {
-            ChunkRawMesh raw_mesh = computeVertexBuffer(chunk_pos);
-
-            std::lock_guard<std::mutex> lock(chunks_waiting_bufferslot_mutex);
-            chunks_waiting_bufferslot.push_back(std::tuple(chunk_pos, raw_mesh));
-        }
-    }
-    }
-    }
-}
-
 void GameView::consumeNewChunks()
 {
     const std::lock_guard<std::mutex> lock(Client::instance().new_chunks_mutex);
-    // TODO: instead of updating neigbours chunks directly, set the chunks all at once and add to an unordered_map the chunks to update the mesh, then dispatch all thoses
+
+    std::unordered_set<glm::ivec3> chunks_to_remesh;
 
     while (Client::instance().new_chunks.size() > 0) {
 
         Packet::Server::ChunkPacket* chunk_data = Client::instance().new_chunks.back();
         Client::instance().new_chunks.pop_back();
 
-        thread_pool.enqueue([this, chunk_data] {
-            Chunk* chunk = World::instance().setChunk(chunk_data);
-            if (chunk) {
-                update3x3Chunks(chunk_data->pos);
-            };
-            delete chunk_data;
+        Chunk* chunk = World::instance().setChunk(chunk_data);
+        if (chunk) {
+            chunks_to_remesh.insert(chunk_data->pos);
+
+            for (int z = -1 ; z <= 1; ++z) {
+            for (int y = -1 ; y <= 1; ++y) {
+            for (int x = -1 ; x <= 1; ++x) {
+                const glm::ivec3 offset = {x, y, z};
+                const glm::ivec3 chunk_pos = chunk_data->pos + offset;
+                chunks_to_remesh.insert(chunk_pos);
+            }}}
+        }
+
+        delete chunk_data;
+    }
+
+    for (const auto& pos : chunks_to_remesh) {
+        thread_pool.enqueue([this, pos] {
+            Chunk* chunk = World::instance().getChunk(pos);
+            if (chunk != nullptr) {
+                ChunkRawMesh raw_mesh = computeVertexBuffer(pos);
+
+                std::lock_guard<std::mutex> lock(chunks_waiting_bufferslot_mutex);
+                chunks_waiting_bufferslot.push_back(std::tuple(pos, raw_mesh));
+            }
         });
     }
 }
