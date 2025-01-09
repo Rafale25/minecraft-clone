@@ -29,5 +29,4 @@ struct ChunkMesh {
     );
 };
 
-// ChunkRawMesh computeVertexBuffer(const Chunk *chunk);
 ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos);

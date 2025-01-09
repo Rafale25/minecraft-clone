@@ -63,13 +63,21 @@ void WorldRenderer::render(const Camera &camera)
     renderEntities(camera);
 }
 
+void WorldRenderer::signalDeletedChunk(const glm::ivec3 &chunk_pos) {
+    const auto& it = meshes.find(chunk_pos);
+    if (it != meshes.end()) {
+        buffer_allocator_vertices.deallocate(it->second.slot_vertices.id);
+        buffer_allocator_indices.deallocate(it->second.slot_indices.id);
+        meshes.erase(it);
+    }
+}
+
 void WorldRenderer::renderTerrain(const Program& program, const Camera &camera, bool use_frustum_culling)
 {
     program.use();
     program.setMat4("u_projectionMatrix", camera.getProjection());
     program.setMat4("u_viewMatrix", camera.getView());
     program.setVec3("u_view_position", camera.getPosition());
-    // glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_texture_handles);
 
     Frustum camera_frustum = createFrustumFromCamera(camera, camera.aspect_ratio, glm::radians(camera.fov), camera.near_plane, camera.far_plane);
 
@@ -78,25 +86,22 @@ void WorldRenderer::renderTerrain(const Program& program, const Camera &camera, 
     std::vector<DrawElementsIndirectCommand> commands;
     std::vector<glm::vec4> chunk_positions;
 
-    const std::shared_lock<std::shared_mutex> lock(World::instance().chunks_mutex);
-
-    for (const auto& [key, chunk] : World::instance().chunks)
+    for (const auto& [chunk_pos, mesh] : meshes)
     {
-        if (chunk->mesh.slot_vertices.id == -1) continue;
-        if (chunk->mesh.slot_indices.id == -1) continue;
+        if (mesh.slot_vertices.id == -1 || mesh.slot_indices.id == -1) continue;
 
         if (use_frustum_culling) {
-            AABB chunk_aabb = {(chunk->pos * 16), (chunk->pos * 16) + 16};
+            AABB chunk_aabb = {(chunk_pos * 16), (chunk_pos * 16) + 16};
             if (!chunk_aabb.isOnFrustum(camera_frustum)) continue;
         }
 
-        chunk_positions.push_back(glm::vec4(chunk->pos * 16, 1.0f));
+        chunk_positions.push_back(glm::vec4(chunk_pos * 16, 1.0f));
 
         commands.emplace_back(
-            chunk->mesh.slot_indices.size / sizeof(GLuint),
+            mesh.slot_indices.size / sizeof(GLuint),
             1,
-            chunk->mesh.slot_indices.start / sizeof(GLuint),
-            chunk->mesh.slot_vertices.start / sizeof(GLuint),
+            mesh.slot_indices.start / sizeof(GLuint),
+            mesh.slot_vertices.start / sizeof(GLuint),
             0
         );
 

@@ -12,9 +12,7 @@ class World;
 struct Chunk
 {
     // TODO: (maybe) disable new operator and have only the world able to allocate chunks
-
     glm::ivec3 pos;
-    ChunkMesh mesh;
 
     // TODO: add is_monotype variable
     // bool is_monotype;

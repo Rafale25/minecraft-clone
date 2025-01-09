@@ -91,10 +91,8 @@ void GameView::deleteFarChunks()
         Chunk* chunk = world_chunks.at(pos);
         if (chunk == nullptr) continue;
 
-        world_renderer.buffer_allocator_vertices.deallocate(chunk->mesh.slot_vertices.id);
-        world_renderer.buffer_allocator_indices.deallocate(chunk->mesh.slot_indices.id);
-
         world_chunks.erase(pos);
+        world_renderer.signalDeletedChunk(pos);
         delete chunk;
     }
 }
@@ -110,8 +108,6 @@ void GameView::update3x3Chunks(const glm::ivec3& center_chunk_pos)
     for (int x = -1 ; x <= 1; ++x) {
         const glm::ivec3 offset = {x, y, z};
         const glm::ivec3 chunk_pos = center_chunk_pos + offset;
-
-        // const std::lock_guard<std::shared_mutex> lock(World::instance().chunks_mutex);
 
         Chunk* chunk = World::instance().getChunk(chunk_pos);
         if (chunk != nullptr) {
@@ -153,11 +149,22 @@ void GameView::allocateVAOforWaitingChunks() {
         Chunk* c = World::instance().getChunkUnsafe(chunk_pos);
         if (c == nullptr) continue;
 
-        auto old_mesh = c->mesh;
+        ChunkMesh old_mesh;
+        const auto& it = world_renderer.meshes.find(chunk_pos);
+        if (it != world_renderer.meshes.end()) {
+            old_mesh = it->second;
+        }
 
         ChunkMesh new_mesh;
-        new_mesh.updateVAO(world_renderer.buffer_allocator_vertices,world_renderer.buffer_allocator_indices,old_mesh.slot_vertices,old_mesh.slot_indices,chunk_raw_mesh);
-        c->mesh = new_mesh;
+        new_mesh.updateVAO(
+            world_renderer.buffer_allocator_vertices,
+            world_renderer.buffer_allocator_indices,
+            old_mesh.slot_vertices,
+            old_mesh.slot_indices,
+            chunk_raw_mesh
+        );
+
+        world_renderer.meshes[chunk_pos] = new_mesh;
     }
 
     chunks_waiting_bufferslot.clear();

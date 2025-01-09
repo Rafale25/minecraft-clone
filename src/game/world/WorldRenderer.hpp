@@ -9,6 +9,9 @@
 #include "Geometry.hpp"
 #include "BufferAllocator.hpp"
 
+#include "ChunkMesh.hpp"
+#include "glm/gtx/hash.hpp"
+
 class Camera;
 
 class WorldRenderer
@@ -16,9 +19,15 @@ class WorldRenderer
 public:
     WorldRenderer(Context &context);
 
-    void setDefaultRenderState();
-
     void render(const Camera &camera);
+
+    void signalDeletedChunk(const glm::ivec3& chunk_pos);
+    // void signalAddedChunk(const glm::ivec3& chunk_pos);
+
+    // ChunkMesh makeChunkMesh(const ChunkRawMesh& raw_mesh);
+
+private:
+    void setDefaultRenderState();
 
     void renderTerrain(const Program& program, const Camera& camera, bool use_frustum_culling=true);
     void renderTerrainDepth(const Camera &camera);
@@ -28,6 +37,7 @@ public:
 
     void renderSkybox(const Camera &camera);
     void renderShadowmap(const Camera &camera);
+
 
 private:
     Context &_ctx;
@@ -60,4 +70,6 @@ public:
     GLuint chunk_vao;
     GLuint draw_command_buffer;
     GLuint ssbo_chunk_positions;
+
+    std::unordered_map<glm::ivec3, ChunkMesh> meshes;
 };
