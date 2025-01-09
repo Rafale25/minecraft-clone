@@ -4,11 +4,14 @@
 
 #include <sys/types.h>
 #include <stack>
+#include <mutex>
 
 typedef struct {
     int32_t start; // bytes;
     int32_t size; // bytes;
     int32_t id;
+
+    // bool isValid() const { return id != -1; }
 } BufferSlot;
 
 constexpr BufferSlot invalid_buffer_slot = {-1, -1, -1};
@@ -29,8 +32,8 @@ public:
     BufferAllocator(const char* name, uint32_t slot_size, uint32_t max_slots);
 
     BufferSlot allocate(uint32_t size, const void * data);
-    void deallocate(int id);
-    BufferSlot updateAllocation(uint32_t id, uint32_t size, const void * data);
+    void deallocate(int32_t id);
+    BufferSlot updateAllocation(int32_t id, uint32_t size, const void * data);
 
     GLuint getBufferObject() const { return _buffer; };
     int getFreeSlotsCount() const { return _free_slots.size(); };
@@ -43,5 +46,7 @@ private:
 
     GLuint _buffer;
 
-    std::stack<uint32_t> _free_slots;
+    std::stack<int32_t> _free_slots;
+
+    std::mutex _mutex;
 };

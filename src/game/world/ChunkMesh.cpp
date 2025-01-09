@@ -30,17 +30,22 @@ int vertexAO(int side1, int side2, int corner) {
     return 3 - (side1 + side2 + corner);
 }
 
+static inline glm::ivec3 orientationToDir(Orientation orientation) {
+    switch (orientation) {
+        case Orientation::Top:      return glm::ivec3(0, 1, 0);
+        case Orientation::Bottom:   return glm::ivec3(0, -1, 0);
+        case Orientation::Front:    return glm::ivec3(0, 0, -1);
+        case Orientation::Back:     return glm::ivec3(0, 0, 1);
+        case Orientation::Left:     return glm::ivec3(-1, 0, 0);
+        case Orientation::Right:    return glm::ivec3(1, 0, 0);
+        default:
+            printf("Error: Invalid orientation");
+            abort();
+    }
+}
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wc99-designator"
-
-const glm::ivec3 orientation_dir[] = {
-    [Orientation::Top]     = glm::ivec3(0, 1, 0),
-    [Orientation::Bottom]  = glm::ivec3(0, -1, 0),
-    [Orientation::Front]   = glm::ivec3(0, 0, -1),
-    [Orientation::Back]    = glm::ivec3(0, 0, 1),
-    [Orientation::Left]    = glm::ivec3(-1, 0, 0),
-    [Orientation::Right]   = glm::ivec3(1, 0, 0),
-};
 
 const int infos[][50] = {
     [Orientation::Top] = {
@@ -176,7 +181,9 @@ const int infos[][50] = {
 
 #pragma GCC diagnostic pop
 
-inline void ChunkMesh::makeFace(
+inline void makeFace(
+    std::vector<GLuint>& vertices,
+    std::vector<GLuint>& indices,
     int x, int y, int z,
     const ChunkExtra &chunkextra,
     GLuint& ebo_offset,
@@ -184,7 +191,7 @@ inline void ChunkMesh::makeFace(
     Orientation orientation,
     GLuint texture_id
 ){
-    glm::ivec3 dir = orientation_dir[orientation];
+    glm::ivec3 dir = orientationToDir(orientation);
 
     const int* info = infos[orientation];
 
@@ -218,7 +225,7 @@ inline void ChunkMesh::makeFace(
                 packVertex(x+info[15], y+info[16], z+info[17], info[18], info[19], orientation, texture_id, a01),
             });
 
-            ebo.insert(ebo.end(), {
+            indices.insert(indices.end(), {
                 ebo_offset+info[20], ebo_offset+info[21], ebo_offset+info[22],
                 ebo_offset+info[23], ebo_offset+info[24], ebo_offset+info[25]
             });
@@ -231,7 +238,7 @@ inline void ChunkMesh::makeFace(
                 packVertex(x+info[0],  y+info[1],  z+info[2],  info[3],  info[4],  orientation, texture_id, a00),
             });
 
-            ebo.insert(ebo.end(), {
+            indices.insert(indices.end(), {
                 ebo_offset+info[20], ebo_offset+info[22], ebo_offset+info[21],
                 ebo_offset+info[23], ebo_offset+info[25], ebo_offset+info[24]
             });
@@ -240,10 +247,9 @@ inline void ChunkMesh::makeFace(
     }
 }
 
-void ChunkMesh::computeVertexBuffer(const Chunk* chunk)
+// ChunkRawMesh computeVertexBuffer(const Chunk* chunk)
+ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos)
 {
-    // TODO: check if chunk is only air, then remove it from world
-
     /*
         position: 3x5
         uv: 2x1
@@ -254,10 +260,8 @@ void ChunkMesh::computeVertexBuffer(const Chunk* chunk)
         //     ttttttttooouvzzzzzyyyyyxxxxx
     */
 
-    ChunkExtra chunkextra = ChunkExtra::get(chunk->pos);
-
-    vertices.clear();
-    ebo.clear();
+    ChunkExtra chunkextra = ChunkExtra::get(chunk_pos);
+    ChunkRawMesh chunk_raw_mesh;
 
     GLuint ebo_offset = 0;
 
@@ -265,7 +269,8 @@ void ChunkMesh::computeVertexBuffer(const Chunk* chunk)
     for (int y = 0 ; y < 16 ; ++y) {
     for (int x = 0 ; x < 16 ; ++x) {
         const int index = z * 16*16 + y * 16 + x;
-        const BlockType block = chunk->blocks[index];
+        // const BlockType block = chunk->blocks[index];
+        const BlockType block = chunkextra.getBlock({x, y, z});// ->blocks[index];
 
         if (block == BlockType::Air) continue;
 
@@ -275,46 +280,43 @@ void ChunkMesh::computeVertexBuffer(const Chunk* chunk)
         BlockType nb; // neighbour block
         BlockMetadata nbmtd; // neighbour block metadata
 
-        makeFace(x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Front, texture_side_handle);
-        makeFace(x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Back, texture_side_handle);
-        makeFace(x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Bottom, texture_bot_handle);
-        makeFace(x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Top, texture_top_handle);
-        makeFace(x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Left, texture_side_handle);
-        makeFace(x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Right, texture_side_handle);
+        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Front, texture_side_handle);
+        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Back, texture_side_handle);
+        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Bottom, texture_bot_handle);
+        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Top, texture_top_handle);
+        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Left, texture_side_handle);
+        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Right, texture_side_handle);
     }
     }
     }
+
+    return chunk_raw_mesh;
 }
 
-void ChunkMesh::updateVAO(BufferAllocator& buffer_allocator_vertices, BufferAllocator& buffer_allocator_indices, const BufferSlot& previous_slot_vertices, const BufferSlot& previous_slot_indices)
-{
-    if (vertices.size() == 0 || ebo.size() == 0) {
-        if (previous_slot_vertices.id != -1)
-            buffer_allocator_vertices.deallocate(previous_slot_vertices.id);
-        if (previous_slot_indices.id != -1)
-            buffer_allocator_indices.deallocate(previous_slot_indices.id);
-
+void ChunkMesh::updateVAO(
+    BufferAllocator& buffer_allocator_vertices,
+    BufferAllocator& buffer_allocator_indices,
+    const BufferSlot& previous_slot_vertices,
+    const BufferSlot& previous_slot_indices,
+    const ChunkRawMesh& raw_mesh
+){
+    if (raw_mesh.vertices.size() == 0 || raw_mesh.indices.size() == 0) {
+        buffer_allocator_vertices.deallocate(previous_slot_vertices.id);
+        buffer_allocator_indices.deallocate(previous_slot_indices.id);
         return;
     }
 
-    if (previous_slot_vertices.id == -1) {
-        slot_vertices = buffer_allocator_vertices.allocate(vertices.size() * sizeof(GLuint), &vertices[0]);
-    } else {
-        slot_vertices = buffer_allocator_vertices.updateAllocation(previous_slot_vertices.id, vertices.size() * sizeof(GLuint), &vertices[0]);
-    }
+    const int32_t vertices_size = raw_mesh.vertices.size() * sizeof(GLuint);
+    const int32_t indices_size = raw_mesh.indices.size() * sizeof(GLuint);
 
-    if (previous_slot_indices.id == -1) {
-        slot_indices = buffer_allocator_indices.allocate(ebo.size() * sizeof(GLuint), &ebo[0]);
-    } else {
-        slot_indices = buffer_allocator_indices.updateAllocation(previous_slot_indices.id, ebo.size() * sizeof(GLuint), &ebo[0]);
-    }
+    // ERROR: TODO: Should not check if vertices_size is not higher than before to use updateAllocation
+    if (previous_slot_vertices.id == -1 || vertices_size > previous_slot_vertices.size)
+        slot_vertices = buffer_allocator_vertices.allocate(vertices_size, &raw_mesh.vertices[0]);
+    else
+        slot_vertices = buffer_allocator_vertices.updateAllocation(previous_slot_vertices.id, vertices_size, &raw_mesh.vertices[0]);
 
-    vertices.clear();
-    ebo.clear();
-    vertices.shrink_to_fit();
-    ebo.shrink_to_fit();
-}
-
-void ChunkMesh::deleteAll()
-{
+    if (previous_slot_indices.id == -1 || indices_size > previous_slot_indices.size)
+        slot_indices = buffer_allocator_indices.allocate(indices_size, &raw_mesh.indices[0]);
+    else
+        slot_indices = buffer_allocator_indices.updateAllocation(previous_slot_indices.id, indices_size, &raw_mesh.indices[0]);
 }

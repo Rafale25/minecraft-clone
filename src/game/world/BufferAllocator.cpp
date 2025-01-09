@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <cassert>
 
 #define PRINT_ERRORS
 
@@ -46,6 +47,7 @@ BufferSlot BufferAllocator::allocate(uint32_t size, const void * data) {
 
         return invalid_buffer_slot;
     }
+
     if (_free_slots.size() <= 0) {
         #ifdef PRINT_ERRORS
         fprintf(stderr, "Error: %s - No free slot in buffer\n", _name);
@@ -54,8 +56,10 @@ BufferSlot BufferAllocator::allocate(uint32_t size, const void * data) {
         return invalid_buffer_slot;
     }
 
-    uint32_t id = _free_slots.top();
+    int32_t id = _free_slots.top();
     _free_slots.pop();
+
+    assert(id >= 0 && "Error: bufferslot id is invalid!");
 
     #ifdef PRINT_ERRORS
     // printf("Info: %s - Allocating %d - ID %d == %ld\n", _name, size, id, id * _slot_size + size);
@@ -77,7 +81,7 @@ BufferSlot BufferAllocator::allocate(uint32_t size, const void * data) {
     return b;
 }
 
-BufferSlot BufferAllocator::updateAllocation(uint32_t id, uint32_t size, const void *data) {
+BufferSlot BufferAllocator::updateAllocation(int32_t id, uint32_t size, const void *data) {
     if (size == 0) {
         #ifdef PRINT_ERRORS
         fprintf(stderr, "Error: %s - Trying to allocate size of 0!\n", _name);
@@ -108,12 +112,13 @@ BufferSlot BufferAllocator::updateAllocation(uint32_t id, uint32_t size, const v
     return b;
 }
 
-void BufferAllocator::deallocate(int id) {
-    if (id == -1) {
+void BufferAllocator::deallocate(int32_t id) {
+    if (id <= -1) {
         #ifdef PRINT_ERRORS
-        printf("Error: %s - Tried to deallocated indalid id %d!\n", _name, id);
+        // printf("Error: %s - Tried to deallocated indalid id %d!\n", _name, id);
         #endif
         return;
     }
+
     _free_slots.push(id);
 }

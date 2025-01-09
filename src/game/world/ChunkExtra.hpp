@@ -224,13 +224,15 @@ struct ChunkExtra
 
         // Adjacents //
         const Chunk* middle_chunk = World::instance().getChunkUnsafe(pos);
-        for (int z = 0 ; z < 16 ; ++z) {
-        for (int y = 0 ; y < 16 ; ++y) {
-        for (int x = 0 ; x < 16 ; ++x) {
-            int index = Chunk::XYZtoIndex(x, y, z);
-            int index_chunk_extra = ChunkExtra::XYZtoIndex(x, y, z);
-            chunkextra.blocks[index_chunk_extra] = middle_chunk->blocks[index];
-        }}}
+        if (middle_chunk != nullptr) {
+            for (int z = 0 ; z < 16 ; ++z) {
+            for (int y = 0 ; y < 16 ; ++y) {
+            for (int x = 0 ; x < 16 ; ++x) {
+                int index = Chunk::XYZtoIndex(x, y, z);
+                int index_chunk_extra = ChunkExtra::XYZtoIndex(x, y, z);
+                chunkextra.blocks[index_chunk_extra] = middle_chunk->blocks[index];
+            }}}
+        }
 
         const Chunk* chunk_hz = World::instance().getChunkUnsafe(pos - glm::ivec3(0, 0, 1));
         if (chunk_hz != nullptr) {

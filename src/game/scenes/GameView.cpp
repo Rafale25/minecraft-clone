@@ -29,6 +29,7 @@ GameView::GameView(Context& ctx): View(ctx)
 
     Client::instance().init(tchat, global_argv[1]);
     Client::instance().Start();
+
 }
 
 void GameView::onHideView()
@@ -57,6 +58,8 @@ void GameView::onUpdate(double time_since_start, float dt)
 
     consumeNewChunks();
 
+    allocateVAOforWaitingChunks();
+
     World::instance().updateEntities();
 
     player_blockraycasthit = World::instance().blockRaycast(camera.getPosition(), camera.forward(), 16);
@@ -67,7 +70,7 @@ void GameView::onUpdate(double time_since_start, float dt)
         networkUpdate();
     }
 
-    // deleteFarChunks();
+    deleteFarChunks();
 }
 
 void GameView::deleteFarChunks()
@@ -77,23 +80,19 @@ void GameView::deleteFarChunks()
     std::vector<glm::ivec3> pos_to_delete;
 
     auto& world_chunks = World::instance().chunks;
-    for (const auto& [pos, chunk] : world_chunks ) {
-        if (glm::distance(camera.getPosition(), glm::vec3(chunk->pos) * 16.0f) > world_renderer.chunk_view_distance) {
+    for (const auto& [pos, chunk] : world_chunks) {
+        const float camera_chunk_dist = glm::distance(camera.getPosition(), glm::vec3(chunk->pos) * 16.0f);
+        if (camera_chunk_dist > world_renderer.chunk_view_distance + world_renderer.chunk_delete_offset) {
             pos_to_delete.push_back(pos);
         }
     }
 
     for (const auto &pos : pos_to_delete) {
-        // printf("delete pos %d %d %d\n", pos.x, pos.y, pos.z);
         Chunk* chunk = world_chunks.at(pos);
         if (chunk == nullptr) continue;
-        if (chunk->mesh.slot_vertices.id == -1) continue;
-        if (chunk->mesh.slot_indices.id == -1) continue;
 
-        if (chunk->mesh.slot_vertices.id != -1)
-            world_renderer.buffer_allocator_vertices.deallocate(chunk->mesh.slot_vertices.id);
-        if (chunk->mesh.slot_indices.id != -1)
-            world_renderer.buffer_allocator_indices.deallocate(chunk->mesh.slot_indices.id);
+        world_renderer.buffer_allocator_vertices.deallocate(chunk->mesh.slot_vertices.id);
+        world_renderer.buffer_allocator_indices.deallocate(chunk->mesh.slot_indices.id);
 
         world_chunks.erase(pos);
         delete chunk;
@@ -104,29 +103,22 @@ void GameView::update3x3Chunks(const glm::ivec3& center_chunk_pos)
 {
     // constexpr glm::ivec3 offsets[] = { {0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1} }; // center + adjacents
     // constexpr glm::ivec3 offsets[] = { {0, 0, 0} }; // center
+    // for (const glm::ivec3 &offset: offsets) {
 
     for (int z = -1 ; z <= 1; ++z) {
     for (int y = -1 ; y <= 1; ++y) {
     for (int x = -1 ; x <= 1; ++x) {
-    // for (const glm::ivec3 &offset: offsets) {
         const glm::ivec3 offset = {x, y, z};
         const glm::ivec3 chunk_pos = center_chunk_pos + offset;
 
         // const std::lock_guard<std::shared_mutex> lock(World::instance().chunks_mutex);
 
-        if (Chunk* chunk = World::instance().getChunk(chunk_pos)) {
+        Chunk* chunk = World::instance().getChunk(chunk_pos);
+        if (chunk != nullptr) {
+            ChunkRawMesh raw_mesh = computeVertexBuffer(chunk_pos);
 
-            ChunkMesh new_chunk_mesh = {};
-            new_chunk_mesh.computeVertexBuffer(chunk);
-
-            main_task_queue.push_safe([this, chunk_pos, new_mesh = std::move(new_chunk_mesh)]() mutable {
-                Chunk* c = World::instance().getChunk(chunk_pos);
-                if (c == nullptr) return;
-
-                auto old_mesh = c->mesh;
-                new_mesh.updateVAO(world_renderer.buffer_allocator_vertices, world_renderer.buffer_allocator_indices, old_mesh.slot_vertices, old_mesh.slot_indices);
-                c->mesh = new_mesh;
-            });
+            std::lock_guard<std::mutex> lock(chunks_waiting_bufferslot_mutex);
+            chunks_waiting_bufferslot.push_back(std::tuple(chunk_pos, raw_mesh));
         }
     }
     }
@@ -136,15 +128,6 @@ void GameView::update3x3Chunks(const glm::ivec3& center_chunk_pos)
 void GameView::consumeNewChunks()
 {
     const std::lock_guard<std::mutex> lock(Client::instance().new_chunks_mutex);
-
-    // NOTE: the chunks are sent to be queued before having the chance to be sorted by distance (the solution is to sort the chunks on the server)
-    // const glm::vec3 camPos = camera.getPosition();
-    // std::sort(Client::instance().new_chunks.begin(), Client::instance().new_chunks.end(),
-    //     [camPos](const Packet::Server::ChunkPacket* l, const Packet::Server::ChunkPacket* r)
-    //     {
-    //         return glm::distance2(camPos, glm::vec3(l->pos*16)) > glm::distance2(camPos, glm::vec3(r->pos*16));
-    //     });
-
     // TODO: instead of updating neigbours chunks directly, set the chunks all at once and add to an unordered_map the chunks to update the mesh, then dispatch all thoses
 
     while (Client::instance().new_chunks.size() > 0) {
@@ -154,15 +137,30 @@ void GameView::consumeNewChunks()
 
         thread_pool.enqueue([this, chunk_data] {
             Chunk* chunk = World::instance().setChunk(chunk_data);
-            if (chunk == nullptr) {
-                return;
-            }
-
+            if (chunk) {
+                update3x3Chunks(chunk_data->pos);
+            };
             delete chunk_data;
-
-            update3x3Chunks(chunk->pos);
         });
     }
+}
+
+void GameView::allocateVAOforWaitingChunks() {
+    const std::lock_guard<std::mutex> lock(chunks_waiting_bufferslot_mutex);
+    const std::lock_guard<std::shared_mutex> lock2(World::instance().chunks_mutex);
+
+    for (const auto& [chunk_pos, chunk_raw_mesh]: chunks_waiting_bufferslot) {
+        Chunk* c = World::instance().getChunkUnsafe(chunk_pos);
+        if (c == nullptr) continue;
+
+        auto old_mesh = c->mesh;
+
+        ChunkMesh new_mesh;
+        new_mesh.updateVAO(world_renderer.buffer_allocator_vertices,world_renderer.buffer_allocator_indices,old_mesh.slot_vertices,old_mesh.slot_indices,chunk_raw_mesh);
+        c->mesh = new_mesh;
+    }
+
+    chunks_waiting_bufferslot.clear();
 }
 
 void GameView::networkUpdate()
@@ -184,6 +182,7 @@ void GameView::onDraw(double time_since_start, float dt)
 
 }
 
+
 void GameView::gui(float dt)
 {
     // ImGui::ShowDemoWindow();
@@ -194,9 +193,24 @@ void GameView::gui(float dt)
 
     ImGui::Begin("Debug");
 
+    // if (ImGui::Button("PRINT slots ID")) {
+    //     printf("[");
+    //     for (const auto& [pos, chunk]: World::instance().chunks) {
+    //         printf("%d, ", chunk->mesh.slot_vertices.id);
+    //     }
+    //     printf("]\n");
+    // }
+    // if (ImGui::Button("PRINT free_slots")) {
+    //     printf("[");
+    //     for (const auto id: world_renderer.buffer_allocator_vertices._free_slots) {
+    //         printf("%d, ", id);
+    //     }
+    //     printf("]\n");
+    // }
+
     ImGui::Text("%s", SimpleProfiler::instance().dump().c_str());
 
-    ImGui::Text("RAM: %.3f / %.3f Go", ((double)getCurrentRSS()) / (1024*1024*1024), ((double)getPeakRSS()) / (1024*1024*1024));
+    ImGui::Text("RAM: %.4f / %.4f Go", ((double)getCurrentRSS()) / (1024*1024*1024), ((double)getPeakRSS()) / (1024*1024*1024));
 
     ImGui::Text("BufferVertices: %d / %d", world_renderer.buffer_allocator_vertices.getFreeSlotsCount(), world_renderer.buffer_allocator_vertices.getMaxSlotsCount());
     ImGui::Text("BufferIndices: %d / %d", world_renderer.buffer_allocator_indices.getFreeSlotsCount(), world_renderer.buffer_allocator_indices.getMaxSlotsCount());
@@ -355,3 +369,13 @@ void GameView::onResize(int width, int height)
     glViewport(0, 0, width, height);
     camera.aspect_ratio = (float)width / (float)height;
 }
+
+
+// // #Sort Chunks
+// NOTE: the chunks are sent to be queued before having the chance to be sorted by distance (the solution is to sort the chunks on the server)
+// const glm::vec3 camPos = camera.getPosition();
+// std::sort(Client::instance().new_chunks.begin(), Client::instance().new_chunks.end(),
+//     [camPos](const Packet::Server::ChunkPacket* l, const Packet::Server::ChunkPacket* r)
+//     {
+//         return glm::distance2(camPos, glm::vec3(l->pos*16)) > glm::distance2(camPos, glm::vec3(r->pos*16));
+//     });

@@ -98,7 +98,6 @@ public:
         glDeleteShader(fragment);
         if (geometryPath != nullptr)
             glDeleteShader(geometry);
-
     }
 
     void use() const

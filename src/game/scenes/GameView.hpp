@@ -10,6 +10,8 @@
 #include "BlockRaycastHit.hpp"
 #include "ThreadPool.h"
 
+#include "ChunkMesh.hpp"
+
 class GameView: public View {
 public:
     GameView(Context& ctx);
@@ -21,6 +23,7 @@ public:
     void deleteFarChunks();
     void consumeNewChunks();
     void networkUpdate();
+    void allocateVAOforWaitingChunks();
 
     void sendTextMessage();
     void placeSphere(const glm::ivec3& center, float radius, BlockType blocktype);
@@ -60,4 +63,7 @@ private:
 
     ThreadPool thread_pool{8};
     TaskQueue main_task_queue;
+
+    std::vector<std::tuple<glm::ivec3, ChunkRawMesh>> chunks_waiting_bufferslot;
+    std::mutex chunks_waiting_bufferslot_mutex;
 };

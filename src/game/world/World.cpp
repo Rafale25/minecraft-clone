@@ -123,35 +123,35 @@ uint hashBlocks(const uint8_t* values) {
     return h;
 }
 
-Chunk* World::setChunk(Packet::Server::ChunkPacket* chunk_data)
+Chunk* World::setChunk(const Packet::Server::ChunkPacket* chunk_data)
 {
     Chunk* chunk = nullptr;
 
-    chunks_mutex.lock_shared();
+    // Chrono chrono;
+    const std::lock_guard<std::shared_mutex> lock(chunks_mutex);// TODO: This is where the program waits the most
+                                                                // How to fix: separate chunks and their mesh, so we can have different mutex for data and rendering
+                                                                // Can also just optimize rendering as a temporary solution
+    // chrono.log();
+
     auto it = chunks.find(chunk_data->pos);
-    chunks_mutex.unlock_shared();
 
     if (it == chunks.end()) { // if not found
         chunk = new Chunk();
         chunk->pos = chunk_data->pos;
 
-        // Chrono chrono;
-        const std::lock_guard<std::shared_mutex> lock(chunks_mutex); // TODO: This is where the program waits the most
-                                                                    // How to fix: separate chunks and their mesh, so we can have different mutex for data and rendering
-                                                                    // Can also just optimize rendering as a temporary solution
-        // chrono.log();
         chunks[chunk_data->pos] = chunk;
     } else { // if found
-        uint8_t hash_existing_chunk = hashBlocks((uint8_t*)chunk_data->blocks);
-        uint8_t hash_new_chunk = hashBlocks((uint8_t*)it->second->blocks);
+        // uint8_t hash_existing_chunk = hashBlocks((uint8_t*)chunk_data->blocks);
+        // uint8_t hash_new_chunk = hashBlocks((uint8_t*)it->second->blocks);
 
-        if (hash_existing_chunk == hash_new_chunk) {
-            return nullptr;
-        }
+        // if (hash_existing_chunk == hash_new_chunk) {
+        //     return nullptr;
+        // }
 
         chunk = it->second;
     }
 
+    // TODO: do the memcpy outside of the mutex lock
     memcpy(chunk->blocks, chunk_data->blocks, 4096 * sizeof(uint8_t));
 
     return chunk;

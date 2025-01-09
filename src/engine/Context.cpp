@@ -40,7 +40,7 @@ static std::string errorType(int type) {
 static void GLAPIENTRY
 MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {
-    // if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) return;
+    if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) return;
 
     fprintf(stderr, "[OpenGL %s] - %s - %s\n", errorType(type).c_str(), errorSeverity(severity).c_str(), message);
     if (type == GL_DEBUG_TYPE_ERROR && severity == GL_DEBUG_SEVERITY_HIGH)
