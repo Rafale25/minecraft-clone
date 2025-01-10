@@ -373,6 +373,8 @@ void GameView::onResize(int width, int height)
 {
     glViewport(0, 0, width, height);
     camera.aspect_ratio = (float)width / (float)height;
+
+    world_renderer.onResize(width, height);
 }
 
 

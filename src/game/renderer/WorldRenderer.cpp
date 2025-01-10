@@ -20,6 +20,8 @@ WorldRenderer::WorldRenderer(Context &context): _ctx(context)
 
     BlockTextureManager::loadAllTextures();
     ssbo_texture_handles = createBufferStorage(BlockTextureManager::Get().textures_handles.data(), BlockTextureManager::Get().textures_handles.size() * sizeof(GLuint64));
+
+    onResize(context.width, context.height);
 }
 
 void WorldRenderer::setDefaultRenderState()
@@ -36,7 +38,6 @@ void WorldRenderer::setDefaultRenderState()
     glFrontFace(GL_CW);
 
     // glEnable(GL_FRAMEBUFFER_SRGB);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void WorldRenderer::render(const Camera &camera)
@@ -44,6 +45,9 @@ void WorldRenderer::render(const Camera &camera)
     setDefaultRenderState();
 
     renderShadowmap(camera);
+
+    _framebuffer.bind();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     renderSkybox(camera);
 
@@ -61,6 +65,23 @@ void WorldRenderer::render(const Camera &camera)
     glBindTextureUnit(0, shadowmap._depthTexture._texture);
     renderTerrain(cube_shader, camera);
     renderEntities(camera);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+
+    postprocessing_shader.use();
+    postprocessing_shader.setVec2("u_resolution", glm::vec2(_ctx.width, _ctx.height));
+    postprocessing_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
+    postprocessing_shader.setFloat("u_FOV", glm::radians(camera.fov));
+    postprocessing_shader.setMat4("u_view", glm::mat4(glm::mat3(camera.getView())));
+    postprocessing_shader.setMat4("u_projection", camera.getProjection());
+
+    postprocessing_shader.setInt("colorTexture", 0);
+    postprocessing_shader.setInt("depthTexture", 1);
+
+    glBindTextureUnit(0, _colorTexture._texture);
+    glBindTextureUnit(1, _depthTexture._texture);
+    _quad_fs.draw();
 }
 
 void WorldRenderer::signalDeletedChunk(const glm::ivec3 &chunk_pos) {
@@ -72,12 +93,27 @@ void WorldRenderer::signalDeletedChunk(const glm::ivec3 &chunk_pos) {
     }
 }
 
+void WorldRenderer::onResize(int width, int height) {
+    printf("ON RESIZE\n");
+
+    _framebuffer.destroy();
+    _colorTexture.destroy();
+    _depthTexture.destroy();
+
+    _framebuffer = Framebuffer();
+    _colorTexture = Texture(width, height, GL_RGB8, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
+    _depthTexture = Texture(width, height, GL_DEPTH_COMPONENT24, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
+    _framebuffer.attachTexture(_colorTexture._texture, GL_COLOR_ATTACHMENT0);
+    _framebuffer.attachTexture(_depthTexture._texture, GL_DEPTH_ATTACHMENT);
+}
+
 void WorldRenderer::renderTerrain(const Program& program, const Camera &camera, bool use_frustum_culling)
 {
     program.use();
     program.setMat4("u_projectionMatrix", camera.getProjection());
     program.setMat4("u_viewMatrix", camera.getView());
     program.setVec3("u_view_position", camera.getPosition());
+    program.setFloat("u_time", glfwGetTime());
 
     Frustum camera_frustum = createFrustumFromCamera(camera, camera.aspect_ratio, glm::radians(camera.fov), camera.near_plane, camera.far_plane);
 

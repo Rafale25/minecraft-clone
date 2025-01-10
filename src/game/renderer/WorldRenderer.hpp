@@ -22,6 +22,7 @@ public:
     void render(const Camera &camera);
 
     void signalDeletedChunk(const glm::ivec3& chunk_pos);
+    void onResize(int width, int height);
     // void signalAddedChunk(const glm::ivec3& chunk_pos);
 
     // ChunkMesh makeChunkMesh(const ChunkRawMesh& raw_mesh);
@@ -50,13 +51,19 @@ public:
     bool _ambient_occlusion = true;
     float _ambient_occlusion_strength = 0.67;
 
-public:
+    Framebuffer _framebuffer;
+    Texture _colorTexture;
+    Texture _depthTexture;
+
+    Mesh _quad_fs = Geometry::quad_2d();
+
     GLuint ssbo_texture_handles;
 
     Program cube_shader{"./assets/shaders/cube.vs", "./assets/shaders/cube.fs"};
     Program cube_shadowmapping_shader{"./assets/shaders/cube_shadowmap.vs", "./assets/shaders/cube_shadowmap.fs"};
     Program mesh_shader{"./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs"};
     Program skybox_shader{"./assets/shaders/skybox.vs", "./assets/shaders/skybox.fs"};
+    Program postprocessing_shader{"./assets/shaders/postprocess.vs", "./assets/shaders/postprocess.fs"};
 
     Mesh skybox_quad = Geometry::quad_2d();
 

@@ -4,10 +4,12 @@
 
 class Framebuffer {
     public:
-        Framebuffer(GLenum draw_buffer=GL_FRONT, GLenum read_buffer=GL_FRONT);
+        Framebuffer();
+        Framebuffer(GLenum draw_buffer, GLenum read_buffer);
 
         void bind();
         void attachTexture(GLuint texture, GLenum attachment);
+        void destroy();
 
     private:
         GLuint _framebuffer;

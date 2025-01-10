@@ -108,6 +108,9 @@ Context::Context(int width, int height, const char *title, int maximized, int sa
     glfwGetCursorPos(window, &mouseX, &mouseY);
     _mouse_x = mouseX;
     _mouse_y = mouseY;
+
+    this->width = width;
+    this->height = height;
 }
 
 Context::~Context()

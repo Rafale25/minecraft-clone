@@ -300,9 +300,9 @@ void ChunkMesh::updateVAO(
     const BufferSlot& previous_slot_indices,
     const ChunkRawMesh& raw_mesh
 ){
+    buffer_allocator_vertices.deallocate(previous_slot_vertices.id);
+    buffer_allocator_indices.deallocate(previous_slot_indices.id);
     if (raw_mesh.vertices.size() == 0 || raw_mesh.indices.size() == 0) {
-        buffer_allocator_vertices.deallocate(previous_slot_vertices.id);
-        buffer_allocator_indices.deallocate(previous_slot_indices.id);
         return;
     }
 
