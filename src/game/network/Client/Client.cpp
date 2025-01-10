@@ -18,7 +18,6 @@
 #include "Chunk.hpp"
 #include "World.hpp"
 #include "Entity.hpp"
-#include "utils/print_buffer.h"
 
 #include "utils/recv_full.h"
 #include "utils/byte_manipulation.h"
