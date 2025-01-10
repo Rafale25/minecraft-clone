@@ -309,14 +309,6 @@ void ChunkMesh::updateVAO(
     const int32_t vertices_size = raw_mesh.vertices.size() * sizeof(GLuint);
     const int32_t indices_size = raw_mesh.indices.size() * sizeof(GLuint);
 
-    // ERROR: TODO: Should not check if vertices_size is not higher than before to use updateAllocation
-    if (previous_slot_vertices.id == -1 || vertices_size > previous_slot_vertices.size)
-        slot_vertices = buffer_allocator_vertices.allocate(vertices_size, &raw_mesh.vertices[0]);
-    else
-        slot_vertices = buffer_allocator_vertices.updateAllocation(previous_slot_vertices.id, vertices_size, &raw_mesh.vertices[0]);
-
-    if (previous_slot_indices.id == -1 || indices_size > previous_slot_indices.size)
-        slot_indices = buffer_allocator_indices.allocate(indices_size, &raw_mesh.indices[0]);
-    else
-        slot_indices = buffer_allocator_indices.updateAllocation(previous_slot_indices.id, indices_size, &raw_mesh.indices[0]);
+    slot_vertices = buffer_allocator_vertices.allocate(vertices_size, &raw_mesh.vertices[0]);
+    slot_indices = buffer_allocator_indices.allocate(indices_size, &raw_mesh.indices[0]);
 }

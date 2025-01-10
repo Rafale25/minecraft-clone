@@ -33,7 +33,7 @@ public:
 
     BufferSlot allocate(uint32_t size, const void * data);
     void deallocate(int32_t id);
-    BufferSlot updateAllocation(int32_t id, uint32_t size, const void * data);
+    // BufferSlot updateAllocation(int32_t id, uint32_t size, const void * data);
 
     GLuint getBufferObject() const { return _buffer; };
     int getFreeSlotsCount() const { return _free_slots.size(); };

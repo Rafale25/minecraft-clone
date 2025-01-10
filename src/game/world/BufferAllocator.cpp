@@ -81,36 +81,36 @@ BufferSlot BufferAllocator::allocate(uint32_t size, const void * data) {
     return b;
 }
 
-BufferSlot BufferAllocator::updateAllocation(int32_t id, uint32_t size, const void *data) {
-    if (size == 0) {
-        #ifdef PRINT_ERRORS
-        fprintf(stderr, "Error: %s - Trying to allocate size of 0!\n", _name);
-        #endif
-        return invalid_buffer_slot;
-    }
+// BufferSlot BufferAllocator::updateAllocation(int32_t id, uint32_t size, const void *data) {
+//     if (size == 0) {
+//         #ifdef PRINT_ERRORS
+//         fprintf(stderr, "Error: %s - Trying to allocate size of 0!\n", _name);
+//         #endif
+//         return invalid_buffer_slot;
+//     }
 
-    if (size > _slot_size) {
-        #ifdef PRINT_ERRORS
-        fprintf(stderr, "Error: %s - Allocate size demanded %d is higher than maximum slot size of %ld!\n", _name, size, _slot_size);
-        #endif
-        return invalid_buffer_slot;
-    }
+//     if (size > _slot_size) {
+//         #ifdef PRINT_ERRORS
+//         fprintf(stderr, "Error: %s - Allocate size demanded %d is higher than maximum slot size of %ld!\n", _name, size, _slot_size);
+//         #endif
+//         return invalid_buffer_slot;
+//     }
 
-    BufferSlot b = {
-        .start = (int) (id * _slot_size),
-        .size = (int) size,
-        .id = (int) id
-    };
+//     BufferSlot b = {
+//         .start = (int) (id * _slot_size),
+//         .size = (int) size,
+//         .id = (int) id
+//     };
 
-    glNamedBufferSubData(
-        _buffer,
-        b.start,
-        size,
-        data
-    );
+//     glNamedBufferSubData(
+//         _buffer,
+//         b.start,
+//         size,
+//         data
+//     );
 
-    return b;
-}
+//     return b;
+// }
 
 void BufferAllocator::deallocate(int32_t id) {
     if (id <= -1) {

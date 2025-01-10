@@ -63,7 +63,6 @@ void World::setEntityName(int id, std::string name)
 
 BlockType World::getBlock(const glm::ivec3& pos) const
 {
-    // TODO: try using static variables since this function is hot
     glm::ivec3 chunk_pos = glm::floor(glm::vec3(pos) / 16.0f);
     glm::ivec3 local_pos = {pos.x % 16, pos.y % 16, pos.z % 16};
     if (local_pos.x < 0) local_pos.x += 16;
