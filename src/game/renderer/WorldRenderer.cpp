@@ -6,8 +6,6 @@
 #include "Camera.hpp"
 #include "BlockTextureManager.hpp"
 
-#include <shared_mutex>
-
 WorldRenderer::WorldRenderer(Context &context): _ctx(context)
 {
     chunk_vao = createVAO(0, "i");
@@ -49,7 +47,7 @@ void WorldRenderer::render(const Camera &camera)
     _framebuffer.bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    renderSkybox(camera);
+    // renderSkybox(camera);
 
     cube_shader.use();
     cube_shader.setMat4("u_lightSpaceMatrix", shadowmap._lightSpaceMatrix);
@@ -73,8 +71,9 @@ void WorldRenderer::render(const Camera &camera)
     postprocessing_shader.setVec2("u_resolution", glm::vec2(_ctx.width, _ctx.height));
     postprocessing_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
     postprocessing_shader.setFloat("u_FOV", glm::radians(camera.fov));
-    postprocessing_shader.setMat4("u_view", glm::mat4(glm::mat3(camera.getView())));
+    postprocessing_shader.setMat4("u_view", camera.getView());
     postprocessing_shader.setMat4("u_projection", camera.getProjection());
+    postprocessing_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
 
     postprocessing_shader.setInt("colorTexture", 0);
     postprocessing_shader.setInt("depthTexture", 1);
