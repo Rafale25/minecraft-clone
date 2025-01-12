@@ -112,8 +112,6 @@ void GameView::consumeNewChunks()
 
         Chunk* chunk = World::instance().setChunk(chunk_data);
         if (chunk) {
-            chunks_to_remesh.insert(chunk_data->pos);
-
             for (int z = -1 ; z <= 1; ++z) {
             for (int y = -1 ; y <= 1; ++y) {
             for (int x = -1 ; x <= 1; ++x) {

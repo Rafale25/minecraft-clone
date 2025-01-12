@@ -68,7 +68,7 @@ public:
     Mesh skybox_quad = Geometry::quad_2d();
 
     const float chunk_view_distance = 16.0f * 16.0f;
-    const float chunk_delete_offset = 16.0f * 10.0f;
+    const float chunk_delete_offset = 16.0f * 16.0f;
 
     const uint32_t MAX_COMMANDS = 20'000;
     BufferAllocator buffer_allocator_vertices{"BufferAllocatorVertice", 25'000 * sizeof(int), MAX_COMMANDS};

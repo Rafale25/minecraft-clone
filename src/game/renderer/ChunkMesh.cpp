@@ -1,7 +1,5 @@
 #include "ChunkMesh.hpp"
 
-#include <stdio.h>
-
 #include "World.hpp"
 #include "BlockTextureManager.hpp"
 #include "ChunkExtra.hpp"
