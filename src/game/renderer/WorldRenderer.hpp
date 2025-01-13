@@ -36,7 +36,7 @@ private:
     void renderEntities(const Camera &camera);
     void renderEntitiesDepth(const Camera &camera);
 
-    void renderSkybox(const Camera &camera);
+    // void renderSkybox(const Camera &camera);
     void renderShadowmap(const Camera &camera);
 
 
@@ -62,7 +62,6 @@ public:
     Program cube_shader{"./assets/shaders/cube.vs", "./assets/shaders/cube.fs"};
     Program cube_shadowmapping_shader{"./assets/shaders/cube_shadowmap.vs", "./assets/shaders/cube_shadowmap.fs"};
     Program mesh_shader{"./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs"};
-    Program skybox_shader{"./assets/shaders/skybox.vs", "./assets/shaders/skybox.fs"};
     Program postprocessing_shader{"./assets/shaders/postprocess.vs", "./assets/shaders/postprocess.fs"};
 
     Mesh skybox_quad = Geometry::quad_2d();
