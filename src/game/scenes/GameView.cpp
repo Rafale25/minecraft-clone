@@ -16,22 +16,12 @@
 
 #include <unordered_set>
 
-/*
-    HOW TO FIX CONCURRENT BUGS :
-
-        - Make that the chunks list can only be modified by the main thread at a specific moment
-        - Make that threads can't write to the chunk list, only read
-        - Need a second "concurrent" vector list for threads to write to
-
-*/
-
 GameView::GameView(Context& ctx): View(ctx)
 {
     glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     Client::instance().init(tchat, global_argv[1]);
     Client::instance().Start();
-
 }
 
 void GameView::onHideView()
@@ -110,7 +100,14 @@ void GameView::processNewChunks()
         Packet::Server::ChunkPacket* chunk_data = Client::instance().new_chunks.back();
         Client::instance().new_chunks.pop_back();
 
-        Chunk* chunk = World::instance().setChunk(chunk_data);
+        // Don't process imcoming chunk out of render distance
+        const float camera_chunk_dist = glm::distance(camera.getPosition(), glm::vec3(chunk_data->pos) * 16.0f);
+        if (camera_chunk_dist > world_renderer.chunk_view_distance + world_renderer.chunk_delete_offset) {
+            delete chunk_data;
+            continue;
+        }
+
+        Chunk* chunk = World::instance().setChunk(chunk_data->pos, chunk_data->blocks);
         if (chunk) {
             for (int z = -1 ; z <= 1; ++z) {
             for (int y = -1 ; y <= 1; ++y) {
@@ -185,7 +182,6 @@ void GameView::onDraw(double time_since_start, float dt)
     ctx.imguiRender();
 
 }
-
 
 void GameView::gui(float dt)
 {

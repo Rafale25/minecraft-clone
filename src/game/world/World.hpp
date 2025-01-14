@@ -49,7 +49,7 @@ public:
     BlockRaycastHit blockRaycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance) const;
     BlockType getBlock(const glm::ivec3& pos) const;
 
-    Chunk* setChunk(const Packet::Server::ChunkPacket* chunk_data);
+    Chunk* setChunk(const glm::ivec3& pos, const BlockType* blocks);
     Chunk* getChunk(const glm::ivec3& pos) const;
     Chunk* getChunkUnsafe(const glm::ivec3 &pos) const; // Do not use mutex
 

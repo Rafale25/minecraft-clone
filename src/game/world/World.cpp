@@ -121,7 +121,7 @@ uint32_t hashBlocks(const uint8_t* values) {
     return h;
 }
 
-Chunk* World::setChunk(const Packet::Server::ChunkPacket* chunk_data)
+Chunk* World::setChunk(const glm::ivec3& pos, const BlockType* blocks)
 {
     Chunk* chunk = nullptr;
 
@@ -131,15 +131,15 @@ Chunk* World::setChunk(const Packet::Server::ChunkPacket* chunk_data)
                                                                 // Can also just optimize rendering as a temporary solution
     // chrono.log();
 
-    auto it = chunks.find(chunk_data->pos);
+    auto it = chunks.find(pos);
 
     if (it == chunks.end()) { // if not found
         chunk = new Chunk();
-        chunk->pos = chunk_data->pos;
+        chunk->pos = pos;
 
-        chunks[chunk_data->pos] = chunk;
+        chunks[pos] = chunk;
     } else { // if found
-        uint32_t hash_existing_chunk = hashBlocks((uint8_t*)chunk_data->blocks);
+        uint32_t hash_existing_chunk = hashBlocks((uint8_t*)blocks);
         uint32_t hash_new_chunk = hashBlocks((uint8_t*)it->second->blocks);
 
         if (hash_existing_chunk == hash_new_chunk) {
@@ -150,7 +150,7 @@ Chunk* World::setChunk(const Packet::Server::ChunkPacket* chunk_data)
     }
 
     // TODO: do the memcpy outside of the mutex lock
-    memcpy(chunk->blocks, chunk_data->blocks, 4096 * sizeof(uint8_t));
+    memcpy(chunk->blocks, blocks, 4096 * sizeof(uint8_t));
 
     return chunk;
 }
