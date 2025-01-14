@@ -35,10 +35,11 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     -Wno-unused-variable
     -Wno-unused-parameter
     -Wno-strict-aliasing
+    # -O3
     # -fno-omit-frame-pointer
-    -fsanitize=address
+    # -fsanitize=address
     # -fsanitize=leak
-    -g3
+    # -g3
 )
 
 target_compile_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
