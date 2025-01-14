@@ -294,12 +294,8 @@ ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos)
 void ChunkMesh::updateVAO(
     BufferAllocator& buffer_allocator_vertices,
     BufferAllocator& buffer_allocator_indices,
-    const BufferSlot& previous_slot_vertices,
-    const BufferSlot& previous_slot_indices,
     const ChunkRawMesh& raw_mesh
 ){
-    buffer_allocator_vertices.deallocate(previous_slot_vertices.id);
-    buffer_allocator_indices.deallocate(previous_slot_indices.id);
     if (raw_mesh.vertices.size() == 0 || raw_mesh.indices.size() == 0) {
         return;
     }

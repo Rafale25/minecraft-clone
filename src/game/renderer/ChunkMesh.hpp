@@ -23,8 +23,6 @@ struct ChunkMesh {
     void updateVAO(
         BufferAllocator& buffer_allocator_vertices,
         BufferAllocator& buffer_allocator_indices,
-        const BufferSlot& slot_vertices,
-        const BufferSlot& slot_indices,
         const ChunkRawMesh& raw_mesh
     );
 };

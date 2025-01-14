@@ -139,24 +139,25 @@ void GameView::consumeNewChunks()
 
 void GameView::allocateVAOforWaitingChunks() {
     const std::lock_guard<std::mutex> lock(chunks_waiting_bufferslot_mutex);
-    const std::lock_guard<std::shared_mutex> lock2(World::instance().chunks_mutex);
+    // const std::lock_guard<std::shared_mutex> lock2(World::instance().chunks_mutex);
 
     for (const auto& [chunk_pos, chunk_raw_mesh]: chunks_waiting_bufferslot) {
         Chunk* c = World::instance().getChunkUnsafe(chunk_pos);
         if (c == nullptr) continue;
 
-        ChunkMesh old_mesh;
+
+        // find old chunk and delete its vertices
         const auto& it = world_renderer.meshes.find(chunk_pos);
         if (it != world_renderer.meshes.end()) {
-            old_mesh = it->second;
+            world_renderer.buffer_allocator_vertices.deallocate(it->second.slot_vertices.id);
+            world_renderer.buffer_allocator_indices.deallocate(it->second.slot_indices.id);
         }
+
 
         ChunkMesh new_mesh;
         new_mesh.updateVAO(
             world_renderer.buffer_allocator_vertices,
             world_renderer.buffer_allocator_indices,
-            old_mesh.slot_vertices,
-            old_mesh.slot_indices,
             chunk_raw_mesh
         );
 
