@@ -36,14 +36,14 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     -Wno-unused-parameter
     -Wno-strict-aliasing
     # -O3
+    # -g3
     # -fno-omit-frame-pointer
     # -fsanitize=address
     # -fsanitize=leak
-    # -g3
 )
 
-target_compile_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
-target_link_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
+# target_compile_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
+# target_link_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
