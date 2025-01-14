@@ -58,7 +58,7 @@ void GameView::onUpdate(double time_since_start, float dt)
     Client::instance().task_queue.execute();
     main_task_queue.execute();
 
-    consumeNewChunks();
+    processNewChunks();
 
     allocateVAOforWaitingChunks();
 
@@ -99,7 +99,7 @@ void GameView::deleteFarChunks()
     }
 }
 
-void GameView::consumeNewChunks()
+void GameView::processNewChunks()
 {
     const std::lock_guard<std::mutex> lock(Client::instance().new_chunks_mutex);
 

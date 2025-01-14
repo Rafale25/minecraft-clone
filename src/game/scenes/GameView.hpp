@@ -20,7 +20,7 @@ public:
     void onHideView();
 
     void deleteFarChunks();
-    void consumeNewChunks();
+    void processNewChunks();
     void networkUpdate();
     void allocateVAOforWaitingChunks();
 
