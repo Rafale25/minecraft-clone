@@ -111,7 +111,6 @@ BlockRaycastHit World::blockRaycast(const glm::vec3& origin, const glm::vec3& di
     return {BlockType::Air, mapPos, normal};
 }
 
-// #include "clock.hpp"
 uint32_t hashBlocks(const uint8_t* values) {
     uint32_t h = 1;
 
@@ -121,8 +120,6 @@ uint32_t hashBlocks(const uint8_t* values) {
 
     return h;
 }
-
-#include "print_buffer.h"
 
 Chunk* World::setChunk(const Packet::Server::ChunkPacket* chunk_data)
 {

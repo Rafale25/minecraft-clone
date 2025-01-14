@@ -5,7 +5,6 @@
 #include "ChunkExtra.hpp"
 #include "Chunk.hpp"
 
-
 GLuint packVertex(int x, int y, int z, int u, int v, int o, int t, int ao=3) {
     // 4 bytes, 32 bits
     // 00000000000000000000000000000000
@@ -42,11 +41,12 @@ static inline glm::ivec3 orientationToDir(Orientation orientation) {
     }
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wc99-designator"
+// #pragma GCC diagnostic push
+// #pragma GCC diagnostic ignored "-Wc99-designator"
 
 const int infos[][50] = {
-    [Orientation::Top] = {
+    // [Orientation::Top] 0
+    {
      // x, y, z,    u, v
         0, 1, 0,    0, 0,
         1, 1, 0,    1, 0,
@@ -75,8 +75,8 @@ const int infos[][50] = {
      // nb_hxhy
         1, 1, 1,
     },
-
-    [Orientation::Bottom] = {
+    // [Orientation::Bottom] = 1
+    {
         0, 0, 0,    0, 0,
         1, 0, 0,    1, 0,
         1, 0, 1,    1, 1,
@@ -95,8 +95,8 @@ const int infos[][50] = {
         -1, -1, 1,
         1, -1, 1,
     },
-
-    [Orientation::Front] = {
+    // [Orientation::Front] = 2
+    {
         0, 0, 0,  0, 0,
         1, 0, 0,  1, 0,
         1, 1, 0,  1, 1,
@@ -115,8 +115,8 @@ const int infos[][50] = {
         -1, 1, -1,
         1, 1, -1,
     },
-
-    [Orientation::Back] = {
+    // [Orientation::Back] = 3
+    {
         0, 0, 1,     0, 0,
         1, 0, 1,     1, 0,
         1, 1, 1,     1, 1,
@@ -135,8 +135,8 @@ const int infos[][50] = {
         -1, 1, 1,
         1, 1, 1,
     },
-
-    [Orientation::Left] = {
+    // [Orientation::Left] = 4
+    {
         0, 0, 0,    0, 0,
         0, 1, 0,    0, 1,
         0, 1, 1,    1, 1,
@@ -155,8 +155,8 @@ const int infos[][50] = {
         -1, -1, 1,
         -1, 1, 1,
     },
-
-    [Orientation::Right] = {
+    // [Orientation::Right] = 5
+    {
         1, 0, 0,    0, 0,
         1, 0, 1,    1, 0,
         1, 1, 1,    1, 1,
@@ -177,7 +177,7 @@ const int infos[][50] = {
     },
 };
 
-#pragma GCC diagnostic pop
+// #pragma GCC diagnostic pop
 
 inline void makeFace(
     std::vector<GLuint>& vertices,
@@ -193,8 +193,12 @@ inline void makeFace(
 
     const int* info = infos[orientation];
 
-    // front
     BlockType nb = chunkextra.getBlock(local_pos + dir);
+
+    // if nb is invalid
+    if (!(nb >= BlockType::Air && nb < BlockType::INVALID)) {
+        nb = BlockType::Stone; // Assume not a transparent block so the face still get culled
+    }
     BlockMetadata nbmtd = blocksMetadata[(int)nb];
     if (nbmtd.transparent) {
 
@@ -267,16 +271,17 @@ ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos)
     for (int y = 0 ; y < 16 ; ++y) {
     for (int x = 0 ; x < 16 ; ++x) {
         const int index = z * 16*16 + y * 16 + x;
-        // const BlockType block = chunk->blocks[index];
-        const BlockType block = chunkextra.getBlock({x, y, z});// ->blocks[index];
+        BlockType block = chunkextra.getBlock({x, y, z});
 
         if (block == BlockType::Air) continue;
 
+        // If block has invalid BlockType, set it to invalid so it shows up with the INVALID texture
+        if (block >= BlockType::INVALID) {
+            block = BlockType::INVALID;
+        }
+
         const glm::ivec3 local_pos = glm::ivec3(x, y, z);
         auto [texture_top_handle, texture_side_handle, texture_bot_handle] = BlockTextureManager::Get().block_textures_ids[block];
-
-        BlockType nb; // neighbour block
-        BlockMetadata nbmtd; // neighbour block metadata
 
         makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Front, texture_side_handle);
         makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Back, texture_side_handle);

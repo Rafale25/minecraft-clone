@@ -356,9 +356,9 @@ void GameView::onMouseDrag(int x, int y, int dx, int dy)
 
 void GameView::onMouseScroll(int scroll_x, int scroll_y)
 {
-    int block = ((int)block_in_hand + scroll_y) % ((int)BlockType::LAST-1);
+    int block = ((int)block_in_hand + scroll_y) % ((int)BlockType::INVALID-1);
     if (block < 1)
-        block += (int)BlockType::LAST-1;
+        block += (int)BlockType::INVALID-1;
     block_in_hand = (BlockType)block;
 }
 

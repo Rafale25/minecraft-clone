@@ -25,7 +25,7 @@ enum class BlockType : uint8_t {
     Water = 7,
     Sand = 8,
     Snow = 9,
-    LAST, // do not use as block
+    INVALID, // do not use as block
 };
 
 bool operator==(const BlockType&, const int&);
@@ -39,25 +39,35 @@ struct BlockMetadata
     // ...
 };
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wc99-designator"
+// #pragma GCC diagnostic push
+// #pragma GCC diagnostic ignored "-Wc99-designator"
 
 inline constexpr BlockMetadata blocksMetadata[] =
 {
-    [(int)BlockType::Air]       = {.transparent = true},
-    [(int)BlockType::Grass]     = {.transparent = false},
-    [(int)BlockType::Dirt]      = {.transparent = false},
-    [(int)BlockType::Stone]     = {.transparent = false},
-    [(int)BlockType::OakLog]    = {.transparent = false},
-    [(int)BlockType::OakLeaves] = {.transparent = true},
+    // [(int)BlockType::Air]       =
+    {.transparent = true},
+    // [(int)BlockType::Grass]     =
+    {.transparent = false},
+    // [(int)BlockType::Dirt]      =
+    {.transparent = false},
+    // [(int)BlockType::Stone]     =
+    {.transparent = false},
+    // [(int)BlockType::OakLog]    =
+    {.transparent = false},
+    // [(int)BlockType::OakLeaves] =
+    {.transparent = true},
 
-    [(int)BlockType::Glass]     = {.transparent = true},
-    [(int)BlockType::Water]     = {.transparent = false},
-    [(int)BlockType::Sand]      = {.transparent = false},
-    [(int)BlockType::Snow]      = {.transparent = false},
+    // [(int)BlockType::Glass]     =
+    {.transparent = true},
+    // [(int)BlockType::Water]     =
+    {.transparent = false},
+    // [(int)BlockType::Sand]      =
+    {.transparent = false},
+    // [(int)BlockType::Snow]      =
+    {.transparent = false},
 };
 
-#pragma GCC diagnostic pop
+// #pragma GCC diagnostic pop
 
 enum class TextureName : int {
     GrassTop,
@@ -71,6 +81,7 @@ enum class TextureName : int {
     Water,
     Sand,
     Snow,
+    INVALID,
 };
 
 enum PacketId {

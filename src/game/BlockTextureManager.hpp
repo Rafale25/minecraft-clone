@@ -42,6 +42,8 @@ private:
         { TextureName::Water,       "water.png"},
         { TextureName::Sand,        "sand.png"},
         { TextureName::Snow,        "snow.png"},
+
+        { TextureName::INVALID,     "error.png"},
     };
 
     std::unordered_map<BlockType, std::array<TextureName, 3>> block_textures_path = {
@@ -54,6 +56,8 @@ private:
         { BlockType::Water,     { TextureName::Water,       TextureName::Water,     TextureName::Water      }},
         { BlockType::Sand,      { TextureName::Sand,        TextureName::Sand,      TextureName::Sand       }},
         { BlockType::Snow,      { TextureName::Snow,        TextureName::Snow,      TextureName::Snow       }},
+
+        { BlockType::INVALID,   { TextureName::INVALID,     TextureName::INVALID,   TextureName::INVALID    }},
     };
 
 public:
