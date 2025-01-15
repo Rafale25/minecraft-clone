@@ -8,7 +8,6 @@
 #include "Entity.hpp"
 #include "WorldRenderer.hpp"
 #include "BlockRaycastHit.hpp"
-#include "ThreadPool.h"
 
 #include "ChunkMesh.hpp"
 
@@ -22,7 +21,6 @@ public:
     void deleteFarChunks();
     void processNewChunks();
     void networkUpdate();
-    void allocateVAOforWaitingChunks();
 
     void sendTextMessage();
     void placeSphere(const glm::ivec3& center, float radius, BlockType blocktype);
@@ -59,10 +57,4 @@ private:
 
     char input_text_buffer[4096] = {0};
     std::vector<std::string> tchat;
-
-    ThreadPool thread_pool{8};
-    TaskQueue main_task_queue;
-
-    std::vector<std::tuple<glm::ivec3, ChunkRawMesh>> chunks_waiting_bufferslot;
-    std::mutex chunks_waiting_bufferslot_mutex;
 };

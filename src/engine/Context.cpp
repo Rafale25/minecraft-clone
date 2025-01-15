@@ -169,7 +169,7 @@ void Context::imguiInit()
 {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
-    ImGuiContext* imgui_context = ImGui::CreateContext();
+    ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     ImGui::StyleColorsDark();
 

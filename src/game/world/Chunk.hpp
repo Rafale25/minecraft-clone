@@ -4,7 +4,6 @@
 #include <glad/gl.h>
 
 #include "enums.hpp"
-#include "ChunkMesh.hpp"
 
 class TextureManager;
 class World;

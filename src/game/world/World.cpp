@@ -155,6 +155,15 @@ Chunk* World::setChunk(const glm::ivec3& pos, const BlockType* blocks)
     return chunk;
 }
 
+void World::deleteChunk(const glm::ivec3 &pos) {
+    //NOTE: might need to use .find() in case pos doesn't exist
+    Chunk* chunk = chunks.at(pos);
+    if (chunk == nullptr) return;
+
+    delete chunk;
+    chunks.erase(pos);
+}
+
 Chunk* World::getChunk(const glm::ivec3& pos) const
 {
     const std::shared_lock<std::shared_mutex> lock(chunks_mutex);

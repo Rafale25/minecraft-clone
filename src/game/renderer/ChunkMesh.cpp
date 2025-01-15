@@ -270,7 +270,6 @@ ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos)
     for (int z = 0 ; z < 16 ; ++z) {
     for (int y = 0 ; y < 16 ; ++y) {
     for (int x = 0 ; x < 16 ; ++x) {
-        const int index = z * 16*16 + y * 16 + x;
         BlockType block = chunkextra.getBlock({x, y, z});
 
         if (block == BlockType::Air) continue;

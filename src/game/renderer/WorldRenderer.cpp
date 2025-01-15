@@ -83,13 +83,22 @@ void WorldRenderer::render(const Camera &camera)
     _quad_fs.draw();
 }
 
-void WorldRenderer::signalDeletedChunk(const glm::ivec3 &chunk_pos) {
+void WorldRenderer::onDeletedChunk(const glm::ivec3 &chunk_pos) {
     const auto& it = meshes.find(chunk_pos);
-    if (it != meshes.end()) {
-        buffer_allocator_vertices.deallocate(it->second.slot_vertices.id);
-        buffer_allocator_indices.deallocate(it->second.slot_indices.id);
-        meshes.erase(it);
-    }
+    if (it == meshes.end()) return;
+
+    buffer_allocator_vertices.deallocate(it->second.slot_vertices.id);
+    buffer_allocator_indices.deallocate(it->second.slot_indices.id);
+    meshes.erase(it);
+}
+
+void WorldRenderer::onAddedChunk(const glm::ivec3 &chunk_pos) {
+    for (int z = -1 ; z <= 1; ++z) {
+    for (int y = -1 ; y <= 1; ++y) {
+    for (int x = -1 ; x <= 1; ++x) {
+        const glm::ivec3 offset = {x, y, z};
+        chunks_to_remesh.insert(chunk_pos + offset);
+    }}}
 }
 
 void WorldRenderer::onResize(int width, int height) {
@@ -105,6 +114,50 @@ void WorldRenderer::onResize(int width, int height) {
     _framebuffer.attachTexture(_colorTexture._texture, GL_COLOR_ATTACHMENT0);
     _framebuffer.attachTexture(_depthTexture._texture, GL_DEPTH_ATTACHMENT);
 }
+
+void WorldRenderer::update() {
+    processChunksToMesh();
+    allocateVAOforWaitingChunks();
+}
+
+void WorldRenderer::processChunksToMesh()
+{
+    for (const auto& pos : chunks_to_remesh) {
+        thread_pool.enqueue([this, pos] {
+            Chunk* chunk = World::instance().getChunk(pos);
+            if (chunk != nullptr) {
+                ChunkRawMesh raw_mesh = computeVertexBuffer(pos);
+
+                std::lock_guard<std::mutex> lock(chunks_waiting_bufferslot_mutex);
+                chunks_waiting_bufferslot.push_back(std::tuple(pos, raw_mesh));
+            }
+        });
+    }
+    chunks_to_remesh.clear();
+}
+
+void WorldRenderer::allocateVAOforWaitingChunks() {
+    const std::lock_guard<std::mutex> lock(chunks_waiting_bufferslot_mutex);
+
+    for (const auto& [chunk_pos, chunk_raw_mesh]: chunks_waiting_bufferslot) {
+        const Chunk* c = World::instance().getChunkUnsafe(chunk_pos);
+        if (c == nullptr) continue;
+
+        // find old chunk and delete its vertices
+        const auto& it = meshes.find(chunk_pos);
+        if (it != meshes.end()) {
+            buffer_allocator_vertices.deallocate(it->second.slot_vertices.id);
+            buffer_allocator_indices.deallocate(it->second.slot_indices.id);
+        }
+
+        ChunkMesh new_mesh;
+        new_mesh.updateVAO(buffer_allocator_vertices, buffer_allocator_indices, chunk_raw_mesh);
+        meshes[chunk_pos] = new_mesh;
+    }
+
+    chunks_waiting_bufferslot.clear();
+}
+
 
 void WorldRenderer::renderTerrain(const Program& program, const Camera &camera, bool use_frustum_culling)
 {

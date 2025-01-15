@@ -50,6 +50,7 @@ public:
     BlockType getBlock(const glm::ivec3& pos) const;
 
     Chunk* setChunk(const glm::ivec3& pos, const BlockType* blocks);
+    void deleteChunk(const glm::ivec3 &pos);
     Chunk* getChunk(const glm::ivec3& pos) const;
     Chunk* getChunkUnsafe(const glm::ivec3 &pos) const; // Do not use mutex
 

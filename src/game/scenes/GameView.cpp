@@ -9,12 +9,9 @@
 
 #include "command_line_args.h"
 #include "string_helpers.h"
-#include "ThreadPool.h"
 #include "mem_info.h"
 
 #include "clock.h"
-
-#include <unordered_set>
 
 GameView::GameView(Context& ctx): View(ctx)
 {
@@ -27,7 +24,7 @@ GameView::GameView(Context& ctx): View(ctx)
 void GameView::onHideView()
 {
     Client::instance().Stop();
-    thread_pool.stop();
+    world_renderer.thread_pool.stop();
 }
 
 void GameView::onUpdate(double time_since_start, float dt)
@@ -46,11 +43,11 @@ void GameView::onUpdate(double time_since_start, float dt)
     camera.update(dt);
 
     Client::instance().task_queue.execute();
-    main_task_queue.execute();
 
     processNewChunks();
+    deleteFarChunks();
 
-    allocateVAOforWaitingChunks();
+    world_renderer.update();
 
     World::instance().updateEntities();
 
@@ -61,8 +58,6 @@ void GameView::onUpdate(double time_since_start, float dt)
         network_timer = 1.0f / 20.0f;
         networkUpdate();
     }
-
-    deleteFarChunks();
 }
 
 void GameView::deleteFarChunks()
@@ -80,20 +75,14 @@ void GameView::deleteFarChunks()
     }
 
     for (const auto &pos : pos_to_delete) {
-        Chunk* chunk = world_chunks.at(pos);
-        if (chunk == nullptr) continue;
-
-        world_chunks.erase(pos);
-        world_renderer.signalDeletedChunk(pos);
-        delete chunk;
+        World::instance().deleteChunk(pos);
+        world_renderer.onDeletedChunk(pos);
     }
 }
 
 void GameView::processNewChunks()
 {
     const std::lock_guard<std::mutex> lock(Client::instance().new_chunks_mutex);
-
-    std::unordered_set<glm::ivec3> chunks_to_remesh;
 
     while (Client::instance().new_chunks.size() > 0) {
 
@@ -107,61 +96,13 @@ void GameView::processNewChunks()
             continue;
         }
 
-        Chunk* chunk = World::instance().setChunk(chunk_data->pos, chunk_data->blocks);
+        const Chunk* chunk = World::instance().setChunk(chunk_data->pos, chunk_data->blocks);
         if (chunk) {
-            for (int z = -1 ; z <= 1; ++z) {
-            for (int y = -1 ; y <= 1; ++y) {
-            for (int x = -1 ; x <= 1; ++x) {
-                const glm::ivec3 offset = {x, y, z};
-                const glm::ivec3 chunk_pos = chunk_data->pos + offset;
-                chunks_to_remesh.insert(chunk_pos);
-            }}}
+            world_renderer.onAddedChunk(chunk_data->pos);
         }
-
         delete chunk_data;
     }
 
-    for (const auto& pos : chunks_to_remesh) {
-        thread_pool.enqueue([this, pos] {
-            Chunk* chunk = World::instance().getChunk(pos);
-            if (chunk != nullptr) {
-                ChunkRawMesh raw_mesh = computeVertexBuffer(pos);
-
-                std::lock_guard<std::mutex> lock(chunks_waiting_bufferslot_mutex);
-                chunks_waiting_bufferslot.push_back(std::tuple(pos, raw_mesh));
-            }
-        });
-    }
-}
-
-void GameView::allocateVAOforWaitingChunks() {
-    const std::lock_guard<std::mutex> lock(chunks_waiting_bufferslot_mutex);
-    // const std::lock_guard<std::shared_mutex> lock2(World::instance().chunks_mutex);
-
-    for (const auto& [chunk_pos, chunk_raw_mesh]: chunks_waiting_bufferslot) {
-        Chunk* c = World::instance().getChunkUnsafe(chunk_pos);
-        if (c == nullptr) continue;
-
-
-        // find old chunk and delete its vertices
-        const auto& it = world_renderer.meshes.find(chunk_pos);
-        if (it != world_renderer.meshes.end()) {
-            world_renderer.buffer_allocator_vertices.deallocate(it->second.slot_vertices.id);
-            world_renderer.buffer_allocator_indices.deallocate(it->second.slot_indices.id);
-        }
-
-
-        ChunkMesh new_mesh;
-        new_mesh.updateVAO(
-            world_renderer.buffer_allocator_vertices,
-            world_renderer.buffer_allocator_indices,
-            chunk_raw_mesh
-        );
-
-        world_renderer.meshes[chunk_pos] = new_mesh;
-    }
-
-    chunks_waiting_bufferslot.clear();
 }
 
 void GameView::networkUpdate()
@@ -193,22 +134,7 @@ void GameView::gui(float dt)
 
     ImGui::Begin("Debug");
 
-    // if (ImGui::Button("PRINT slots ID")) {
-    //     printf("[");
-    //     for (const auto& [pos, chunk]: World::instance().chunks) {
-    //         printf("%d, ", chunk->mesh.slot_vertices.id);
-    //     }
-    //     printf("]\n");
-    // }
-    // if (ImGui::Button("PRINT free_slots")) {
-    //     printf("[");
-    //     for (const auto id: world_renderer.buffer_allocator_vertices._free_slots) {
-    //         printf("%d, ", id);
-    //     }
-    //     printf("]\n");
-    // }
-
-    ImGui::Text("%s", SimpleProfiler::instance().dump().c_str());
+    // ImGui::Text("%s", SimpleProfiler::instance().dump().c_str());
 
     ImGui::Text("RAM: %.4f / %.4f Go", ((double)getCurrentRSS()) / (1024*1024*1024), ((double)getPeakRSS()) / (1024*1024*1024));
 
@@ -216,7 +142,7 @@ void GameView::gui(float dt)
     ImGui::Text("BufferIndices: %d / %d", world_renderer.buffer_allocator_indices.getFreeSlotsCount(), world_renderer.buffer_allocator_indices.getMaxSlotsCount());
 
     ImGui::Text("New chunks: %ld", Client::instance().new_chunks.size());
-    ImGui::Text("Thread pool tasks %ld", thread_pool._task_queue.size());
+    ImGui::Text("ThreadPool{%lu} tasks: %ld", world_renderer.thread_pool._workers.size(), world_renderer.thread_pool._task_queue.size());
 
     ImGui::Text("Chunks: %d (%d rendered)", World::instance().getChunkCount(), world_renderer.chunks_drawn);
 
