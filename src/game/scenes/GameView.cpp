@@ -107,11 +107,7 @@ void GameView::processNewChunks()
 
 void GameView::networkUpdate()
 {
-    glm::vec3 pos = camera.getPosition();
-    float yaw = camera.getYaw();
-    float pitch = camera.getPitch();
-
-    Client::instance().sendUpdateEntityPacket(pos, yaw, pitch);
+    Client::instance().sendUpdateEntityPacket(camera.getPosition(), camera.getYaw(), camera.getPitch());
 }
 
 void GameView::onDraw(double time_since_start, float dt)
@@ -121,7 +117,6 @@ void GameView::onDraw(double time_since_start, float dt)
     ctx.imguiNewFrame();
     if (_show_debug_gui) gui(dt);
     ctx.imguiRender();
-
 }
 
 void GameView::gui(float dt)
