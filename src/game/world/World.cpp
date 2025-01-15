@@ -26,7 +26,7 @@ void World::updateEntities()
     for (auto& entity : entities)
     {
         entity.smooth_transform.position = glm::mix(entity.smooth_transform.position, entity.transform.position, smoothness);
-        entity.smooth_transform.rotation = glm::mix(entity.smooth_transform.rotation, entity.transform.rotation, smoothness);
+        entity.smooth_transform.rotation = glm::slerp(entity.smooth_transform.rotation, entity.transform.rotation, smoothness);
     }
 }
 
