@@ -216,7 +216,7 @@ void WorldRenderer::renderTerrain(const Program& program, const Camera &camera, 
 
 void WorldRenderer::renderTerrainDepth(const Camera &camera)
 {
-    renderTerrain(cube_shadowmapping_shader, camera, false);
+    renderTerrain(cube_shader_depth_only, camera, false);
 }
 
 void WorldRenderer::renderEntities(const Camera &camera)
@@ -252,7 +252,7 @@ void WorldRenderer::renderEntitiesDepth(const Camera &camera)
 void WorldRenderer::renderShadowmap(const Camera &camera)
 {
     shadowmap.setSunDir(sunDir);
-    shadowmap.begin(camera, cube_shadowmapping_shader);
-        renderTerrain(cube_shadowmapping_shader, camera, false);
+    shadowmap.begin(camera, cube_shader_depth_only);
+        renderTerrain(cube_shader_depth_only, camera, false);
     shadowmap.end();
 }

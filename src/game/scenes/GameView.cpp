@@ -121,7 +121,7 @@ void GameView::onDraw(double time_since_start, float dt)
 
 void GameView::gui(float dt)
 {
-    // ImGui::ShowDemoWindow();
+    ImGui::ShowDemoWindow();
 
     // ImGui::Begin("Shadow map");
     // ImGui::Image((ImTextureID)(intptr_t) world_renderer.shadowmap._depthTexture._texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
@@ -179,10 +179,7 @@ void GameView::gui(float dt)
     ImGui::SliderFloat("Shadow Bias: ", &world_renderer.shadowmap._shadow_bias, 0.000001f, 0.001f, "%.6f");
     ImGui::SliderFloat("Shadow Distance: ", &world_renderer.shadowmap._max_shadow_distance, 0.3f, 500.0f, "%.2f");
 
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;
-    // if (disable_mouse_wheel)
-    //     window_flags |= ImGuiWindowFlags_NoScrollWithMouse;
-    ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 260), ImGuiChildFlags_None, window_flags);
+    ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 260), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
     for (const auto& msg: tchat) {
         ImGui::TextWrapped("%s", msg.c_str());
         ImGui::Spacing();
