@@ -23,7 +23,7 @@ ThreadPool::ThreadPool(size_t num_threads) {
 
                     // exit the thread in case the pool
                     // is stopped and there are no tasks
-                    if (_stop && _task_queue.empty()) {
+                    if (_stop) { // && _task_queue.empty()) {
                         return;
                     }
 

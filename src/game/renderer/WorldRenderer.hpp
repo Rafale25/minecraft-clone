@@ -66,7 +66,6 @@ public:
 
     Program cube_shader                 {"./assets/shaders/cube.vs", "./assets/shaders/cube.fs"};
     Program cube_shader_depth_only      {"./assets/shaders/cube_depth_only.vs", "./assets/shaders/cube_depth_only.fs"};
-    // Program cube_shadowmapping_shader   {"./assets/shaders/cube_shadowmap.vs", "./assets/shaders/cube_shadowmap.fs"};
     Program mesh_shader                 {"./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs"};
     Program postprocessing_shader       {"./assets/shaders/postprocess.vs", "./assets/shaders/postprocess.fs"};
 
