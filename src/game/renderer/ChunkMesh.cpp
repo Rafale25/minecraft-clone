@@ -203,15 +203,15 @@ inline void makeFace(
     if (nbmtd.transparent) {
 
         // TODO: use blocksMetadata to check if it's non transparent instead of >0
-        auto nb_lx = chunkextra.getBlock(local_pos + glm::ivec3(info[26], info[27], info[28])) > 0;
-        auto nb_hx = chunkextra.getBlock(local_pos + glm::ivec3(info[29], info[30], info[31])) > 0;
-        auto nb_ly = chunkextra.getBlock(local_pos + glm::ivec3(info[32], info[33], info[34])) > 0;
-        auto nb_hy = chunkextra.getBlock(local_pos + glm::ivec3(info[35], info[36], info[37])) > 0;
+        auto nb_lx = !blocksMetadata[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[26], info[27], info[28]))].transparent;
+        auto nb_hx = !blocksMetadata[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[29], info[30], info[31]))].transparent;
+        auto nb_ly = !blocksMetadata[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[32], info[33], info[34]))].transparent;
+        auto nb_hy = !blocksMetadata[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[35], info[36], info[37]))].transparent;
 
-        auto nb_lxly = chunkextra.getBlock(local_pos + glm::ivec3(info[38], info[39], info[40])) > 0;
-        auto nb_hxly = chunkextra.getBlock(local_pos + glm::ivec3(info[41], info[42], info[43])) > 0;
-        auto nb_lxhy = chunkextra.getBlock(local_pos + glm::ivec3(info[44], info[45], info[46])) > 0;
-        auto nb_hxhy = chunkextra.getBlock(local_pos + glm::ivec3(info[47], info[48], info[49])) > 0;
+        auto nb_lxly = !blocksMetadata[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[38], info[39], info[40]))].transparent;
+        auto nb_hxly = !blocksMetadata[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[41], info[42], info[43]))].transparent;
+        auto nb_lxhy = !blocksMetadata[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[44], info[45], info[46]))].transparent;
+        auto nb_hxhy = !blocksMetadata[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[47], info[48], info[49]))].transparent;
 
         int a00 = vertexAO(nb_lx, nb_ly, nb_lxly);
         int a10 = vertexAO(nb_hx, nb_ly, nb_hxly);

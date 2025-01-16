@@ -65,6 +65,9 @@ inline constexpr BlockMetadata blocksMetadata[] =
     {.transparent = false},
     // [(int)BlockType::Snow]      =
     {.transparent = false},
+
+    // [(int)BlockType::INVALID]      =
+    {.transparent = false},
 };
 
 // #pragma GCC diagnostic pop
