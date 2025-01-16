@@ -119,82 +119,6 @@ void GameView::onDraw(double time_since_start, float dt)
     ctx.imguiRender();
 }
 
-void GameView::gui(float dt)
-{
-    ImGui::ShowDemoWindow();
-
-    // ImGui::Begin("Shadow map");
-    // ImGui::Image((ImTextureID)(intptr_t) world_renderer.shadowmap._depthTexture._texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
-    // ImGui::End();
-
-    ImGui::Begin("Debug");
-
-    // ImGui::Text("%s", SimpleProfiler::instance().dump().c_str());
-
-    ImGui::Text("RAM: %.4f / %.4f Go", ((double)getCurrentRSS()) / (1024*1024*1024), ((double)getPeakRSS()) / (1024*1024*1024));
-
-    ImGui::Text("BufferVertices: %d / %d", world_renderer.buffer_allocator_vertices.getFreeSlotsCount(), world_renderer.buffer_allocator_vertices.getMaxSlotsCount());
-    ImGui::Text("BufferIndices: %d / %d", world_renderer.buffer_allocator_indices.getFreeSlotsCount(), world_renderer.buffer_allocator_indices.getMaxSlotsCount());
-
-    ImGui::Text("New chunks: %ld", Client::instance().new_chunks.size());
-    ImGui::Text("ThreadPool{%lu} tasks: %ld", world_renderer.thread_pool._workers.size(), world_renderer.thread_pool._task_queue.size());
-
-    ImGui::Text("Chunks: %d (%d rendered)", World::instance().getChunkCount(), world_renderer.chunks_drawn);
-
-    ImGui::Text("%.4f secs", dt);
-    ImGui::Text("%.2f fps", 1.0f / dt);
-
-    glm::vec3 camera_pos = camera.getPosition();
-    ImGui::Text("position: %.2f, %.2f, %.2f", camera_pos.x, camera_pos.y, camera_pos.z);
-    ImGui::Text("forward: %.2f, %.2f, %.2f", camera.forward().x, camera.forward().y, camera.forward().z);
-    ImGui::Text("block in hand: %d", (int)block_in_hand);
-
-    ImGui::Text("ClientId: %d", Client::instance().client_id);
-
-    if (ImGui::TreeNode(SC("Entities: " << World::instance().entities.size()))) {
-        for (auto& entity : World::instance().entities) {
-            ImGui::PushID(entity.id);
-            ImGui::Text("id:%d: x:%.2f y:%.2f z:%.2f", entity.id, entity.transform.position.x, entity.transform.position.y, entity.transform.position.z);
-            ImGui::Text("name: %s", entity.name.c_str());
-            ImGui::SameLine();
-            if (ImGui::Button("teleport")) {
-                setPlayerPosition(entity.transform.position);
-            }
-            ImGui::PopID();
-        }
-        ImGui::TreePop();
-    }
-
-
-    ImGui::SliderFloat("Bulk Edit Radius: ", &bulk_edit_radius, 1.0f, 32.0f, "%.2f");
-    ImGui::Checkbox("Wireframe", &world_renderer._wireframe);
-    ImGui::Checkbox("Ambient occlusion", &world_renderer._ambient_occlusion);
-    ImGui::SliderFloat("AO strength: ", &world_renderer._ambient_occlusion_strength, 0.0f, 1.0f, "%.2f");
-
-    if (ImGui::Checkbox("VSync", &_vsync)) {
-        ctx.setVsync(_vsync);
-    }
-
-    ImGui::DragFloat3("Sun direction: ", &world_renderer.sunDir.x, 0.01f, -M_PI*2, M_PI*2, "%.2f");
-    ImGui::SliderFloat("Shadow Bias: ", &world_renderer.shadowmap._shadow_bias, 0.000001f, 0.001f, "%.6f");
-    ImGui::SliderFloat("Shadow Distance: ", &world_renderer.shadowmap._max_shadow_distance, 0.3f, 500.0f, "%.2f");
-
-    ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 260), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
-    for (const auto& msg: tchat) {
-        ImGui::TextWrapped("%s", msg.c_str());
-        ImGui::Spacing();
-    }
-
-    ImGui::EndChild();
-
-    ImGui::InputText("##inputText", input_text_buffer, IM_ARRAYSIZE(input_text_buffer));
-    ImGui::SameLine();
-    if (ImGui::Button("Send")) {
-        sendTextMessage();
-    }
-    ImGui::End();
-}
-
 void GameView::sendTextMessage() {
     if (strlen(input_text_buffer) <= 0) return;
     Client::instance().sendChatMessagePacket(input_text_buffer);
@@ -288,6 +212,82 @@ void GameView::onResize(int width, int height)
     camera.aspect_ratio = (float)width / (float)height;
 
     world_renderer.onResize(width, height);
+}
+
+void GameView::gui(float dt)
+{
+    // ImGui::ShowDemoWindow();
+
+    // ImGui::Begin("Shadow map");
+    // ImGui::Image((ImTextureID)(intptr_t) world_renderer.shadowmap._depthTexture._texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
+    // ImGui::End();
+
+    ImGui::Begin("Debug");
+
+    ImGui::Text("%s", SimpleProfiler::instance().dump().c_str());
+
+    ImGui::Text("RAM: %.4f / %.4f Go", ((double)getCurrentRSS()) / (1024*1024*1024), ((double)getPeakRSS()) / (1024*1024*1024));
+
+    ImGui::Text("BufferVertices: %d / %d", world_renderer.buffer_allocator_vertices.getFreeSlotsCount(), world_renderer.buffer_allocator_vertices.getMaxSlotsCount());
+    ImGui::Text("BufferIndices: %d / %d", world_renderer.buffer_allocator_indices.getFreeSlotsCount(), world_renderer.buffer_allocator_indices.getMaxSlotsCount());
+
+    ImGui::Text("New chunks: %ld", Client::instance().new_chunks.size());
+    ImGui::Text("ThreadPool{%lu} tasks: %ld", world_renderer.thread_pool._workers.size(), world_renderer.thread_pool._task_queue.size());
+
+    ImGui::Text("Chunks: %d (%d rendered)", World::instance().getChunkCount(), world_renderer.chunks_drawn);
+
+    ImGui::Text("%.4f secs", dt);
+    ImGui::Text("%.2f fps", 1.0f / dt);
+
+    glm::vec3 camera_pos = camera.getPosition();
+    ImGui::Text("position: %.2f, %.2f, %.2f", camera_pos.x, camera_pos.y, camera_pos.z);
+    ImGui::Text("forward: %.2f, %.2f, %.2f", camera.forward().x, camera.forward().y, camera.forward().z);
+    ImGui::Text("block in hand: %d", (int)block_in_hand);
+
+    ImGui::Text("ClientId: %d", Client::instance().client_id);
+
+    if (ImGui::TreeNode(SC("Entities: " << World::instance().entities.size()))) {
+        for (auto& entity : World::instance().entities) {
+            ImGui::PushID(entity.id);
+            ImGui::Text("id:%d: x:%.2f y:%.2f z:%.2f", entity.id, entity.transform.position.x, entity.transform.position.y, entity.transform.position.z);
+            ImGui::Text("name: %s", entity.name.c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("teleport")) {
+                setPlayerPosition(entity.transform.position);
+            }
+            ImGui::PopID();
+        }
+        ImGui::TreePop();
+    }
+
+
+    ImGui::SliderFloat("Bulk Edit Radius: ", &bulk_edit_radius, 1.0f, 32.0f, "%.2f");
+    ImGui::Checkbox("Wireframe", &world_renderer._wireframe);
+    ImGui::Checkbox("Ambient occlusion", &world_renderer._ambient_occlusion);
+    ImGui::SliderFloat("AO strength: ", &world_renderer._ambient_occlusion_strength, 0.0f, 1.0f, "%.2f");
+
+    if (ImGui::Checkbox("VSync", &_vsync)) {
+        ctx.setVsync(_vsync);
+    }
+
+    ImGui::DragFloat3("Sun direction: ", &world_renderer.sunDir.x, 0.01f, -M_PI*2, M_PI*2, "%.2f");
+    ImGui::SliderFloat("Shadow Bias: ", &world_renderer.shadowmap._shadow_bias, 0.000001f, 0.001f, "%.6f");
+    ImGui::SliderFloat("Shadow Distance: ", &world_renderer.shadowmap._max_shadow_distance, 0.3f, 500.0f, "%.2f");
+
+    ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 260), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
+    for (const auto& msg: tchat) {
+        ImGui::TextWrapped("%s", msg.c_str());
+        ImGui::Spacing();
+    }
+
+    ImGui::EndChild();
+
+    ImGui::InputText("##inputText", input_text_buffer, IM_ARRAYSIZE(input_text_buffer));
+    ImGui::SameLine();
+    if (ImGui::Button("Send")) {
+        sendTextMessage();
+    }
+    ImGui::End();
 }
 
 

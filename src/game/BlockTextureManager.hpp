@@ -37,7 +37,6 @@ private:
         { TextureName::OakLog,      "oak_log.png"},
         { TextureName::OakLogTop,   "oak_log_top.png"},
         { TextureName::OakLeaves,   "azalea_leaves.png"},
-
         { TextureName::Glass,       "glass.png"},
         { TextureName::Water,       "water.png"},
         { TextureName::Sand,        "sand.png"},
