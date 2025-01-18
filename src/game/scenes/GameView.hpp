@@ -26,6 +26,7 @@ public:
     void placeSphere(const glm::ivec3& center, float radius, BlockType blocktype);
     void setPlayerPosition(const glm::vec3& p);
 
+    void drawPlayersNames();
     void gui(float dt);
 
     void onDraw(double time_since_start, float dt);

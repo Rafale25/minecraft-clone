@@ -227,14 +227,8 @@ glm::ivec2 worldToScreenSpace(const glm::vec3& world_pos, const glm::mat4& proje
     return screen_pos;
 }
 
-void GameView::gui(float dt)
+void GameView::drawPlayersNames()
 {
-    // ImGui::ShowDemoWindow();
-
-    // ImGui::Begin("Shadow map");
-    // ImGui::Image((ImTextureID)(intptr_t) world_renderer.shadowmap._depthTexture._texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
-    // ImGui::End();
-
     ImGuiWindowFlags window_flags = 0;
     window_flags |= _cursor_enabled ? ImGuiWindowFlags_NoInputs : 0;
     window_flags |= ImGuiWindowFlags_NoTitleBar;
@@ -265,7 +259,18 @@ void GameView::gui(float dt)
         ImGui::End();
         ImGui::PopStyleVar();
     }
+}
 
+
+void GameView::gui(float dt)
+{
+    // ImGui::ShowDemoWindow();
+
+    // ImGui::Begin("Shadow map");
+    // ImGui::Image((ImTextureID)(intptr_t) world_renderer.shadowmap._depthTexture._texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
+    // ImGui::End();
+
+    drawPlayersNames();
 
     ImGui::Begin("Debug", nullptr, !_cursor_enabled ? ImGuiWindowFlags_NoInputs : 0);
 
