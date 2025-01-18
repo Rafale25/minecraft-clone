@@ -116,6 +116,8 @@ void GameView::onDraw(double time_since_start, float dt)
 
     ctx.imguiNewFrame();
     if (_show_debug_gui) gui(dt);
+    drawPlayersNames();
+
     ctx.imguiRender();
 }
 
@@ -269,8 +271,6 @@ void GameView::gui(float dt)
     // ImGui::Begin("Shadow map");
     // ImGui::Image((ImTextureID)(intptr_t) world_renderer.shadowmap._depthTexture._texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
     // ImGui::End();
-
-    drawPlayersNames();
 
     ImGui::Begin("Debug", nullptr, !_cursor_enabled ? ImGuiWindowFlags_NoInputs : 0);
 
