@@ -212,11 +212,6 @@ void WorldRenderer::renderTerrain(const Program& program, const Camera &camera, 
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (const void *)0, commands.size(), 0);
 }
 
-void WorldRenderer::renderTerrainDepth(const Camera &camera)
-{
-    renderTerrain(cube_shader_depth_only, camera, false);
-}
-
 void WorldRenderer::renderEntities(const Camera &camera)
 {
     mesh_shader.use();
@@ -233,24 +228,10 @@ void WorldRenderer::renderEntitiesDepth(const Camera &camera)
 {
 }
 
-// void WorldRenderer::renderSkybox(const Camera &camera)
-// {
-//     glDisable(GL_DEPTH_TEST);
-//     skybox_shader.use();
-//     skybox_shader.setVec2("u_resolution", glm::vec2(_ctx.width, _ctx.height));
-//     skybox_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
-//     skybox_shader.setFloat("u_FOV", glm::radians(camera.fov));
-//     skybox_shader.setMat4("u_view", glm::mat4(glm::mat3(camera.getView())));
-//     skybox_shader.setMat4("u_projection", camera.getProjection());
-
-//     skybox_quad.draw();
-//     glEnable(GL_DEPTH_TEST);
-// }
-
 void WorldRenderer::renderShadowmap(const Camera &camera)
 {
     shadowmap.setSunDir(sunDir);
     shadowmap.begin(camera, cube_shader_depth_only);
-        renderTerrain(cube_shader_depth_only, camera, false);
+    renderTerrain(cube_shader_depth_only, camera, false);
     shadowmap.end();
 }

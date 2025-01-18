@@ -37,7 +37,6 @@ private:
     void setDefaultRenderState();
 
     void renderTerrain(const Program& program, const Camera& camera, bool use_frustum_culling=true);
-    void renderTerrainDepth(const Camera &camera);
 
     void renderEntities(const Camera &camera);
     void renderEntitiesDepth(const Camera &camera);
@@ -68,8 +67,6 @@ public:
     Program cube_shader_depth_only      {"./assets/shaders/cube_depth_only.vs", "./assets/shaders/cube_depth_only.fs"};
     Program mesh_shader                 {"./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs"};
     Program postprocessing_shader       {"./assets/shaders/postprocess.vs", "./assets/shaders/postprocess.fs"};
-
-    Mesh skybox_quad = Geometry::quad_2d();
 
     const float chunk_view_distance = 16.0f * 16.0f;
     const float chunk_delete_offset = 16.0f * 16.0f;
