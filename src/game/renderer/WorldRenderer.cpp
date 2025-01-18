@@ -47,6 +47,10 @@ void WorldRenderer::render(const Camera &camera)
     _framebuffer.bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // cube_shader_depth_only.use();
+    // cube_shader_depth_only.setMat4("u_lightSpaceMatrix", camera.getProjection() * camera.getView());
+    // renderTerrain(camera.getProjection() * camera.getView(), true);
+
     cube_shader.use();
     cube_shader.setMat4("u_lightSpaceMatrix", shadowmap._lightSpaceMatrix);
     cube_shader.setVec3("u_sun_direction", sunDir);
@@ -57,12 +61,16 @@ void WorldRenderer::render(const Camera &camera)
     cube_shader.setVec2("u_resolution", glm::vec2(_ctx.width, _ctx.height));
     cube_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
     cube_shader.setFloat("u_FOV", glm::radians(camera.fov));
-    cube_shader.setMat4("u_projectionMatrix", camera.getProjection());
-    cube_shader.setMat4("u_viewMatrix", camera.getView());
+    // cube_shader.setMat4("u_projectionMatrix", camera.getProjection());
+    // cube_shader.setMat4("u_viewMatrix", camera.getView());
+    cube_shader.setMat4("u_projection_view", camera.getProjection() * camera.getView());
     cube_shader.setVec3("u_view_position", camera.getPosition());
     cube_shader.setFloat("u_time", glfwGetTime());
     glBindTextureUnit(0, shadowmap._depthTexture._texture);
+
+    // glDepthFunc(GL_EQUAL);
     renderTerrain(camera.getProjection() * camera.getView(), true);
+    // glDepthFunc(GL_LESS);
 
     renderEntities(camera, mesh_shader);
 

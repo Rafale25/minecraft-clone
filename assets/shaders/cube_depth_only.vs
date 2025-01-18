@@ -12,7 +12,6 @@ out VS_OUT {
 } vs_out;
 
 uniform mat4 u_lightSpaceMatrix;
-uniform vec3 u_chunkPos;
 
 void main()
 {

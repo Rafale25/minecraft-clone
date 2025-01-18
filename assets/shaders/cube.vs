@@ -15,8 +15,10 @@ out VS_OUT {
     out vec4 FragPosLightSpace;
 } vs_out;
 
-uniform mat4 u_projectionMatrix;
-uniform mat4 u_viewMatrix;
+// uniform mat4 u_projectionMatrix;
+// uniform mat4 u_viewMatrix;
+uniform mat4 u_projection_view;
+// uniform mat4 u_viewMatrix;
 uniform mat4 u_lightSpaceMatrix;
 
 void main()
@@ -34,7 +36,7 @@ void main()
     ivec2 a_uv = ivec2(a_u, a_v);
 
     vec3 world_pos = chunk_positions[gl_DrawID].xyz + a_position;
-    vec4 position = u_projectionMatrix * u_viewMatrix * vec4(world_pos, 1.0);
+    vec4 position = u_projection_view * vec4(world_pos, 1.0);
 
     vs_out.FragPosLightSpace = u_lightSpaceMatrix * vec4(world_pos, 1.0);
     vs_out.frag_pos = world_pos;
