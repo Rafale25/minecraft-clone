@@ -39,7 +39,7 @@ void GameView::onUpdate(double time_since_start, float dt)
         ctx.keystate[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS ? 130.0f : 10.0f
     );
 
-    if (!_cursor_enabled) camera.move(delta);
+    if (!_cursor_enabled && !ImGui::GetIO().WantCaptureKeyboard) camera.move(delta);
     camera.update(dt);
 
     Client::instance().task_queue.execute();
@@ -214,6 +214,19 @@ void GameView::onResize(int width, int height)
     world_renderer.onResize(width, height);
 }
 
+glm::ivec2 worldToScreenSpace(const glm::vec3& world_pos, const glm::mat4& projection, const glm::mat4& view, float screen_width, float screen_height)
+{
+    const glm::mat4 world_to_clip_matrix = projection * view;
+    glm::vec4 clip_pos = world_to_clip_matrix * glm::vec4(world_pos, 1.0);
+    clip_pos /= clip_pos.w;
+    glm::vec2 screen_pos = clip_pos / 2.0f + 0.5f;
+    screen_pos.x *= screen_width;
+    screen_pos.y *= screen_height;
+    screen_pos.y = screen_height - screen_pos.y;
+
+    return screen_pos;
+}
+
 void GameView::gui(float dt)
 {
     // ImGui::ShowDemoWindow();
@@ -222,7 +235,39 @@ void GameView::gui(float dt)
     // ImGui::Image((ImTextureID)(intptr_t) world_renderer.shadowmap._depthTexture._texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
     // ImGui::End();
 
-    ImGui::Begin("Debug");
+    ImGuiWindowFlags window_flags = 0;
+    window_flags |= _cursor_enabled ? ImGuiWindowFlags_NoInputs : 0;
+    window_flags |= ImGuiWindowFlags_NoTitleBar;
+    window_flags |= ImGuiWindowFlags_NoScrollbar;
+    window_flags |= ImGuiWindowFlags_NoResize;
+    window_flags |= ImGuiWindowFlags_NoCollapse;
+    window_flags |= ImGuiWindowFlags_NoNav;
+    window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+    window_flags |= ImGuiWindowFlags_NoMove;
+    window_flags |= ImGuiWindowFlags_NoInputs;
+    // window_flags |= ImGuiWindowFlags_NoBackground;
+
+    for (const Entity& e : World::instance().entities) {
+
+        glm::ivec2 screen_pos = worldToScreenSpace(e.transform.position, camera.getProjection(), camera.getView(), ctx.width, ctx.height);
+        screen_pos.y -= 20;
+        if (glm::dot(camera.forward(), glm::normalize(e.transform.position - camera.getPosition())) < 0.2f) {
+            continue;
+        }
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        ImGui::SetNextWindowSizeConstraints({0, 0}, {FLT_MAX, FLT_MAX});
+        ImGui::SetNextWindowBgAlpha(0.2f);
+        ImGui::SetNextWindowSize({0, 0});
+        ImGui::SetNextWindowPos({(float)screen_pos.x, (float)screen_pos.y}, 0, {0.5f, 0.5f});
+        ImGui::Begin("##Name", nullptr, window_flags);
+        ImGui::Text("%s", e.name.c_str());
+        ImGui::End();
+        ImGui::PopStyleVar();
+    }
+
+
+    ImGui::Begin("Debug", nullptr, !_cursor_enabled ? ImGuiWindowFlags_NoInputs : 0);
 
     ImGui::Text("%s", SimpleProfiler::instance().dump().c_str());
 
