@@ -45,7 +45,7 @@ void GameView::onUpdate(double time_since_start, float dt)
     Client::instance().task_queue.execute();
 
     processNewChunks();
-    deleteFarChunks();
+    // deleteFarChunks();
 
     world_renderer.update();
 
@@ -245,7 +245,7 @@ void GameView::drawPlayersNames()
 
     for (const Entity& e : World::instance().entities) {
 
-        glm::ivec2 screen_pos = worldToScreenSpace(e.transform.position, camera.getProjection(), camera.getView(), ctx.width, ctx.height);
+        glm::ivec2 screen_pos = worldToScreenSpace(e.transform.position + glm::vec3(0.0f, 0.8f, 0.0f), camera.getProjection(), camera.getView(), ctx.width, ctx.height);
         screen_pos.y -= 20;
         if (glm::dot(camera.forward(), glm::normalize(e.transform.position - camera.getPosition())) < 0.2f) {
             continue;
