@@ -3,9 +3,24 @@
 
 #include "VAO.hpp"
 
-Entity::Entity(int id): id(id)
-{
-    GLfloat vertices[] = {
+Entity::Entity(int id): id(id) {
+    init();
+}
+
+Entity::Entity(int id, const glm::vec3 &position): id(id) {
+    transform.position = position;
+    smooth_transform.position = position;
+    init();
+}
+
+Entity::Entity(int id, const glm::vec3 &position, const std::string& name): id(id), name(name) {
+    transform.position = position;
+    smooth_transform.position = position;
+    init();
+}
+
+void Entity::init() {
+    const GLfloat vertices[] = {
         // top rect
         -0.5f,  0.5f, -0.5f,  // back left
          0.5f,  0.5f, -0.5f,  // back right
@@ -19,7 +34,7 @@ Entity::Entity(int id): id(id)
          0.5f,  -0.5f,  0.5f,  // front right
     };
 
-    GLuint indices[] = {
+    const GLuint indices[] = {
         // top
         0, 1, 2,
         1, 3, 2,

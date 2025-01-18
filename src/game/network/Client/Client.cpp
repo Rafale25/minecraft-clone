@@ -115,8 +115,7 @@ void Client::decodePacketAddEntity(ByteBuffer buffer)
     auto [id, pos, yaw, pitch, name] = readAddEntityPacket(buffer);
 
     client.task_queue.push_safe([=, name=std::string(name)]() { // wtf is this syntax
-        Entity e{id};
-        e.transform.position = pos;
+        Entity e{id, pos};
         // e.transform.rotation.y = yaw;
         // e.transform.rotation.x = pitch;
         e.name = name;
