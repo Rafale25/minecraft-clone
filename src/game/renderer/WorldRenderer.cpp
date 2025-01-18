@@ -47,8 +47,6 @@ void WorldRenderer::render(const Camera &camera)
     _framebuffer.bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // renderSkybox(camera);
-
     cube_shader.use();
     cube_shader.setMat4("u_lightSpaceMatrix", shadowmap._lightSpaceMatrix);
     cube_shader.setVec3("u_sun_direction", sunDir);
@@ -59,10 +57,14 @@ void WorldRenderer::render(const Camera &camera)
     cube_shader.setVec2("u_resolution", glm::vec2(_ctx.width, _ctx.height));
     cube_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
     cube_shader.setFloat("u_FOV", glm::radians(camera.fov));
-
+    cube_shader.setMat4("u_projectionMatrix", camera.getProjection());
+    cube_shader.setMat4("u_viewMatrix", camera.getView());
+    cube_shader.setVec3("u_view_position", camera.getPosition());
+    cube_shader.setFloat("u_time", glfwGetTime());
     glBindTextureUnit(0, shadowmap._depthTexture._texture);
-    renderTerrain(cube_shader, camera);
-    renderEntities(camera);
+    renderTerrain(camera.getProjection() * camera.getView(), true);
+
+    renderEntities(camera, mesh_shader);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
@@ -156,15 +158,9 @@ void WorldRenderer::allocateVAOforWaitingChunks() {
     chunks_waiting_bufferslot.clear();
 }
 
-void WorldRenderer::renderTerrain(const Program& program, const Camera &camera, bool use_frustum_culling)
+void WorldRenderer::renderTerrain(const glm::mat4 &view_projection, bool use_frustum_culling)
 {
-    program.use();
-    program.setMat4("u_projectionMatrix", camera.getProjection());
-    program.setMat4("u_viewMatrix", camera.getView());
-    program.setVec3("u_view_position", camera.getPosition());
-    program.setFloat("u_time", glfwGetTime());
-
-    Frustum camera_frustum = createFrustumFromCamera(camera, camera.aspect_ratio, glm::radians(camera.fov), camera.near_plane, camera.far_plane);
+    Frustum camera_frustum = createFrustumFromViewProjection(view_projection);
 
     chunks_drawn = 0;
 
@@ -211,28 +207,25 @@ void WorldRenderer::renderTerrain(const Program& program, const Camera &camera, 
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (const void *)0, commands.size(), 0);
 }
 
-void WorldRenderer::renderEntities(const Camera &camera)
-{
-    mesh_shader.use();
-    mesh_shader.setMat4("u_projectionMatrix", camera.getProjection());
-    mesh_shader.setMat4("u_viewMatrix", camera.getView());
-    for (auto& entity : World::instance().entities)
-    {
-        mesh_shader.setMat4("u_modelMatrix", entity.smooth_transform.getMatrix());
-        entity.draw();
-    }
-}
-
-void WorldRenderer::renderEntitiesDepth(const Camera &camera)
-{
-}
-
 void WorldRenderer::renderShadowmap(const Camera &camera)
 {
-    const glm::mat4 shadowmap_camera_projection = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, _max_shadow_distance);
+    const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, _max_shadow_distance);
+    glm::mat4 light_view_projection;
 
     shadowmap.setSunDir(sunDir);
-    shadowmap.begin(shadowmap_camera_projection, camera.getView(), cube_shader_depth_only);
-    renderTerrain(cube_shader_depth_only, camera, true);
+    light_view_projection = shadowmap.begin(camera_projection_shorter, camera.getView(), cube_shader_depth_only);
+    renderTerrain(light_view_projection, true);
     shadowmap.end();
+}
+
+void WorldRenderer::renderEntities(const Camera &camera, const Program& program)
+{
+    program.use();
+    program.setMat4("u_projectionMatrix", camera.getProjection());
+    program.setMat4("u_viewMatrix", camera.getView());
+
+    for (const auto& entity : World::instance().entities) {
+        program.setMat4("u_modelMatrix", entity.smooth_transform.getMatrix());
+        entity.draw();
+    }
 }

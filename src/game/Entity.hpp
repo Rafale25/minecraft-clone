@@ -9,7 +9,7 @@ class Entity
 public:
     Entity(int id);
 
-    void draw();
+    void draw() const;
 
 public:
     int id;

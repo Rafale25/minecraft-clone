@@ -1,47 +1,58 @@
 #include "Frustum.hpp"
 
 #include <glm/glm.hpp>
-#include "Transform.h"
 #include "Camera.hpp"
 
-float Plane::getSignedDistanceToPlane(const glm::vec3& point) const
+// https://iquilezles.org/articles/frustumcorrect/
+bool AABB::isOnFrustum(const Frustum& f) const
 {
-    return glm::dot(normal, point) - distance;
+    for (int i = 0; i < 6; i++)
+    {
+        int out = 0;
+        out += ((glm::dot( f.planes[i], glm::vec4(min.x, min.y, min.z, 1.0f) ) < 0.0 )?1:0);
+        out += ((glm::dot( f.planes[i], glm::vec4(max.x, min.y, min.z, 1.0f) ) < 0.0 )?1:0);
+        out += ((glm::dot( f.planes[i], glm::vec4(min.x, max.y, min.z, 1.0f) ) < 0.0 )?1:0);
+        out += ((glm::dot( f.planes[i], glm::vec4(max.x, max.y, min.z, 1.0f) ) < 0.0 )?1:0);
+        out += ((glm::dot( f.planes[i], glm::vec4(min.x, min.y, max.z, 1.0f) ) < 0.0 )?1:0);
+        out += ((glm::dot( f.planes[i], glm::vec4(max.x, min.y, max.z, 1.0f) ) < 0.0 )?1:0);
+        out += ((glm::dot( f.planes[i], glm::vec4(min.x, max.y, max.z, 1.0f) ) < 0.0 )?1:0);
+        out += ((glm::dot( f.planes[i], glm::vec4(max.x, max.y, max.z, 1.0f) ) < 0.0 )?1:0);
+        if (out == 8) return false;
+    }
+
+    // Better check for very large AABB
+    // check frustum outside/inside box
+    // int out;
+    // out=0; for( int i=0; i<8; i++ ) out += ((fru.mPoints[i].x > box.mMaxX)?1:0); if( out==8 ) return false;
+    // out=0; for( int i=0; i<8; i++ ) out += ((fru.mPoints[i].x < box.mMinX)?1:0); if( out==8 ) return false;
+    // out=0; for( int i=0; i<8; i++ ) out += ((fru.mPoints[i].y > box.mMaxY)?1:0); if( out==8 ) return false;
+    // out=0; for( int i=0; i<8; i++ ) out += ((fru.mPoints[i].y < box.mMinY)?1:0); if( out==8 ) return false;
+    // out=0; for( int i=0; i<8; i++ ) out += ((fru.mPoints[i].z > box.mMaxZ)?1:0); if( out==8 ) return false;
+    // out=0; for( int i=0; i<8; i++ ) out += ((fru.mPoints[i].z < box.mMinZ)?1:0); if( out==8 ) return false;
+
+    return true;
 }
 
-bool BoundingVolume::isOnFrustum(const Frustum& frustum) const
+void extractPlanesFromProjectionViewMatrix(const glm::mat4& m, glm::vec4 planes[6])
 {
-    return (isOnOrForwardPlane(frustum.leftFace) &&
-            isOnOrForwardPlane(frustum.rightFace) &&
-            isOnOrForwardPlane(frustum.topFace) &&
-            isOnOrForwardPlane(frustum.bottomFace) &&
-            isOnOrForwardPlane(frustum.nearFace) &&
-            isOnOrForwardPlane(frustum.farFace));
-};
-
-//see https://gdbooks.gitbooks.io/3dcollisions/content/Chapter2/static_aabb_plane.html
-bool AABB::isOnOrForwardPlane(const Plane& plane) const
-{
-    // Compute the projection interval radius of b onto L(t) = b.c + t * p.n
-    const float r = extents.x * std::abs(plane.normal.x) + extents.y * std::abs(plane.normal.y) + extents.z * std::abs(plane.normal.z);
-    return -r <= plane.getSignedDistanceToPlane(center);
+    for (int i = 4; i--; ) { planes[0][i] = m[i][3] + m[i][0]; } // lfft
+    for (int i = 4; i--; ) { planes[1][i] = m[i][3] - m[i][0]; } // right
+    for (int i = 4; i--; ) { planes[2][i] = m[i][3] + m[i][1]; } // bottom
+    for (int i = 4; i--; ) { planes[3][i] = m[i][3] - m[i][1]; } // top
+    for (int i = 4; i--; ) { planes[4][i] = m[i][3] + m[i][2]; } // near
+    for (int i = 4; i--; ) { planes[5][i] = m[i][3] - m[i][2]; } // far
 }
 
-Frustum createFrustumFromCamera(const Camera& camera, float aspect, float fovY, float zNear, float zFar)
+Frustum createFrustumFromViewProjection(const glm::mat4& view_projection)
 {
     Frustum frustum;
-    const float halfVSide = zFar * tanf(fovY * 0.5f);
-    const float halfHSide = halfVSide * aspect;
-    const glm::vec3 frontMultFar = zFar * camera.forward();
+    extractPlanesFromProjectionViewMatrix(view_projection, frustum.planes);
+    return frustum;
+}
 
-    glm::vec3 camera_position = camera.getPosition();
-
-    frustum.nearFace = { camera_position + zNear * camera.forward(), camera.forward() };
-    frustum.farFace = { camera_position + frontMultFar, -camera.forward() };
-    frustum.rightFace = { camera_position, glm::cross(frontMultFar - camera.right() * halfHSide, camera.up()) };
-    frustum.leftFace = { camera_position, glm::cross(camera.up(),frontMultFar + camera.right() * halfHSide) };
-    frustum.topFace = { camera_position, glm::cross(camera.right(), frontMultFar - camera.up() * halfVSide) };
-    frustum.bottomFace = { camera_position, glm::cross(frontMultFar + camera.up() * halfVSide, camera.right()) };
-
+Frustum createFrustumFromCamera(const Camera& camera)
+{
+    Frustum frustum;
+    extractPlanesFromProjectionViewMatrix(camera.getProjection() * camera.getView(), frustum.planes);
     return frustum;
 }

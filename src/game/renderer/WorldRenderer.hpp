@@ -36,12 +36,10 @@ private:
 
     void setDefaultRenderState();
 
-    void renderTerrain(const Program& program, const Camera& camera, bool use_frustum_culling=true);
+    void renderTerrain(const glm::mat4 &view_projection, bool use_frustum_culling);
+    // void renderTerrain(const Program& program, const Camera& camera, bool use_frustum_culling=true);
+    void renderEntities(const Camera &camera, const Program& program);
 
-    void renderEntities(const Camera &camera);
-    void renderEntitiesDepth(const Camera &camera);
-
-    // void renderSkybox(const Camera &camera);
     void renderShadowmap(const Camera &camera);
 
 private:

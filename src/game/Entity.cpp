@@ -52,7 +52,7 @@ Entity::Entity(int id): id(id)
     VAO = createVAO(VBO, "3f", EBO);
 }
 
-void Entity::draw()
+void Entity::draw() const
 {
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, indices_count, GL_UNSIGNED_INT, 0);

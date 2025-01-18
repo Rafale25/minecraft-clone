@@ -22,7 +22,7 @@ public:
     Shadowmap(Context& ctx, GLsizei shadow_width, GLsizei shadow_height);
 
     // void begin(const Camera& camera, const Program &program);
-    void begin(const glm::mat4& projection, const glm::mat4& view, const Program &program);
+    glm::mat4 begin(const glm::mat4& projection, const glm::mat4& view, const Program &program);
 
     void end();
     void setSunDir(const glm::vec3& sunDir);
