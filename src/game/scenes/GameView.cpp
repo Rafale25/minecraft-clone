@@ -107,7 +107,7 @@ void GameView::processNewChunks()
 
 void GameView::networkUpdate()
 {
-    Client::instance().sendUpdateEntityPacket(camera.getPosition(), camera.getYaw() + M_PI, M_PI_2 - camera.getPitch() - M_PI_2 );
+    Client::instance().sendUpdateEntityPacket(camera.getPosition(), camera.getYaw() + M_PI, - camera.getPitch());
 }
 
 void GameView::onDraw(double time_since_start, float dt)
