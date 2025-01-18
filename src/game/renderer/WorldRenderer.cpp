@@ -47,6 +47,7 @@ void WorldRenderer::render(const Camera &camera)
     _framebuffer.bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // ZPrePass
     // cube_shader_depth_only.use();
     // cube_shader_depth_only.setMat4("u_lightSpaceMatrix", camera.getProjection() * camera.getView());
     // renderTerrain(camera.getProjection() * camera.getView(), true);
