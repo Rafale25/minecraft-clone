@@ -48,8 +48,6 @@ void FPSCamera::update(float dt)
 
 void FPSCamera::move(const glm::vec3& direction)
 {
-    // _movement += -glm::inverse(glm::mat3(getView())) * direction;
-
     glm::mat4 rotateM = glm::rotate(glm::mat4(1.0f), -getYaw(), {0.0f, 1.0f, 0.0f});
     glm::vec3 dir = glm::vec3(rotateM * glm::vec4(direction, 1.0f));
     dir.y = -dir.y;
