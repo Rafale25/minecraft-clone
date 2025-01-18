@@ -20,10 +20,9 @@ Shadowmap::Shadowmap(Context& ctx, GLsizei shadow_width, GLsizei shadow_height):
     _depthFBO.attachTexture(_depthTexture._texture, GL_DEPTH_ATTACHMENT);
 }
 
-void Shadowmap::begin(const Camera& camera, const Program &program)
+void Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, const Program &program)
 {
-    glm::mat4 cameraCustomProj = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.3f, _max_shadow_distance);
-    auto corners = getFrustumCornersWorldSpace(cameraCustomProj, camera.getView());
+    auto corners = getFrustumCornersWorldSpace(projection, view);
 
     glm::mat4 lightViewMatrix = getLighViewMatrix(corners, _sunDir);
     FrustumBounds bounds = computeFrustumBounds(lightViewMatrix, corners);

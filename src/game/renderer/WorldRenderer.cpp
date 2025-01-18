@@ -156,7 +156,6 @@ void WorldRenderer::allocateVAOforWaitingChunks() {
     chunks_waiting_bufferslot.clear();
 }
 
-
 void WorldRenderer::renderTerrain(const Program& program, const Camera &camera, bool use_frustum_culling)
 {
     program.use();
@@ -230,8 +229,10 @@ void WorldRenderer::renderEntitiesDepth(const Camera &camera)
 
 void WorldRenderer::renderShadowmap(const Camera &camera)
 {
+    const glm::mat4 shadowmap_camera_projection = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, _max_shadow_distance);
+
     shadowmap.setSunDir(sunDir);
-    shadowmap.begin(camera, cube_shader_depth_only);
-    renderTerrain(cube_shader_depth_only, camera, false);
+    shadowmap.begin(shadowmap_camera_projection, camera.getView(), cube_shader_depth_only);
+    renderTerrain(cube_shader_depth_only, camera, true);
     shadowmap.end();
 }

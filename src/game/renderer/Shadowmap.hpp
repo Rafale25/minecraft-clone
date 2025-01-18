@@ -21,7 +21,9 @@ class Shadowmap
 public:
     Shadowmap(Context& ctx, GLsizei shadow_width, GLsizei shadow_height);
 
-    void begin(const Camera& camera, const Program &program);
+    // void begin(const Camera& camera, const Program &program);
+    void begin(const glm::mat4& projection, const glm::mat4& view, const Program &program);
+
     void end();
     void setSunDir(const glm::vec3& sunDir);
 
@@ -40,6 +42,5 @@ private:
 public:
     Texture _depthTexture;
     glm::mat4 _lightSpaceMatrix;
-    float _max_shadow_distance = 120.0f;
     float _shadow_bias = 0.000175f;
 };

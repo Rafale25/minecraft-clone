@@ -49,6 +49,8 @@ private:
 
 public:
     Shadowmap shadowmap{_ctx, 4096, 4096};
+    float _max_shadow_distance = 120.0f;
+
     glm::vec3 sunDir = glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f));
     int chunks_drawn;
     bool _wireframe = false;
