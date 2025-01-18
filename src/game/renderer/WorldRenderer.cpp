@@ -102,8 +102,6 @@ void WorldRenderer::onAddedChunk(const glm::ivec3 &chunk_pos) {
 }
 
 void WorldRenderer::onResize(int width, int height) {
-    printf("ON RESIZE\n");
-
     _framebuffer.destroy();
     _colorTexture.destroy();
     _depthTexture.destroy();
