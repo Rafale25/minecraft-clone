@@ -2,6 +2,7 @@
 
 // #include <cmath>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/glm.hpp>
 
 #include "lerp.h"
 
@@ -12,7 +13,7 @@ glm::mat4 FPSCamera::getView() const
 
 float FPSCamera::getYaw() const
 {
-    return (_smoothYaw - M_PI_2);
+    return (_smoothYaw - std::numbers::pi / 2.0);
 }
 
 float FPSCamera::getPitch() const
@@ -61,7 +62,7 @@ void FPSCamera::onMouseMotion(int x, int y, int dx, int dy)
     _pitch += -(float)dy * _mouseSensitivity;
 
     const float epsilon = 0.001f;
-    _pitch = std::clamp(_pitch, (float)-M_PI_2 + epsilon, (float)M_PI_2 - epsilon);
+    _pitch = glm::clamp(_pitch, (float)-(std::numbers::pi / 2.0) + epsilon, (float)(std::numbers::pi / 2.0) - epsilon);
 }
 
 void FPSCamera::setSpeed(float value)

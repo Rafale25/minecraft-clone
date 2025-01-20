@@ -45,7 +45,7 @@ void GameView::onUpdate(double time_since_start, float dt)
     Client::instance().task_queue.execute();
 
     processNewChunks();
-    // deleteFarChunks();
+    deleteFarChunks();
 
     world_renderer.update();
 
@@ -107,7 +107,7 @@ void GameView::processNewChunks()
 
 void GameView::networkUpdate()
 {
-    Client::instance().sendUpdateEntityPacket(camera.getPosition(), camera.getYaw() + M_PI, - camera.getPitch());
+    Client::instance().sendUpdateEntityPacket(camera.getPosition(), camera.getYaw() + std::numbers::pi, - camera.getPitch());
 }
 
 void GameView::onDraw(double time_since_start, float dt)
@@ -320,7 +320,7 @@ void GameView::gui(float dt)
         ctx.setVsync(_vsync);
     }
 
-    ImGui::DragFloat3("Sun direction: ", &world_renderer.sunDir.x, 0.01f, -M_PI*2, M_PI*2, "%.2f");
+    ImGui::DragFloat3("Sun direction: ", &world_renderer.sunDir.x, 0.01f, -std::numbers::pi*2, std::numbers::pi*2, "%.2f");
     ImGui::SliderFloat("Shadow Bias: ", &world_renderer.shadowmap._shadow_bias, 0.000001f, 0.001f, "%.6f");
     ImGui::SliderFloat("Shadow Distance: ", &world_renderer._max_shadow_distance, 0.3f, 500.0f, "%.2f");
 

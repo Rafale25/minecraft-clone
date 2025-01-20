@@ -19,5 +19,5 @@ struct Chunk
 
     static int XYZtoIndex(int x, int y, int z);
 
-    uint hash();
+    uint32_t hash();
 };

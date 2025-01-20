@@ -1,17 +1,16 @@
 #include <iostream>
-#include <functional>
-
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <poll.h>
-#include <fcntl.h>
-#include <sys/select.h>
-#include <cstring>
-#include <endian.h>
-
+#include <algorithm>
 #include <string>
+#include <cstring>
 
+// #include <fcntl.h>
+// #include <sys/socket.h>
+// #include <netinet/in.h>
+// #include <arpa/inet.h>
+// #include <poll.h>
+// #include <sys/select.h>
+
+#include "endian.h"
 #include "command_line_args.h"
 
 #include "Client.hpp"
@@ -19,9 +18,7 @@
 #include "World.hpp"
 #include "Entity.hpp"
 
-#include "utils/recv_full.h"
-#include "utils/byte_manipulation.h"
-
+#include "byte_manipulation.h"
 #include "ByteBuffer.h"
 
 Packet::Server::ChunkPacket* readChunkPacket(ByteBuffer& buffer)
@@ -209,59 +206,62 @@ void Client::init(std::vector<std::string>& tchat, const char* ip)
 {
     _tchat = &tchat;
 
-    client_socket = socket(AF_INET, SOCK_STREAM, 0);
+    _client.init();
+    _client.connectToServer(ip, DEFAULT_PORT);
 
-    sockaddr_in serverAddress;
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_addr.s_addr = inet_addr(ip);
-    serverAddress.sin_port = htons(15000);
+    // client_socket = socket(AF_INET, SOCK_STREAM, 0);
 
-    struct timeval tv;
-    tv.tv_sec = 3;
-    tv.tv_usec = 0;
+    // sockaddr_in serverAddress;
+    // serverAddress.sin_family = AF_INET;
+    // serverAddress.sin_addr.s_addr = inet_addr(ip);
+    // serverAddress.sin_port = htons(15000);
 
-    fd_set set;
-    FD_ZERO(&set);
-    FD_SET(client_socket, &set);
+    // struct timeval tv;
+    // tv.tv_sec = 3;
+    // tv.tv_usec = 0;
+
+    // fd_set set;
+    // FD_ZERO(&set);
+    // FD_SET(client_socket, &set);
 
     // Set to blocking mode
-    int opts = fcntl(client_socket, F_SETFL, O_NONBLOCK); // https://stackoverflow.com/questions/2597608/c-socket-connection-timeout
+    // int opts = fcntl(client_socket, F_SETFL, O_NONBLOCK); // https://stackoverflow.com/questions/2597608/c-socket-connection-timeout
 
-    printf("Connecting to %s...\n", ip);
-    int res = connect(client_socket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
-    if (errno != EINPROGRESS) {
-        printf("Connection failed.\n");
-        return;
-    }
+    // printf("Connecting to %s...\n", ip);
+    // int res = connect(client_socket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
+    // if (errno != EINPROGRESS) {
+    //     printf("Connection failed.\n");
+    //     return;
+    // }
 
-    res = select(client_socket+1, NULL, &set, NULL, &tv);
+    // res = select(client_socket+1, NULL, &set, NULL, &tv);
 
-    if (res < 0 && errno != EINTR) {
-        printf("Error connecting %d - %s\n", errno, strerror(errno));
-        exit(0);
-    } else if (res > 0) {
+    // if (res < 0 && errno != EINTR) {
+    //     printf("Error connecting %d - %s\n", errno, strerror(errno));
+    //     exit(0);
+    // } else if (res > 0) {
 
-        socklen_t lon = sizeof(int);
-        int valopt;
+    //     socklen_t lon = sizeof(int);
+    //     int valopt;
 
-        if (getsockopt(client_socket, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0) {
-            fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno));
-            exit(0);
-        }
-        if (valopt) { // Check the value returned...
-            fprintf(stderr, "Error in delayed connection() %d - %s\n", valopt, strerror(valopt));
-            exit(0);
-        }
-        printf("Successfully connected to %s\n", ip);
+    //     if (getsockopt(client_socket, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0) {
+    //         fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno));
+    //         exit(0);
+    //     }
+    //     if (valopt) { // Check the value returned...
+    //         fprintf(stderr, "Error in delayed connection() %d - %s\n", valopt, strerror(valopt));
+    //         exit(0);
+    //     }
+    //     printf("Successfully connected to %s\n", ip);
 
-    } else {
-        printf("Connection timeout.\n");
-        exit(0);
-    }
+    // } else {
+    //     printf("Connection timeout.\n");
+    //     exit(0);
+    // }
 
     // Set blocking mode back
-    opts = opts & (~O_NONBLOCK);
-    fcntl(client_socket, F_SETFL, opts);
+    // opts = opts & (~O_NONBLOCK);
+    // fcntl(client_socket, F_SETFL, opts);
 
     int render_distance = 8;
     if (global_argc > 2)
@@ -283,24 +283,19 @@ void Client::Stop()
 
 void Client::clientThreadFunc()
 {
-    struct pollfd fds;
-    fds.fd = client_socket;
-    fds.events = POLLIN;
-
-    uint8_t buffer[5000] = {0};
+    uint8_t buffer[5000] = {};
 
     while (!_stop_thread)
     {
-        int rv = poll(&fds, 1, 0); // poll (check if server sent anything)
-        if (!(rv > 0 && (fds.revents & POLLIN))) continue;
+        _client.poll(); // wait for data to read
 
-        int recv_size = recv(client_socket, buffer, 1, 0);
+        const int recv_size = _client.receive(buffer, 1);
         if (recv_size == -1) {
             std::cout << "recv failed: return -1" << std::endl;
             break;
         }
 
-        PacketId id = (PacketId)buffer[0];
+        const PacketId id = (PacketId)buffer[0];
 
         if (packets.find(id) == packets.end()) {
             printf("Invalid Packet id %d", id);
@@ -308,10 +303,38 @@ void Client::clientThreadFunc()
         }
 
         const size_t packet_size = packets.at(id).size;
-        recv_full(client_socket, buffer, packet_size);
+        _client.receiveAll(buffer, packet_size);
         decode(id, ByteBuffer(buffer, packet_size, ByteBuffer::ByteOrder::BE));
     }
 }
+    // struct pollfd fds;
+    // fds.fd = client_socket;
+    // fds.events = POLLIN;
+
+    // uint8_t buffer[5000] = {0};
+
+    // while (!_stop_thread)
+    // {
+    //     int rv = poll(&fds, 1, 0); // poll (check if server sent anything)
+    //     if (!(rv > 0 && (fds.revents & POLLIN))) continue;
+
+    //     int recv_size = recv(client_socket, buffer, 1, 0);
+    //     if (recv_size == -1) {
+    //         std::cout << "recv failed: return -1" << std::endl;
+    //         break;
+    //     }
+
+    //     PacketId id = (PacketId)buffer[0];
+
+    //     if (packets.find(id) == packets.end()) {
+    //         printf("Invalid Packet id %d", id);
+    //         return;
+    //     }
+
+    //     const size_t packet_size = packets.at(id).size;
+    //     recv_full(client_socket, buffer, packet_size);
+    //     decode(id, ByteBuffer(buffer, packet_size, ByteBuffer::ByteOrder::BE));
+    // }
 
 void Client::sendBreakBlockPacket(const glm::ivec3& world_pos)
 {
@@ -417,5 +440,5 @@ void Client::sendClientMetadataPacket(int render_distance, std::string name)
 
 void Client::sendPacket(const void *buf, size_t size)
 {
-    send(client_socket, buf, size, 0);
+    _client.sendD(buf, size);
 }

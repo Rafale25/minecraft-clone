@@ -49,10 +49,10 @@ void BlockTextureManager::_loadAllTextures()
         if (!glIsTextureHandleResidentARB(texture_bot_handle)) glMakeTextureHandleResidentARB(texture_bot_handle);
 #endif
 
-        uint id_base_offset = textures_handles.size();
-        uint texture_top_id = id_base_offset + 0;
-        uint texture_side_id = id_base_offset + 1;
-        uint texture_bot_id = id_base_offset + 2;
+        uint32_t id_base_offset = textures_handles.size();
+        uint32_t texture_top_id = id_base_offset + 0;
+        uint32_t texture_side_id = id_base_offset + 1;
+        uint32_t texture_bot_id = id_base_offset + 2;
         textures_handles.push_back(texture_top_handle);
         textures_handles.push_back(texture_side_handle);
         textures_handles.push_back(texture_bot_handle);

@@ -5,11 +5,11 @@ int Chunk::XYZtoIndex(int x, int y, int z) {
     return z * 16*16 + y * 16 + x;
 }
 
-uint Chunk::hash() {
-    uint h = 1;
+uint32_t Chunk::hash() {
+    uint32_t h = 1;
 
     for (int i = 0 ; i < 4096 ; ++i) {
-        h *= (1779033703 + 2*(uint)blocks[i]);
+        h *= (1779033703 + 2*(uint32_t)blocks[i]);
     }
 
     return h;

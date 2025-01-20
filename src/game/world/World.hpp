@@ -6,7 +6,7 @@
 #include <atomic>
 
 #include <glm/glm.hpp>
-#include "glm/gtx/hash.hpp"
+#include <glm/gtx/hash.hpp>
 
 #include "Entity.hpp"
 #include "enums.hpp"

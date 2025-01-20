@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <stddef.h>
 #include <cstring>
-#include <endian.h>
+#include "endian.h"
 
 // TODO: add option to put bytes into buffer
 
@@ -17,7 +17,8 @@ public:
 
 public:
     // ByteBuffer(size_t size): size(size) {}
-    ByteBuffer(uint8_t* buffer, size_t size, ByteOrder byte_order): buffer(buffer), head(buffer), size(size), byte_order(byte_order) {}
+    // ByteBuffer(uint8_t* buffer, size_t size, ByteOrder byte_order): buffer(buffer), head(buffer), size(size), byte_order(byte_order) {}
+    ByteBuffer(uint8_t* buffer, size_t size, ByteOrder byte_order): buffer(buffer), head(buffer), byte_order(byte_order) {}
 	~ByteBuffer() = default;
 
     uint8_t peek() const {
@@ -84,6 +85,6 @@ public:
 private:
     uint8_t* buffer;
     uint8_t* head;
-    __attribute__((unused)) size_t size;
+    // size_t size;
     ByteOrder byte_order;
 };

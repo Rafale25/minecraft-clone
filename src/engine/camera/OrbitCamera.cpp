@@ -41,10 +41,10 @@ void OrbitCamera::setYaw(float value) {
 }
 
 void OrbitCamera::setPitch(float value) {
-    if (value > M_PI_2)
-        value = M_PI_2 - 0.01f;
-    if (value < -M_PI_2)
-        value = -M_PI_2 + 0.01f;
+    if (value > (std::numbers::pi / 2.0))
+        value = (std::numbers::pi / 2.0) - 0.01f;
+    if (value < -(std::numbers::pi / 2.0))
+        value = -(std::numbers::pi / 2.0) + 0.01f;
 
     _pitch = value;
 }

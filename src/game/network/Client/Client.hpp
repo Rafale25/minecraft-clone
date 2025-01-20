@@ -13,6 +13,8 @@
 #include "ByteBuffer.h"
 #include "ThreadPool.h"
 
+#include "Network.hpp"
+
 class World;
 struct Chunk;
 
@@ -20,6 +22,8 @@ struct Chunk;
 // Connection //
 class Client
 {
+
+static constexpr int DEFAULT_PORT = 15000;
 
 private:
     Client() = default;
@@ -89,8 +93,10 @@ public:
     int client_id = -1;
 
 private:
+    NetworkConnection _client{10};
+
     bool _stop_thread;
-    int client_socket;
+    // int client_socket;
     std::thread client_thread;
     std::vector<std::string>* _tchat;
 };

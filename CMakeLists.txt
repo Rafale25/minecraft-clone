@@ -31,7 +31,8 @@ file(GLOB_RECURSE SRC_CPP ./src/*.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_CPP} ${SRC_C})
 target_compile_options(${PROJECT_NAME} PRIVATE
-    -W -Wall -Wextra -Wpedantic -Werror
+    -W -Wall -Wextra -Wpedantic
+    # -Werror
     -Wno-unused-variable
     -Wno-unused-parameter
     -Wno-strict-aliasing
@@ -63,6 +64,10 @@ target_include_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE imgui glfw)
+
+IF (WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
+ENDIF()
 
 add_definitions(-D GLM_ENABLE_EXPERIMENTAL) ## for GLM
 

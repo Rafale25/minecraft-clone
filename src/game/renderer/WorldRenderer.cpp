@@ -188,10 +188,10 @@ void WorldRenderer::renderTerrain(const glm::mat4 &view_projection, bool use_fru
         chunk_positions.push_back(glm::vec4(chunk_pos * 16, 1.0f));
 
         commands.emplace_back(
-            mesh.slot_indices.size / sizeof(GLuint),
+            (uint32_t)(mesh.slot_indices.size / sizeof(GLuint)),
             1,
-            mesh.slot_indices.start / sizeof(GLuint),
-            mesh.slot_vertices.start / sizeof(GLuint),
+            (uint32_t)(mesh.slot_indices.start / sizeof(GLuint)),
+            (int32_t)(mesh.slot_vertices.start / sizeof(GLuint)),
             0
         );
 
