@@ -93,7 +93,7 @@ public:
     int client_id = -1;
 
 private:
-    NetworkConnection _client{10};
+    NetworkConnection _client;
 
     bool _stop_thread;
     std::thread client_thread;

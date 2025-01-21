@@ -153,19 +153,16 @@ int NetworkConnection::connectToServer(const char *ip, int port) {
 #endif
 }
 
-int NetworkConnection::waitForData()
+int NetworkConnection::waitForData(const bool& should_stop)
 {
 #if defined(_WIN32)
     fd_set set;
-    while (1)
+    while (!should_stop)
     {
         FD_ZERO(&set);
         FD_SET(_socket, &set);
 
         struct timeval tv;
-        tv.tv_sec = 3;
-        tv.tv_usec = 0;
-
         tv.tv_sec = 0;
         tv.tv_usec = 30; //timeout; // N Microseconds for Polling
 
@@ -186,8 +183,10 @@ int NetworkConnection::waitForData()
     fds.fd = _socket;
     fds.events = POLLIN;
 
-    while (1) {
+    while (!should_stop) {
         constexpr int timeout = 8;
+
+        // TODO URGENT PROBLEM: code can get infinitly stuck here since there's nothing stopping this loop if we stop the game and the server doesn't send anything
         int rv = poll(&fds, 1, timeout); // poll (check if server sent anything)
         if ((rv > 0 && (fds.revents & POLLIN))) break;
     }

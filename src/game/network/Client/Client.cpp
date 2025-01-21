@@ -233,7 +233,7 @@ void Client::clientThreadFunc()
 
     while (!_stop_thread)
     {
-        _client.waitForData(); // wait for data to read
+        _client.waitForData(_stop_thread); // wait for data to read
 
         const int recv_size = _client.receive(buffer, 1);
         if (recv_size == -1) {

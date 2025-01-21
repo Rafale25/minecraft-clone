@@ -11,11 +11,11 @@
 
 class NetworkConnection {
 public:
-    NetworkConnection(int timeout): timeout(timeout) {};
+    NetworkConnection() = default;
 
     int init();
     int connectToServer(const char* ip, int port);
-    int waitForData();
+    int waitForData(const bool& should_stop);
     int receive(uint8_t* buffer, uint32_t n);
     void receiveAll(uint8_t* buffer, uint32_t size);
     void sendD(const void *data, size_t size);
@@ -27,6 +27,4 @@ private:
 #else
     int _socket;
 #endif
-
-    int timeout;
 };
