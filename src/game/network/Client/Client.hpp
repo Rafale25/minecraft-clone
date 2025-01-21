@@ -96,7 +96,6 @@ private:
     NetworkConnection _client{10};
 
     bool _stop_thread;
-    // int client_socket;
     std::thread client_thread;
     std::vector<std::string>* _tchat;
 };

@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <stddef.h>
 #include <cstring>
-#include "endian.h"
+#include "endianess.h"
 
 // TODO: add option to put bytes into buffer
 
