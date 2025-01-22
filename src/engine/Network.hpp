@@ -16,9 +16,10 @@ public:
     int init();
     int connectToServer(const char* ip, int port);
     int waitForData(const bool& should_stop);
-    int receive(uint8_t* buffer, uint32_t n);
-    void receiveAll(uint8_t* buffer, uint32_t size);
+    int receive(uint8_t* buffer, uint32_t size);
+    int receiveAll(uint8_t* buffer, uint32_t size);
     void sendD(const void *data, size_t size);
+    void closeConnection();
 
 private:
 

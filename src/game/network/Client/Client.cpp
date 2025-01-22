@@ -225,6 +225,8 @@ void Client::Stop()
 {
     _stop_thread = true;
     client_thread.join();
+
+    _client.closeConnection();
 }
 
 void Client::clientThreadFunc()
@@ -235,7 +237,7 @@ void Client::clientThreadFunc()
     {
         _client.waitForData(_stop_thread); // wait for data to read
 
-        const int recv_size = _client.receive(buffer, 1);
+        const int recv_size = _client.receiveAll(buffer, 1);
         if (recv_size == -1) {
             std::cout << "recv failed: return -1" << std::endl;
             break;
@@ -244,7 +246,7 @@ void Client::clientThreadFunc()
         const PacketId id = (PacketId)buffer[0];
 
         if (packets.find(id) == packets.end()) {
-            printf("Invalid Packet id %d", id);
+            printf("Invalid Packet id %d\n", id);
             return;
         }
 

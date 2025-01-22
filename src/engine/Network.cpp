@@ -203,8 +203,8 @@ int NetworkConnection::receive(uint8_t* buffer, uint32_t size) {
     return bytes_read;
 }
 
-void NetworkConnection::receiveAll(uint8_t* buffer, uint32_t size) {
-    recvAll(_socket, buffer, size);
+int NetworkConnection::receiveAll(uint8_t* buffer, uint32_t size) {
+    return recvAll(_socket, buffer, size);
 }
 
 void NetworkConnection::sendD(const void *data, size_t size) {
@@ -214,3 +214,14 @@ void NetworkConnection::sendD(const void *data, size_t size) {
    send(_socket, data, size, 0);
 #endif
 }
+
+#if defined(_WIN32)
+void NetworkConnection::closeConnection() {
+    closesocket(_socket);
+}
+#else
+#include <unistd.h>
+void NetworkConnection::closeConnection() {
+    close(_socket);
+}
+#endif
