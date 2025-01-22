@@ -26,7 +26,7 @@ void WorldRenderer::setDefaultRenderState()
 {
     glEnable(GL_MULTISAMPLE); // enabled by default
 
-    glPolygonMode(GL_FRONT_AND_BACK, _wireframe ? GL_LINE : GL_FILL);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -46,6 +46,7 @@ void WorldRenderer::render(const Camera &camera)
 
     _framebuffer.bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glPolygonMode(GL_FRONT_AND_BACK, _wireframe ? GL_LINE : GL_FILL);
 
     // ZPrePass
     // cube_shader_depth_only.use();
@@ -75,6 +76,7 @@ void WorldRenderer::render(const Camera &camera)
 
     renderEntities(camera, mesh_shader);
 
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 
