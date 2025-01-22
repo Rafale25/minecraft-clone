@@ -187,6 +187,12 @@ void GameView::onMousePress(int x, int y, int button) {
         else
             Client::instance().sendPlaceBlockPacket(player_blockraycasthit.pos + glm::ivec3(player_blockraycasthit.normal), block_in_hand);
     }
+
+    // Pick block
+    if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
+        BlockType block = World::instance().blockRaycast(camera.getPosition(), camera.forward(), 64).blocktype;
+        block_in_hand = block;
+    }
 }
 
 void GameView::onMouseDrag(int x, int y, int dx, int dy)
