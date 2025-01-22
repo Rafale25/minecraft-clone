@@ -232,7 +232,6 @@ glm::ivec2 worldToScreenSpace(const glm::vec3& world_pos, const glm::mat4& proje
 void GameView::drawPlayersNames()
 {
     ImGuiWindowFlags window_flags = 0;
-    window_flags |= _cursor_enabled ? ImGuiWindowFlags_NoInputs : 0;
     window_flags |= ImGuiWindowFlags_NoTitleBar;
     window_flags |= ImGuiWindowFlags_NoScrollbar;
     window_flags |= ImGuiWindowFlags_NoResize;
