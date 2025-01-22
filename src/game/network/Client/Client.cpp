@@ -224,20 +224,20 @@ void Client::Start()
 void Client::Stop()
 {
     _stop_thread = true;
-    client_thread.join();
-
     _client.closeConnection();
+    client_thread.join();
 }
 
 void Client::clientThreadFunc()
 {
     uint8_t buffer[5000] = {};
+    int recv_size = -1;
 
     while (!_stop_thread)
     {
         _client.waitForData(_stop_thread); // wait for data to read
 
-        const int recv_size = _client.receiveAll(buffer, 1);
+        recv_size = _client.receiveAll(buffer, 1);
         if (recv_size == -1) {
             std::cout << "recv failed: return -1" << std::endl;
             break;
@@ -251,7 +251,12 @@ void Client::clientThreadFunc()
         }
 
         const size_t packet_size = packets.at(id).size;
-        _client.receiveAll(buffer, packet_size);
+        recv_size = _client.receiveAll(buffer, packet_size);
+        if (recv_size == -1) {
+            std::cout << "recv failed: return -1" << std::endl;
+            break;
+        }
+
         decode(id, ByteBuffer(buffer, packet_size, ByteBuffer::ByteOrder::BE));
     }
 }
