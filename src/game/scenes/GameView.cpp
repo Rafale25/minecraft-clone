@@ -242,6 +242,7 @@ void GameView::drawPlayersNames()
     window_flags |= ImGuiWindowFlags_NoInputs;
     // window_flags |= ImGuiWindowFlags_NoBackground;
 
+    int idx = 0;
     for (const Entity& e : World::instance().entities) {
 
         glm::ivec2 screen_pos = worldToScreenSpace(e.smooth_transform.position + glm::vec3(0.0f, 0.8f, 0.0f), camera.getProjection(), camera.getView(), ctx.width, ctx.height);
@@ -255,10 +256,12 @@ void GameView::drawPlayersNames()
         ImGui::SetNextWindowBgAlpha(0.2f);
         ImGui::SetNextWindowSize({0, 0});
         ImGui::SetNextWindowPos({(float)screen_pos.x, (float)screen_pos.y}, 0, {0.5f, 0.5f});
-        ImGui::Begin("##Name", nullptr, window_flags);
+        ImGui::Begin(("##Name" + std::to_string(idx)).c_str(), nullptr, window_flags);
         ImGui::Text("%s", e.name.c_str());
         ImGui::End();
         ImGui::PopStyleVar();
+
+        idx += 1;
     }
 }
 
