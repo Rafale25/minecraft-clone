@@ -42,6 +42,19 @@ private:
         { TextureName::Sand,        "sand.png"},
         { TextureName::Snow,        "snow.png"},
 
+        { TextureName::OakPlank,        "oak_planks.png"},
+        { TextureName::StoneBrick,      "stonebrick.png"},
+        { TextureName::Netherrack,      "netherrack.png"},
+        { TextureName::Gold,            "gold_block.png"},
+        { TextureName::PackedIce,       "ice_packed.png"},
+        { TextureName::Lava,            "lava.png"},
+        { TextureName::BarrelTop,       "barrel_top.png"},
+        { TextureName::BarrelSide,      "barrel_side.png"},
+        { TextureName::BarrelBottom,    "barrel_bottom.png"},
+        { TextureName::BookshelfTop,    "oak_planks.png"},
+        { TextureName::BookshelfSide,   "bookshelf.png"},
+        { TextureName::BookshelfBottom, "oak_planks.png"},
+
         { TextureName::INVALID,     "error.png"},
     };
 
@@ -56,7 +69,16 @@ private:
         { BlockType::Sand,      { TextureName::Sand,        TextureName::Sand,      TextureName::Sand       }},
         { BlockType::Snow,      { TextureName::Snow,        TextureName::Snow,      TextureName::Snow       }},
 
-        { BlockType::INVALID,   { TextureName::INVALID,     TextureName::INVALID,   TextureName::INVALID    }},
+        { BlockType::OakPlank,      { TextureName::OakPlank,        TextureName::OakPlank,      TextureName::OakPlank           }},
+        { BlockType::StoneBrick,    { TextureName::StoneBrick,      TextureName::StoneBrick,    TextureName::StoneBrick         }},
+        { BlockType::Netherrack,    { TextureName::Netherrack,      TextureName::Netherrack,    TextureName::Netherrack         }},
+        { BlockType::Gold,          { TextureName::Gold,            TextureName::Gold,          TextureName::Gold               }},
+        { BlockType::PackedIce,     { TextureName::PackedIce,       TextureName::PackedIce,     TextureName::PackedIce          }},
+        { BlockType::Lava,          { TextureName::Lava,            TextureName::Lava,          TextureName::Lava               }},
+        { BlockType::Barrel,        { TextureName::BarrelTop,       TextureName::BarrelSide,    TextureName::BarrelBottom       }},
+        { BlockType::Bookshelf,     { TextureName::BookshelfTop,    TextureName::BookshelfSide, TextureName::BookshelfBottom    }},
+
+        { BlockType::INVALID,       { TextureName::INVALID,         TextureName::INVALID,       TextureName::INVALID            }},
     };
 
 public:

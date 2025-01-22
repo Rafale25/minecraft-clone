@@ -25,6 +25,15 @@ enum class BlockType : uint8_t {
     Water = 7,
     Sand = 8,
     Snow = 9,
+    OakPlank = 10,
+    StoneBrick = 11,
+    Netherrack = 12,
+    Gold = 13,
+    PackedIce = 14,
+    Lava = 15,
+    Barrel = 16,
+    Bookshelf = 17,
+
     INVALID, // do not use as block
 };
 
@@ -66,7 +75,24 @@ inline constexpr BlockMetadata blocksMetadata[] =
     // [(int)BlockType::Snow]      =
     {.transparent = false},
 
-    // [(int)BlockType::INVALID]      =
+    // OakPlank = 10,
+    {.transparent = false},
+    // StoneBrick = 11,
+    {.transparent = false},
+    // Netherrack = 12,
+    {.transparent = false},
+    // Gold = 13,
+    {.transparent = false},
+    // PackedIce = 14,
+    {.transparent = false},
+    // Lava = 15,
+    {.transparent = false},
+    // Barrel = 16,
+    {.transparent = false},
+    // Bookshelf = 17,
+    {.transparent = false},
+
+    // [(int)BlockType::INVALID] =
     {.transparent = false},
 };
 
@@ -84,6 +110,22 @@ enum class TextureName : int {
     Water,
     Sand,
     Snow,
+
+    OakPlank,
+    StoneBrick,
+    Netherrack,
+    Gold,
+    PackedIce,
+    Lava,
+
+    BarrelTop,
+    BarrelSide,
+    BarrelBottom,
+
+    BookshelfTop,
+    BookshelfSide,
+    BookshelfBottom,
+
     INVALID,
 };
 

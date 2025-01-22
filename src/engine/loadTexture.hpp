@@ -29,7 +29,7 @@ GLuint createTextureFromPath(const char *path, int format=GL_RGB, int min_filter
     }
     else
     {
-        std::cout << "Failed to load texture" << std::endl;
+        std::cout << "Failed to load texture: " << path << std::endl;
         return -1;
     }
     stbi_image_free(data);

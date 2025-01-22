@@ -4,36 +4,43 @@
 
 // #define DISABLE_BINDLESS_TEXTURE
 
+static int getFormat(const char* filepath)
+{
+    int width, height, channels;
+    stbi_info(filepath, &width, &height, &channels);
+
+    int format;
+    switch (channels)
+    {
+        case 3:
+            format = GL_RGB;
+            // format = GL_SRGB;
+            break;
+        case 4:
+            format = GL_RGBA;
+            // format = GL_SRGB_ALPHA;
+            break;
+        default:
+            format = GL_RGB;
+            // format = GL_SRGB;
+            break;
+    }
+
+    return format;
+}
+
 void BlockTextureManager::_loadAllTextures()
 {
     const std::string textures_path = "./assets/textures/";
 
     for (const auto& [key, value] : block_textures_path) {
-        int width, height, channels;
-        stbi_info((textures_path + textures_name[value[0]]).c_str(), &width, &height, &channels);
+        std::string filepath_top = (textures_path + textures_name[value[0]]);
+        std::string filepath_side = (textures_path + textures_name[value[1]]);
+        std::string filepath_bottom = (textures_path + textures_name[value[2]]);
 
-        int format;
-        switch (channels)
-        {
-            case 3:
-                format = GL_RGB;
-                // format = GL_SRGB;
-                break;
-            case 4:
-                format = GL_RGBA;
-                // format = GL_SRGB_ALPHA;
-                break;
-            default:
-                format = GL_RGB;
-                // format = GL_SRGB;
-                break;
-        }
-
-        // format = GL_RGB;
-
-        GLuint texture_top = TextureManager::instance().loadTexture((textures_path + textures_name[value[0]]).c_str(), format, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
-        GLuint texture_side = TextureManager::instance().loadTexture((textures_path + textures_name[value[1]]).c_str(), format, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
-        GLuint texture_bot = TextureManager::instance().loadTexture((textures_path + textures_name[value[2]]).c_str(), format, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
+        GLuint texture_top = TextureManager::instance().loadTexture(filepath_top.c_str(), getFormat(filepath_top.c_str()), GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
+        GLuint texture_side = TextureManager::instance().loadTexture(filepath_side.c_str(), getFormat(filepath_side.c_str()), GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
+        GLuint texture_bot = TextureManager::instance().loadTexture(filepath_bottom.c_str(), getFormat(filepath_bottom.c_str()), GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
 
 #ifdef DISABLE_BINDLESS_TEXTURE
         GLuint64 texture_top_handle = 0;
