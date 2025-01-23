@@ -182,6 +182,9 @@ constexpr BlockInfo blocks_info[] = {
 
     // Bookshelf = 17
     { false, false, T::BookshelfSide, T::BookshelfSide, T::BookshelfSide, T::BookshelfSide, T::BookshelfBottom, T::BookshelfTop },
+
+    // INVALID
+    { false, false, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID },
 };
 
 enum PacketId {
