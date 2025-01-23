@@ -33,38 +33,62 @@ void BlockTextureManager::_loadAllTextures()
 {
     const std::string textures_path = "./assets/textures/";
 
-    for (const auto& [key, value] : block_textures_path) {
-        std::string filepath_top = (textures_path + textures_name[value[0]]);
-        std::string filepath_side = (textures_path + textures_name[value[1]]);
-        std::string filepath_bottom = (textures_path + textures_name[value[2]]);
+    for (int i = 0 ; i < (int)BlockType::INVALID ; ++i) {
+        const auto& [transparent, liquid, lz, hz, lx, hx, ly, hy] = blocks_info[i];
 
-        GLuint texture_top = TextureManager::instance().loadTexture(filepath_top.c_str(), getFormat(filepath_top.c_str()), GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
-        GLuint texture_side = TextureManager::instance().loadTexture(filepath_side.c_str(), getFormat(filepath_side.c_str()), GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
-        GLuint texture_bot = TextureManager::instance().loadTexture(filepath_bottom.c_str(), getFormat(filepath_bottom.c_str()), GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
+        std::string filepath_lz = (textures_path + textures_name[lz]);
+        std::string filepath_hz = (textures_path + textures_name[hz]);
+        std::string filepath_lx = (textures_path + textures_name[lx]);
+        std::string filepath_hx = (textures_path + textures_name[hx]);
+        std::string filepath_ly = (textures_path + textures_name[ly]);
+        std::string filepath_hy = (textures_path + textures_name[hy]);
+
+        GLuint texture_lz = TextureManager::instance().loadTexture(filepath_lz.c_str(), getFormat(filepath_lz.c_str()), GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
+        GLuint texture_hz = TextureManager::instance().loadTexture(filepath_hz.c_str(), getFormat(filepath_hz.c_str()), GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
+        GLuint texture_lx = TextureManager::instance().loadTexture(filepath_lx.c_str(), getFormat(filepath_lx.c_str()), GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
+        GLuint texture_hx = TextureManager::instance().loadTexture(filepath_hx.c_str(), getFormat(filepath_hx.c_str()), GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
+        GLuint texture_ly = TextureManager::instance().loadTexture(filepath_ly.c_str(), getFormat(filepath_ly.c_str()), GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
+        GLuint texture_hy = TextureManager::instance().loadTexture(filepath_hy.c_str(), getFormat(filepath_hy.c_str()), GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
 
 #ifdef DISABLE_BINDLESS_TEXTURE
-        GLuint64 texture_top_handle = 0;
-        GLuint64 texture_side_handle = 0;
-        GLuint64 texture_bot_handle = 0;
+        GLuint64 texture_handle_lz = 0;
+        GLuint64 texture_handle_hz = 0;
+        GLuint64 texture_handle_lx = 0;
+        GLuint64 texture_handle_hx = 0;
+        GLuint64 texture_handle_ly = 0;
+        GLuint64 texture_handle_hy = 0;
 #else
-        GLuint64 texture_top_handle = glGetTextureHandleARB(texture_top);
-        GLuint64 texture_side_handle = glGetTextureHandleARB(texture_side);
-        GLuint64 texture_bot_handle = glGetTextureHandleARB(texture_bot);
+        GLuint64 texture_handle_lz = glGetTextureHandleARB(texture_lz);
+        GLuint64 texture_handle_hz = glGetTextureHandleARB(texture_hz);
+        GLuint64 texture_handle_lx = glGetTextureHandleARB(texture_lx);
+        GLuint64 texture_handle_hx = glGetTextureHandleARB(texture_hx);
+        GLuint64 texture_handle_ly = glGetTextureHandleARB(texture_ly);
+        GLuint64 texture_handle_hy = glGetTextureHandleARB(texture_hy);
 
-        if (!glIsTextureHandleResidentARB(texture_top_handle)) glMakeTextureHandleResidentARB(texture_top_handle);
-        if (!glIsTextureHandleResidentARB(texture_side_handle)) glMakeTextureHandleResidentARB(texture_side_handle);
-        if (!glIsTextureHandleResidentARB(texture_bot_handle)) glMakeTextureHandleResidentARB(texture_bot_handle);
+        if (!glIsTextureHandleResidentARB(texture_handle_lz)) glMakeTextureHandleResidentARB(texture_handle_lz);
+        if (!glIsTextureHandleResidentARB(texture_handle_hz)) glMakeTextureHandleResidentARB(texture_handle_hz);
+        if (!glIsTextureHandleResidentARB(texture_handle_lx)) glMakeTextureHandleResidentARB(texture_handle_lx);
+        if (!glIsTextureHandleResidentARB(texture_handle_hx)) glMakeTextureHandleResidentARB(texture_handle_hx);
+        if (!glIsTextureHandleResidentARB(texture_handle_ly)) glMakeTextureHandleResidentARB(texture_handle_ly);
+        if (!glIsTextureHandleResidentARB(texture_handle_hy)) glMakeTextureHandleResidentARB(texture_handle_hy);
 #endif
 
         uint32_t id_base_offset = textures_handles.size();
-        uint32_t texture_top_id = id_base_offset + 0;
-        uint32_t texture_side_id = id_base_offset + 1;
-        uint32_t texture_bot_id = id_base_offset + 2;
-        textures_handles.push_back(texture_top_handle);
-        textures_handles.push_back(texture_side_handle);
-        textures_handles.push_back(texture_bot_handle);
+        uint32_t texture_id_lz = id_base_offset + 0;
+        uint32_t texture_id_hz = id_base_offset + 1;
+        uint32_t texture_id_lx = id_base_offset + 2;
+        uint32_t texture_id_hx = id_base_offset + 3;
+        uint32_t texture_id_ly = id_base_offset + 4;
+        uint32_t texture_id_hy = id_base_offset + 5;
 
-        block_textures_handles.insert( {key, {texture_top_handle, texture_side_handle, texture_bot_handle}} );
-        block_textures_ids.insert( {key, {texture_top_id, texture_side_id, texture_bot_id}} );
+        textures_handles.push_back(texture_handle_lz);
+        textures_handles.push_back(texture_handle_hz);
+        textures_handles.push_back(texture_handle_lx);
+        textures_handles.push_back(texture_handle_hx);
+        textures_handles.push_back(texture_handle_ly);
+        textures_handles.push_back(texture_handle_hy);
+
+        block_textures_handles.insert( {(BlockType)i, {texture_handle_hy, texture_handle_lz, texture_handle_ly}} );
+        block_textures_ids.insert( {(BlockType)i, {texture_id_hy, texture_id_lz, texture_id_ly}} );
     }
 }
