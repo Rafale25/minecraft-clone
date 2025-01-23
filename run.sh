@@ -1,5 +1,6 @@
 envParams="__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia DRI_PRIME=1 ASAN_OPTIONS=detect_leaks=0"
 ipAddress='162.19.137.231'
+# ipAddress='127.0.0.1'
 renderDistance='16'
 programPath='./build/Minecraft_Clone'
 

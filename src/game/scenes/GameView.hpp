@@ -22,6 +22,7 @@ public:
     void processNewChunks();
     void networkUpdate();
 
+    void playerMovements(float dt);
     void sendTextMessage();
     void placeSphere(const glm::ivec3& center, float radius, BlockType blocktype);
     void setPlayerPosition(const glm::vec3& p);
@@ -55,6 +56,14 @@ private:
     float bulk_edit_radius = 4.0f;
 
     BlockRaycastHit player_blockraycasthit;
+
+    // Player physic
+        const float player_height = 1.8f;
+        const float player_radius = 0.2f;
+        const float player_gravity = 0.9;
+        glm::vec3 player_velocity = {0.0f, 0.0f, 0.0f};
+    // --
+
 
     char input_text_buffer[4096] = {0};
     std::vector<std::string> tchat;

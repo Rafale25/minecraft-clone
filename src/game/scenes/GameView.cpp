@@ -7,10 +7,10 @@
 #include "Entity.hpp"
 #include "World.hpp"
 
+#include "world_to_screen_space.h"
 #include "command_line_args.h"
 #include "string_helpers.h"
 #include "mem_info.h"
-
 #include "clock.h"
 
 GameView::GameView(Context& ctx): View(ctx)
@@ -29,18 +29,7 @@ void GameView::onHideView()
 
 void GameView::onUpdate(double time_since_start, float dt)
 {
-    glm::vec3 delta = {
-        ctx.keystate[GLFW_KEY_A] - ctx.keystate[GLFW_KEY_D],
-        ctx.keystate[GLFW_KEY_LEFT_CONTROL] - ctx.keystate[GLFW_KEY_SPACE],
-        ctx.keystate[GLFW_KEY_W] - ctx.keystate[GLFW_KEY_S]
-    };
-
-    camera.setSpeed(
-        ctx.keystate[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS ? 130.0f : 10.0f
-    );
-
-    if (!_cursor_enabled && !ImGui::GetIO().WantCaptureKeyboard) camera.move(delta);
-    camera.update(dt);
+    playerMovements(dt);
 
     Client::instance().task_queue.execute();
 
@@ -58,6 +47,46 @@ void GameView::onUpdate(double time_since_start, float dt)
         network_timer = 1.0f / 20.0f;
         networkUpdate();
     }
+}
+
+void GameView::playerMovements(float dt)
+{
+    if (_cursor_enabled || ImGui::GetIO().WantCaptureKeyboard) return;
+
+    glm::vec3 delta = {
+        ctx.keystate[GLFW_KEY_A] - ctx.keystate[GLFW_KEY_D],
+        ctx.keystate[GLFW_KEY_LEFT_CONTROL] - ctx.keystate[GLFW_KEY_SPACE],
+        ctx.keystate[GLFW_KEY_W] - ctx.keystate[GLFW_KEY_S]
+    };
+
+    camera.setSpeed(
+        ctx.keystate[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS ? 130.0f : 10.0f
+    );
+
+    glm::vec3 player_position = camera.getPosition() - glm::vec3(0.0f, player_height, 0.0f);
+
+    bool is_grounded = World::instance().getBlock(glm::ivec3(player_position + glm::vec3(0.0f, -0.01f, 0.0f))) != BlockType::Air;
+
+    if (is_grounded && ctx.keystate[GLFW_KEY_SPACE]) {
+        player_velocity.y += 12.0f;
+    }
+
+    // if (!_cursor_enabled && !ImGui::GetIO().WantCaptureKeyboard) camera.move(delta);
+    camera.update(dt);
+
+
+    player_velocity.y -= player_gravity;
+    player_velocity.y = glm::clamp(player_velocity.y, -20.0f, 20.0f);
+
+    glm::vec3 next_pos = player_position + player_velocity * dt;
+    BlockType b = World::instance().getBlock(glm::ivec3(player_position.x, next_pos.y, player_position.z));
+
+    if (b != BlockType::Air) {
+        player_velocity.y = 0.0f;
+        next_pos.y = glm::floor(next_pos.y) + 1.0f;
+    }
+
+    camera.setPosition(next_pos + glm::vec3(0.0f, player_height, 0.0f));
 }
 
 void GameView::deleteFarChunks()
@@ -222,19 +251,6 @@ void GameView::onResize(int width, int height)
     world_renderer.onResize(width, height);
 }
 
-glm::ivec2 worldToScreenSpace(const glm::vec3& world_pos, const glm::mat4& projection, const glm::mat4& view, float screen_width, float screen_height)
-{
-    const glm::mat4 world_to_clip_matrix = projection * view;
-    glm::vec4 clip_pos = world_to_clip_matrix * glm::vec4(world_pos, 1.0);
-    clip_pos /= clip_pos.w;
-    glm::vec2 screen_pos = clip_pos / 2.0f + 0.5f;
-    screen_pos.x *= screen_width;
-    screen_pos.y *= screen_height;
-    screen_pos.y = screen_height - screen_pos.y;
-
-    return screen_pos;
-}
-
 void GameView::drawPlayersNames()
 {
     ImGuiWindowFlags window_flags = 0;
@@ -270,7 +286,6 @@ void GameView::drawPlayersNames()
         idx += 1;
     }
 }
-
 
 void GameView::gui(float dt)
 {
