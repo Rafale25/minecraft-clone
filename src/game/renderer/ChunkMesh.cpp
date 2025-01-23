@@ -280,14 +280,14 @@ ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos)
         }
 
         const glm::ivec3 local_pos = glm::ivec3(x, y, z);
-        auto [texture_top_handle, texture_side_handle, texture_bot_handle] = BlockTextureManager::Get().block_textures_ids[block];
+        auto [texture_handle_lz, texture_handle_hz, texture_handle_lx, texture_handle_hx, texture_handle_ly, texture_handle_hy] = BlockTextureManager::Get().block_textures_ids[block];
 
-        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Front, texture_side_handle);
-        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Back, texture_side_handle);
-        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Bottom, texture_bot_handle);
-        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Top, texture_top_handle);
-        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Left, texture_side_handle);
-        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Right, texture_side_handle);
+        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Front, texture_handle_lz);
+        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Back, texture_handle_hz);
+        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Bottom, texture_handle_ly);
+        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Top, texture_handle_hy);
+        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Left, texture_handle_lx);
+        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Right, texture_handle_hx);
     }
     }
     }

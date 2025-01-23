@@ -88,7 +88,7 @@ void BlockTextureManager::_loadAllTextures()
         textures_handles.push_back(texture_handle_ly);
         textures_handles.push_back(texture_handle_hy);
 
-        block_textures_handles.insert( {(BlockType)i, {texture_handle_hy, texture_handle_lz, texture_handle_ly}} );
-        block_textures_ids.insert( {(BlockType)i, {texture_id_hy, texture_id_lz, texture_id_ly}} );
+        block_textures_handles.insert( {(BlockType)i, {texture_handle_lz, texture_handle_hz, texture_handle_lx, texture_handle_hx, texture_handle_ly, texture_handle_hy}} );
+        block_textures_ids.insert( {(BlockType)i, {texture_id_lz, texture_id_hz, texture_id_lx, texture_id_hx, texture_id_ly, texture_id_hy}} );
     }
 }

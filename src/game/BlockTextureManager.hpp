@@ -58,31 +58,8 @@ private:
         { TextureName::INVALID,     "error.png"},
     };
 
-    std::unordered_map<BlockType, std::array<TextureName, 3>> block_textures_path = {
-        { BlockType::Grass,     { TextureName::GrassTop,    TextureName::GrassSide, TextureName::Dirt       }},
-        { BlockType::Dirt,      { TextureName::Dirt,        TextureName::Dirt,      TextureName::Dirt       }},
-        { BlockType::Stone,     { TextureName::Stone,       TextureName::Stone,     TextureName::Stone      }},
-        { BlockType::OakLog,    { TextureName::OakLogTop,   TextureName::OakLog,    TextureName::OakLogTop  }},
-        { BlockType::OakLeaves, { TextureName::OakLeaves,   TextureName::OakLeaves, TextureName::OakLeaves  }},
-        { BlockType::Glass,     { TextureName::Glass,       TextureName::Glass,     TextureName::Glass      }},
-        { BlockType::Water,     { TextureName::Water,       TextureName::Water,     TextureName::Water      }},
-        { BlockType::Sand,      { TextureName::Sand,        TextureName::Sand,      TextureName::Sand       }},
-        { BlockType::Snow,      { TextureName::Snow,        TextureName::Snow,      TextureName::Snow       }},
-
-        { BlockType::OakPlank,      { TextureName::OakPlank,        TextureName::OakPlank,      TextureName::OakPlank           }},
-        { BlockType::StoneBrick,    { TextureName::StoneBrick,      TextureName::StoneBrick,    TextureName::StoneBrick         }},
-        { BlockType::Netherrack,    { TextureName::Netherrack,      TextureName::Netherrack,    TextureName::Netherrack         }},
-        { BlockType::Gold,          { TextureName::Gold,            TextureName::Gold,          TextureName::Gold               }},
-        { BlockType::PackedIce,     { TextureName::PackedIce,       TextureName::PackedIce,     TextureName::PackedIce          }},
-        { BlockType::Lava,          { TextureName::Lava,            TextureName::Lava,          TextureName::Lava               }},
-        { BlockType::Barrel,        { TextureName::BarrelTop,       TextureName::BarrelSide,    TextureName::BarrelBottom       }},
-        { BlockType::Bookshelf,     { TextureName::BookshelfTop,    TextureName::BookshelfSide, TextureName::BookshelfBottom    }},
-
-        { BlockType::INVALID,       { TextureName::INVALID,         TextureName::INVALID,       TextureName::INVALID            }},
-    };
-
 public:
-    std::unordered_map<BlockType, std::array<GLuint64, 3>> block_textures_handles;
-    mutable std::unordered_map<BlockType, std::array<GLuint, 3>> block_textures_ids; // map blocktype to ids
+    std::unordered_map<BlockType, std::array<GLuint64, 6>> block_textures_handles;
+    mutable std::unordered_map<BlockType, std::array<GLuint, 6>> block_textures_ids; // map blocktype to ids
     std::vector<GLuint64> textures_handles; // index is texture id and value is the texture handle
 };
