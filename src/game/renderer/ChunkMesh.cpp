@@ -199,19 +199,19 @@ inline void makeFace(
     if (!(nb >= BlockType::Air && nb < BlockType::INVALID)) {
         nb = BlockType::Stone; // Assume not a transparent block so the face still get culled
     }
-    BlockMetadata nbmtd = blocksMetadata[(int)nb];
-    if (nbmtd.transparent) {
+    BlockInfo binfo = blocks_info[(int)nb];
+    if (binfo.transparent) {
 
         // TODO: use blocksMetadata to check if it's non transparent instead of >0
-        auto nb_lx = !blocksMetadata[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[26], info[27], info[28]))].transparent;
-        auto nb_hx = !blocksMetadata[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[29], info[30], info[31]))].transparent;
-        auto nb_ly = !blocksMetadata[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[32], info[33], info[34]))].transparent;
-        auto nb_hy = !blocksMetadata[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[35], info[36], info[37]))].transparent;
+        auto nb_lx = !blocks_info[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[26], info[27], info[28]))].transparent;
+        auto nb_hx = !blocks_info[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[29], info[30], info[31]))].transparent;
+        auto nb_ly = !blocks_info[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[32], info[33], info[34]))].transparent;
+        auto nb_hy = !blocks_info[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[35], info[36], info[37]))].transparent;
 
-        auto nb_lxly = !blocksMetadata[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[38], info[39], info[40]))].transparent;
-        auto nb_hxly = !blocksMetadata[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[41], info[42], info[43]))].transparent;
-        auto nb_lxhy = !blocksMetadata[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[44], info[45], info[46]))].transparent;
-        auto nb_hxhy = !blocksMetadata[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[47], info[48], info[49]))].transparent;
+        auto nb_lxly = !blocks_info[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[38], info[39], info[40]))].transparent;
+        auto nb_hxly = !blocks_info[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[41], info[42], info[43]))].transparent;
+        auto nb_lxhy = !blocks_info[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[44], info[45], info[46]))].transparent;
+        auto nb_hxhy = !blocks_info[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[47], info[48], info[49]))].transparent;
 
         int a00 = vertexAO(nb_lx, nb_ly, nb_lxly);
         int a10 = vertexAO(nb_hx, nb_ly, nb_hxly);

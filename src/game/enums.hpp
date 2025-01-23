@@ -2,8 +2,6 @@
 
 #include <cstdint>
 
-
-
 enum Orientation : int {
     Top = 0,
     Bottom = 1,
@@ -34,69 +32,61 @@ enum class BlockType : uint8_t {
     Barrel = 16,
     Bookshelf = 17,
 
-    INVALID, // do not use as block
+    INVALID,
 };
 
 bool operator==(const BlockType&, const int&);
 bool operator>(const BlockType&, const int&);
 bool operator<(const BlockType&, const int&);
 
-struct BlockMetadata
-{
-    bool transparent;
-    // bool liquid;
-    // ...
-};
+// struct BlockMetadata
+// {
+//     bool transparent;
+//     // bool liquid;
+//     // ...
+// };
 
-// #pragma GCC diagnostic push
-// #pragma GCC diagnostic ignored "-Wc99-designator"
-
-inline constexpr BlockMetadata blocksMetadata[] =
-{
-    // [(int)BlockType::Air]       =
-    {.transparent = true},
-    // [(int)BlockType::Grass]     =
-    {.transparent = false},
-    // [(int)BlockType::Dirt]      =
-    {.transparent = false},
-    // [(int)BlockType::Stone]     =
-    {.transparent = false},
-    // [(int)BlockType::OakLog]    =
-    {.transparent = false},
-    // [(int)BlockType::OakLeaves] =
-    {.transparent = true},
-
-    // [(int)BlockType::Glass]     =
-    {.transparent = true},
-    // [(int)BlockType::Water]     =
-    {.transparent = false},
-    // [(int)BlockType::Sand]      =
-    {.transparent = false},
-    // [(int)BlockType::Snow]      =
-    {.transparent = false},
-
-    // OakPlank = 10,
-    {.transparent = false},
-    // StoneBrick = 11,
-    {.transparent = false},
-    // Netherrack = 12,
-    {.transparent = false},
-    // Gold = 13,
-    {.transparent = false},
-    // PackedIce = 14,
-    {.transparent = false},
-    // Lava = 15,
-    {.transparent = false},
-    // Barrel = 16,
-    {.transparent = false},
-    // Bookshelf = 17,
-    {.transparent = false},
-
-    // [(int)BlockType::INVALID] =
-    {.transparent = false},
-};
-
-// #pragma GCC diagnostic pop
+// inline constexpr BlockMetadata blocksMetadata[] =
+// {
+//     // [(int)BlockType::Air]       =
+//     {.transparent = true},
+//     // [(int)BlockType::Grass]     =
+//     {.transparent = false},
+//     // [(int)BlockType::Dirt]      =
+//     {.transparent = false},
+//     // [(int)BlockType::Stone]     =
+//     {.transparent = false},
+//     // [(int)BlockType::OakLog]    =
+//     {.transparent = false},
+//     // [(int)BlockType::OakLeaves] =
+//     {.transparent = true},
+//     // [(int)BlockType::Glass]     =
+//     {.transparent = true},
+//     // [(int)BlockType::Water]     =
+//     {.transparent = false},
+//     // [(int)BlockType::Sand]      =
+//     {.transparent = false},
+//     // [(int)BlockType::Snow]      =
+//     {.transparent = false},
+//     // OakPlank = 10,
+//     {.transparent = false},
+//     // StoneBrick = 11,
+//     {.transparent = false},
+//     // Netherrack = 12,
+//     {.transparent = false},
+//     // Gold = 13,
+//     {.transparent = false},
+//     // PackedIce = 14,
+//     {.transparent = false},
+//     // Lava = 15,
+//     {.transparent = false},
+//     // Barrel = 16,
+//     {.transparent = false},
+//     // Bookshelf = 17,
+//     {.transparent = false},
+//     // [(int)BlockType::INVALID] =
+//     {.transparent = false},
+// };
 
 enum class TextureName : int {
     GrassTop,
@@ -127,6 +117,71 @@ enum class TextureName : int {
     BookshelfBottom,
 
     INVALID,
+};
+
+struct BlockInfo {
+    // TODO: Use bit field instead
+    bool transparent;
+    bool liquid;
+    TextureName lz, hz, lx, hx, ly, hy;
+};
+
+using T = enum TextureName;
+
+constexpr BlockInfo blocks_info[] = {
+    // Air = 0
+    { true, false, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID },
+
+    // Grass = 1
+    { false, false, T::GrassSide, T::GrassSide, T::GrassSide, T::GrassSide, T::Dirt, T::GrassTop },
+
+    // Dirt = 2
+    { false, false, T::Dirt, T::Dirt, T::Dirt, T::Dirt, T::Dirt, T::Dirt },
+
+    // Stone = 3
+    { false, false, T::Stone, T::Stone, T::Stone, T::Stone, T::Stone, T::Stone },
+
+    // OakLog = 4
+    { false, false, T::OakLog, T::OakLog, T::OakLog, T::OakLog, T::OakLogTop, T::OakLogTop },
+
+    // OakLeaves = 5
+    { true, false, T::OakLeaves, T::OakLeaves, T::OakLeaves, T::OakLeaves, T::OakLeaves, T::OakLeaves },
+
+    // Glass = 6
+    { true, false, T::Glass, T::Glass, T::Glass, T::Glass, T::Glass, T::Glass },
+
+    // Water = 7
+    { false, false, T::Water, T::Water, T::Water, T::Water, T::Water, T::Water },
+
+    // Sand = 8
+    { false, false, T::Sand, T::Sand, T::Sand, T::Sand, T::Sand, T::Sand },
+
+    // Snow = 9
+    { false, false, T::Snow, T::Snow, T::Snow, T::Snow, T::Snow, T::Snow },
+
+    // OakPlank = 10
+    { false, false, T::OakPlank, T::OakPlank, T::OakPlank, T::OakPlank, T::OakPlank, T::OakPlank },
+
+    // StoneBrick = 11
+    { false, false, T::StoneBrick, T::StoneBrick, T::StoneBrick, T::StoneBrick, T::StoneBrick, T::StoneBrick },
+
+    // Netherrack = 12
+    { false, false, T::Netherrack, T::Netherrack, T::Netherrack, T::Netherrack, T::Netherrack, T::Netherrack },
+
+    // Gold = 13
+    { false, false, T::Gold, T::Gold, T::Gold, T::Gold, T::Gold, T::Gold },
+
+    // PackedIce = 14
+    { false, false, T::PackedIce, T::PackedIce, T::PackedIce, T::PackedIce, T::PackedIce, T::PackedIce },
+
+    // Lava = 15
+    { false, false, T::Lava, T::Lava, T::Lava, T::Lava, T::Lava, T::Lava },
+
+    // Barrel = 16
+    { false, false, T::BarrelSide, T::BarrelSide, T::BarrelSide, T::BarrelSide, T::BarrelBottom, T::BarrelTop },
+
+    // Bookshelf = 17
+    { false, false, T::BookshelfSide, T::BookshelfSide, T::BookshelfSide, T::BookshelfSide, T::BookshelfBottom, T::BookshelfTop },
 };
 
 enum PacketId {
