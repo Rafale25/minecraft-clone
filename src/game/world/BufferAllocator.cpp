@@ -17,11 +17,11 @@ BufferAllocator::BufferAllocator(const char* name, uint32_t slot_size, uint32_t 
     const uint64_t buffer_size = slot_size * max_slots;
 
     if (buffer_size > MAX_BUFFER_SIZE) {
-        fprintf(stderr, "Error BufferAllocator: %s - Trying to allocated %lu which is more than the maximum of %lu\n", name, buffer_size, MAX_BUFFER_SIZE);
+        fprintf(stderr, "Error BufferAllocator: %s - Trying to allocated %llu which is more than the maximum of %llu\n", name, buffer_size, MAX_BUFFER_SIZE);
         abort();
     }
 
-    printf("Buffer size: %ld\n", buffer_size);
+    printf("Buffer size: %llu\n", buffer_size);
 
     glNamedBufferStorage(_buffer, buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
@@ -42,7 +42,7 @@ BufferSlot BufferAllocator::allocate(uint32_t size, const void * data) {
 
     if (size > _slot_size) {
         #ifdef PRINT_ERRORS
-        fprintf(stderr, "Error: %s - Allocate size demanded %d is higher than maximum slot size of %ld\n", _name, size, _slot_size);
+        fprintf(stderr, "Error: %s - Allocate size demanded %u is higher than maximum slot size of %u\n", _name, (uint32_t)size, (uint32_t)_slot_size);
         #endif
 
         return invalid_buffer_slot;

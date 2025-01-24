@@ -178,6 +178,7 @@ int NetworkConnection::waitForData(const bool& should_stop)
         }
         return 0;
     }
+    return 0;
 #else
     struct pollfd fds;
     fds.fd = _socket;
