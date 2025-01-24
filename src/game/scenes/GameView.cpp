@@ -30,11 +30,12 @@ void GameView::onHideView()
 void GameView::onUpdate(double time_since_start, float dt)
 {
     playerMovements(dt);
+    camera.update(dt);
 
     Client::instance().task_queue.execute();
 
     processNewChunks();
-    deleteFarChunks();
+    // deleteFarChunks();
 
     world_renderer.update();
 
@@ -51,35 +52,47 @@ void GameView::onUpdate(double time_since_start, float dt)
 
 void GameView::playerMovements(float dt)
 {
-    if (_cursor_enabled || ImGui::GetIO().WantCaptureKeyboard) return;
-
     glm::vec3 delta = {
         ctx.keystate[GLFW_KEY_A] - ctx.keystate[GLFW_KEY_D],
         ctx.keystate[GLFW_KEY_LEFT_CONTROL] - ctx.keystate[GLFW_KEY_SPACE],
         ctx.keystate[GLFW_KEY_W] - ctx.keystate[GLFW_KEY_S]
     };
 
+    if (_cursor_enabled || ImGui::GetIO().WantCaptureKeyboard) return;
+    if (!_cursor_enabled && !ImGui::GetIO().WantCaptureKeyboard) camera.move(delta);
+
+
     camera.setSpeed(
         ctx.keystate[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS ? 130.0f : 10.0f
     );
 
+    return;
+
+    glm::vec3 move_vector = -delta.x * camera.right() + delta.z * camera.forward();
+
     glm::vec3 player_position = camera.getPosition() - glm::vec3(0.0f, player_height, 0.0f);
 
-    bool is_grounded = World::instance().getBlock(glm::ivec3(player_position + glm::vec3(0.0f, -0.01f, 0.0f))) != BlockType::Air;
+    bool is_grounded = World::instance().getBlockf(player_position + glm::vec3(0.0f, -0.01f, 0.0f)) != BlockType::Air;
 
+    if (is_grounded) {
+        player_velocity.x *= 0.8f;
+        player_velocity.z *= 0.8f;
+    }
     if (is_grounded && ctx.keystate[GLFW_KEY_SPACE]) {
         player_velocity.y += 12.0f;
     }
 
-    // if (!_cursor_enabled && !ImGui::GetIO().WantCaptureKeyboard) camera.move(delta);
-    camera.update(dt);
+    player_velocity.y -= player_gravity * dt;
+    player_velocity.y = glm::clamp(player_velocity.y, -40.0f, 40.0f);
 
-
-    player_velocity.y -= player_gravity;
-    player_velocity.y = glm::clamp(player_velocity.y, -20.0f, 20.0f);
+    if (is_grounded) {
+        player_velocity += move_vector * 1.0f;
+    } else {
+        player_velocity += move_vector * 0.1f;
+    }
 
     glm::vec3 next_pos = player_position + player_velocity * dt;
-    BlockType b = World::instance().getBlock(glm::ivec3(player_position.x, next_pos.y, player_position.z));
+    BlockType b = World::instance().getBlock(glm::ivec3(player_position.x, glm::floor(next_pos.y), player_position.z));
 
     if (b != BlockType::Air) {
         player_velocity.y = 0.0f;
@@ -304,8 +317,8 @@ void GameView::gui(float dt)
     ImGui::Text("BufferVertices: %d / %d", world_renderer.buffer_allocator_vertices.getFreeSlotsCount(), world_renderer.buffer_allocator_vertices.getMaxSlotsCount());
     ImGui::Text("BufferIndices: %d / %d", world_renderer.buffer_allocator_indices.getFreeSlotsCount(), world_renderer.buffer_allocator_indices.getMaxSlotsCount());
 
-    ImGui::Text("New chunks: %ld", Client::instance().new_chunks.size());
-    ImGui::Text("ThreadPool{%lu} tasks: %ld", world_renderer.thread_pool._workers.size(), world_renderer.thread_pool._task_queue.size());
+    ImGui::Text("New chunks: %d", (int32_t)Client::instance().new_chunks.size());
+    ImGui::Text("ThreadPool{%d} tasks: %d", (int32_t)world_renderer.thread_pool._workers.size(), (int32_t)world_renderer.thread_pool._task_queue.size());
 
     ImGui::Text("Chunks: %d (%d rendered)", World::instance().getChunkCount(), world_renderer.chunks_drawn);
 
