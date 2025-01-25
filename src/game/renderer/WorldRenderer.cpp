@@ -5,6 +5,7 @@
 #include "Chunk.hpp"
 #include "Camera.hpp"
 #include "BlockTextureManager.hpp"
+#include "DebugDraw.hpp"
 
 WorldRenderer::WorldRenderer(Context &context): _ctx(context)
 {
@@ -48,9 +49,12 @@ void WorldRenderer::render(const Camera &camera)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glPolygonMode(GL_FRONT_AND_BACK, _wireframe ? GL_LINE : GL_FILL);
 
+
+    const glm::mat4 view_projection = camera.getProjection() * camera.getView();
+
     // ZPrePass
     // cube_shader_depth_only.use();
-    // cube_shader_depth_only.setMat4("u_lightSpaceMatrix", camera.getProjection() * camera.getView());
+    // cube_shader_depth_only.setMat4("u_lightSpaceMatrix", view_projection);
     // renderTerrain(camera.getProjection() * camera.getView(), true);
 
     cube_shader.use();
@@ -63,18 +67,16 @@ void WorldRenderer::render(const Camera &camera)
     cube_shader.setVec2("u_resolution", glm::vec2(_ctx.width, _ctx.height));
     cube_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
     cube_shader.setFloat("u_FOV", glm::radians(camera.fov));
-    // cube_shader.setMat4("u_projectionMatrix", camera.getProjection());
-    // cube_shader.setMat4("u_viewMatrix", camera.getView());
-    cube_shader.setMat4("u_projection_view", camera.getProjection() * camera.getView());
+    cube_shader.setMat4("u_projection_view", view_projection);
     cube_shader.setVec3("u_view_position", camera.getPosition());
     cube_shader.setFloat("u_time", glfwGetTime());
     glBindTextureUnit(0, shadowmap._depthTexture._texture);
 
     // glDepthFunc(GL_EQUAL);
-    renderTerrain(camera.getProjection() * camera.getView(), true);
+    renderTerrain(view_projection, true);
     // glDepthFunc(GL_LESS);
-
     renderEntities(camera, mesh_shader);
+    DebugDraw::instance().drawAndFlush(view_projection);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

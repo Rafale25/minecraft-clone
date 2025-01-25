@@ -101,7 +101,7 @@ BlockRaycastHit World::blockRaycast(const glm::vec3& origin, const glm::vec3& di
         normal = -mask * rayStep;
 
         if (block != BlockType::Air) {
-            return {block, mapPos, normal};
+            return {block, glm::floor(mapPos), mapPos, normal};
         };
 
 		mask = glm::step(sideDist, glm::vec3(sideDist.y, sideDist.z, sideDist.x)) * glm::step(sideDist, glm::vec3(sideDist.z, sideDist.x, sideDist.y));
@@ -113,7 +113,7 @@ BlockRaycastHit World::blockRaycast(const glm::vec3& origin, const glm::vec3& di
         }
 	}
 
-    return {BlockType::Air, mapPos, normal};
+    return {BlockType::Air, glm::floor(mapPos), mapPos, normal};
 }
 
 uint32_t hashBlocks(const uint8_t* values) {

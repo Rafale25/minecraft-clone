@@ -13,6 +13,22 @@
 #include "mem_info.h"
 #include "clock.h"
 
+// struct AABB {
+//     glm::vec3 low;
+//     glm::vec3 high;
+
+//     static bool AABBtoAABB(const AABB& a, const AABB& b) {
+//         return (
+//             a.high.x > b.low.x &&
+//             a.low.x < b.high.x &&
+//             a.high.y > b.low.y &&
+//             a.low.y < b.high.y &&
+//             a.high.z > b.low.z &&
+//             a.low.z < b.high.z
+//         );
+//     }
+// };
+
 GameView::GameView(Context& ctx): View(ctx)
 {
     glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -48,6 +64,12 @@ void GameView::onUpdate(double time_since_start, float dt)
         network_timer = 1.0f / 20.0f;
         networkUpdate();
     }
+
+    DebugDraw::instance().drawLine({0.0f, 0.0f, 0.0f}, {0.0f, 50.0f, 0.0f});
+    // DebugDraw::instance().drawLine(player_blockraycasthit.world_pos, player_blockraycasthit.world_pos + glm::vec3(0.0f, 1.0f, 0.0f));
+
+    DebugDraw::instance().drawCube(player_blockraycasthit.world_pos + 0.5f, 1.0f);
+    // DebugDraw::instance().drawCube(camera.getPosition() + camera.forward() * 8.0f, 1.0f);
 }
 
 void GameView::playerMovements(float dt)
@@ -59,20 +81,22 @@ void GameView::playerMovements(float dt)
     };
 
     if (_cursor_enabled || ImGui::GetIO().WantCaptureKeyboard) return;
-    if (!_cursor_enabled && !ImGui::GetIO().WantCaptureKeyboard) camera.move(delta);
 
+    if (free_cam) {
+        camera.setSpeed(
+            ctx.keystate[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS ? 130.0f : 10.0f
+        );
 
-    camera.setSpeed(
-        ctx.keystate[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS ? 130.0f : 10.0f
-    );
+        if (!_cursor_enabled && !ImGui::GetIO().WantCaptureKeyboard) camera.move(delta);
+        return;
+    }
 
-    return;
-
-    glm::vec3 move_vector = -delta.x * camera.right() + delta.z * camera.forward();
+    glm::vec3 forward_xz = glm::normalize(glm::vec3(camera.forward().x, 0.0f, camera.forward().z));
+    glm::vec3 move_vector = -delta.x * camera.right() + delta.z * forward_xz;
 
     glm::vec3 player_position = camera.getPosition() - glm::vec3(0.0f, player_height, 0.0f);
 
-    bool is_grounded = World::instance().getBlockf(player_position + glm::vec3(0.0f, -0.01f, 0.0f)) != BlockType::Air;
+    bool is_grounded = World::instance().getBlock(player_position + glm::vec3(0.0f, -0.001f, 0.0f)) != BlockType::Air;
 
     if (is_grounded) {
         player_velocity.x *= 0.8f;
@@ -91,13 +115,16 @@ void GameView::playerMovements(float dt)
         player_velocity += move_vector * 0.1f;
     }
 
-    glm::vec3 next_pos = player_position + player_velocity * dt;
-    BlockType b = World::instance().getBlock(glm::ivec3(player_position.x, glm::floor(next_pos.y), player_position.z));
+    const float EPSILON = 0.3f;
 
-    if (b != BlockType::Air) {
+    glm::vec3 next_pos = player_position + player_velocity * dt;
+
+    BlockType by = World::instance().getBlock(glm::vec3(player_position.x, next_pos.y, player_position.z));
+    if (by != BlockType::Air) {
         player_velocity.y = 0.0f;
         next_pos.y = glm::floor(next_pos.y) + 1.0f;
     }
+
 
     camera.setPosition(next_pos + glm::vec3(0.0f, player_height, 0.0f));
 }
@@ -220,14 +247,14 @@ void GameView::onMousePress(int x, int y, int button) {
 
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
         if (ctx.keystate[GLFW_KEY_LEFT_ALT])
-            placeSphere(player_blockraycasthit.pos, bulk_edit_radius, BlockType::Air);
+            placeSphere(player_blockraycasthit.block_pos, bulk_edit_radius, BlockType::Air);
         else
-            Client::instance().sendBreakBlockPacket(player_blockraycasthit.pos);
+            Client::instance().sendBreakBlockPacket(player_blockraycasthit.block_pos);
     } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
         if (ctx.keystate[GLFW_KEY_LEFT_ALT])
-            placeSphere(player_blockraycasthit.pos, bulk_edit_radius, block_in_hand);
+            placeSphere(player_blockraycasthit.block_pos, bulk_edit_radius, block_in_hand);
         else
-            Client::instance().sendPlaceBlockPacket(player_blockraycasthit.pos + glm::ivec3(player_blockraycasthit.normal), block_in_hand);
+            Client::instance().sendPlaceBlockPacket(player_blockraycasthit.block_pos + glm::ivec3(player_blockraycasthit.normal), block_in_hand);
     }
 
     // Pick block
@@ -329,6 +356,8 @@ void GameView::gui(float dt)
     ImGui::Text("position: %.2f, %.2f, %.2f", camera_pos.x, camera_pos.y, camera_pos.z);
     ImGui::Text("forward: %.2f, %.2f, %.2f", camera.forward().x, camera.forward().y, camera.forward().z);
     ImGui::Text("block in hand: %d", (int)block_in_hand);
+
+    ImGui::Checkbox("Player physic", &free_cam);
 
     ImGui::Text("ClientId: %d", Client::instance().client_id);
 
