@@ -48,7 +48,7 @@ public:
 
     BlockRaycastHit blockRaycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance) const;
 
-    BlockType getBlockf(const glm::vec3& posf) const;
+    BlockType getBlock(const glm::vec3& posf) const;
     BlockType getBlock(const glm::ivec3& pos) const;
 
     Chunk* setChunk(const glm::ivec3& pos, const BlockType* blocks);

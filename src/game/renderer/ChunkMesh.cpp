@@ -195,10 +195,6 @@ inline void makeFace(
 
     BlockType nb = chunkextra.getBlock(local_pos + dir);
 
-    // if nb is invalid
-    if (!(nb >= BlockType::Air && nb < BlockType::INVALID)) {
-        nb = BlockType::Stone; // Assume not a transparent block so the face still get culled
-    }
     BlockInfo binfo = blocks_info[(int)nb];
     if (binfo.transparent) {
 

@@ -23,7 +23,9 @@ struct ChunkExtra
     }
 
     BlockType getBlock(const glm::ivec3& pos) const {
-        return blocks[XYZtoIndex(pos.x, pos.y, pos.z)];
+        const BlockType b = blocks[XYZtoIndex(pos.x, pos.y, pos.z)];
+        if (b > BlockType::INVALID) return BlockType::INVALID;
+        return b;
     }
 
     static ChunkExtra get(const glm::ivec3& pos) {

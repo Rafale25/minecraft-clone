@@ -61,7 +61,7 @@ void World::setEntityName(int id, std::string name)
     e->name = name;
 }
 
-BlockType World::getBlockf(const glm::vec3& posf) const
+BlockType World::getBlock(const glm::vec3& posf) const
 {
     return getBlock(glm::ivec3(glm::floor(posf)));
 }
