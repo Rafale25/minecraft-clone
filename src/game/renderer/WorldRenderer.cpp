@@ -75,7 +75,9 @@ void WorldRenderer::render(const Camera &camera)
     // glDepthFunc(GL_EQUAL);
     renderTerrain(view_projection, true);
     // glDepthFunc(GL_LESS);
+
     renderEntities(camera, mesh_shader);
+
     DebugDraw::instance().drawAndFlush(view_projection);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

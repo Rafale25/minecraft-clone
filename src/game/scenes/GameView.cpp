@@ -65,11 +65,13 @@ void GameView::onUpdate(double time_since_start, float dt)
         networkUpdate();
     }
 
-    DebugDraw::instance().drawLine({0.0f, 0.0f, 0.0f}, {0.0f, 50.0f, 0.0f});
+    // DebugDraw::instance().drawLine({0.0f, 0.0f, 0.0f}, {0.0f, 50.0f, 0.0f});
     // DebugDraw::instance().drawLine(player_blockraycasthit.world_pos, player_blockraycasthit.world_pos + glm::vec3(0.0f, 1.0f, 0.0f));
 
-    DebugDraw::instance().drawCube(player_blockraycasthit.world_pos + 0.5f, 1.0f);
-    // DebugDraw::instance().drawCube(camera.getPosition() + camera.forward() * 8.0f, 1.0f);
+    if (player_blockraycasthit.blocktype != BlockType::Air) {
+        // DebugDraw::instance().drawCube(player_blockraycasthit.world_pos + 0.5f, 1.01f, {0.8f, 0.8f, 0.8f});
+        DebugDraw::instance().drawCube(player_blockraycasthit.world_pos + 0.5f, 1.0f, {0.8f, 0.8f, 0.8f});
+    }
 }
 
 void GameView::playerMovements(float dt)
@@ -253,8 +255,11 @@ void GameView::onMousePress(int x, int y, int button) {
     } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
         if (ctx.keystate[GLFW_KEY_LEFT_ALT])
             placeSphere(player_blockraycasthit.block_pos, bulk_edit_radius, block_in_hand);
-        else
-            Client::instance().sendPlaceBlockPacket(player_blockraycasthit.block_pos + glm::ivec3(player_blockraycasthit.normal), block_in_hand);
+        else {
+            if (player_blockraycasthit.blocktype != BlockType::Air) {
+                Client::instance().sendPlaceBlockPacket(player_blockraycasthit.block_pos + glm::ivec3(player_blockraycasthit.normal), block_in_hand);
+            }
+        }
     }
 
     // Pick block
