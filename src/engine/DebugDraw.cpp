@@ -32,10 +32,10 @@ void DebugDraw::drawAndFlush(const glm::mat4& view_projection)
 
 void DebugDraw::drawCube(const glm::vec3 &center, float size, const glm::vec3 &color)
 {
-    drawCube(center, glm::vec3(size*0.5f), color);
+    drawCuboid(center, glm::vec3(size*0.5f), color);
 }
 
-void DebugDraw::drawCube(const glm::vec3 &center, const glm::vec3 &extents, const glm::vec3 &color)
+void DebugDraw::drawCuboid(const glm::vec3 &center, const glm::vec3 &extents, const glm::vec3 &color)
 {
     // -Y
     const glm::vec3 x0y0z0 = center + glm::vec3{-extents.x, -extents.y, -extents.z};

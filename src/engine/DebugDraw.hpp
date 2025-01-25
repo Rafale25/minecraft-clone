@@ -10,9 +10,8 @@ public:
     void drawAndFlush(const glm::mat4& view_projection);
 
     void drawCube(const glm::vec3 &center, float size, const glm::vec3 &color = {1.0f, 0.0f, 0.0f});
-    void drawCube(const glm::vec3& center, const glm::vec3& extents, const glm::vec3& color = {1.0f, 0.0f, 0.0f});
+    void drawCuboid(const glm::vec3& center, const glm::vec3& extents, const glm::vec3& color = {1.0f, 0.0f, 0.0f});
     // void drawSphere();
-    // void drawCuboid();
 
     static DebugDraw& instance() {
         static DebugDraw instance;
