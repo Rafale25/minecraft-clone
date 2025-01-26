@@ -56,8 +56,9 @@ public:
     float _ambient_occlusion_strength = 0.67;
 
     Framebuffer _framebuffer;
-    Texture _colorTexture;
-    Texture _depthTexture;
+    Texture _color_texture;
+    Texture _world_position_texture;
+    Texture _depth_texture;
 
     Mesh _quad_fs = Geometry::quad_2d();
 

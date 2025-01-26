@@ -72,6 +72,10 @@ void WorldRenderer::render(const Camera &camera)
     cube_shader.setFloat("u_time", glfwGetTime());
     glBindTextureUnit(0, shadowmap._depthTexture._texture);
 
+    // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
+    unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(2, attachments);
+
     // glDepthFunc(GL_EQUAL);
     renderTerrain(view_projection, true);
     // glDepthFunc(GL_LESS);
@@ -91,12 +95,17 @@ void WorldRenderer::render(const Camera &camera)
     postprocessing_shader.setMat4("u_view", camera.getView());
     postprocessing_shader.setMat4("u_projection", camera.getProjection());
     postprocessing_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
+    postprocessing_shader.setVec3("u_sunDirection", glm::normalize(sunDir));
+    postprocessing_shader.setVec3("u_viewPosition", camera.getPosition());
 
     postprocessing_shader.setInt("colorTexture", 0);
-    postprocessing_shader.setInt("depthTexture", 1);
+    postprocessing_shader.setInt("worldPosTexture", 1);
+    postprocessing_shader.setInt("depthTexture", 2);
 
-    glBindTextureUnit(0, _colorTexture._texture);
-    glBindTextureUnit(1, _depthTexture._texture);
+    glBindTextureUnit(0, _color_texture._texture);
+    glBindTextureUnit(1, _world_position_texture._texture);
+    glBindTextureUnit(2, _depth_texture._texture);
+
     _quad_fs.draw();
 }
 
@@ -120,14 +129,17 @@ void WorldRenderer::onAddedChunk(const glm::ivec3 &chunk_pos) {
 
 void WorldRenderer::onResize(int width, int height) {
     _framebuffer.destroy();
-    _colorTexture.destroy();
-    _depthTexture.destroy();
+    _color_texture.destroy();
+    _world_position_texture.destroy();
+    _depth_texture.destroy();
 
     _framebuffer = Framebuffer();
-    _colorTexture = Texture(width, height, GL_RGB8, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
-    _depthTexture = Texture(width, height, GL_DEPTH_COMPONENT24, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
-    _framebuffer.attachTexture(_colorTexture._texture, GL_COLOR_ATTACHMENT0);
-    _framebuffer.attachTexture(_depthTexture._texture, GL_DEPTH_ATTACHMENT);
+    _color_texture = Texture(width, height, GL_RGB8, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
+    _world_position_texture = Texture(width, height, GL_RGB32F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
+    _depth_texture = Texture(width, height, GL_DEPTH_COMPONENT24, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
+    _framebuffer.attachTexture(_color_texture._texture, GL_COLOR_ATTACHMENT0);
+    _framebuffer.attachTexture(_world_position_texture._texture, GL_COLOR_ATTACHMENT1);
+    _framebuffer.attachTexture(_depth_texture._texture, GL_DEPTH_ATTACHMENT);
 }
 
 void WorldRenderer::update() {

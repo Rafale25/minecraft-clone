@@ -7,11 +7,14 @@
 class DebugDraw {
 public:
     void drawLine(const glm::vec3& a, const glm::vec3& b, const glm::vec3& color = {1.0f, 0.0f, 0.0f});
-    void drawAndFlush(const glm::mat4& view_projection);
+    void drawRay(const glm::vec3& start, const glm::vec3& v, const glm::vec3& color = {1.0f, 0.0f, 0.0f});
 
     void drawCube(const glm::vec3 &center, float size, const glm::vec3 &color = {1.0f, 0.0f, 0.0f});
     void drawCuboid(const glm::vec3& center, const glm::vec3& extents, const glm::vec3& color = {1.0f, 0.0f, 0.0f});
+
     // void drawSphere();
+
+    void drawAndFlush(const glm::mat4& view_projection);
 
     static DebugDraw& instance() {
         static DebugDraw instance;

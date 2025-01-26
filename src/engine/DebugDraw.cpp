@@ -19,12 +19,19 @@ void DebugDraw::drawLine(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3
     _vertices.push_back(color);
 }
 
+void DebugDraw::drawRay(const glm::vec3 &start, const glm::vec3 &v, const glm::vec3 &color)
+{
+    drawLine(start, start + v, color);
+}
+
 void DebugDraw::drawAndFlush(const glm::mat4& view_projection)
 {
+    const size_t vertex_count = _vertices.size() / 2; // position, color
+
     _program.use();
     _program.setMat4("u_viewProjection", view_projection);
 
-    glNamedBufferSubData(_vbo, 0, sizeof(float) * 6 * _vertices.size(), (const void *)_vertices.data());
+    glNamedBufferSubData(_vbo, 0, sizeof(float) * 6 * vertex_count, (const void *)_vertices.data());
     glBindVertexArray(_vao);
     glDrawArrays(GL_LINES, 0, _vertices.size());
     _vertices.clear();

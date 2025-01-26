@@ -9,19 +9,12 @@ uniform mat4 u_projection;
 uniform vec2 u_resolution;
 uniform float u_FOV;
 uniform float u_sunDotAngle;
+uniform vec3 u_sunDirection;
+uniform vec3 u_viewPosition;
 
-// layout (std140) uniform ExampleBlock
-// {
-//     float value;
-//     vec3  vector;
-//     mat4  matrix;
-//     float values[3];
-//     bool  boolean;
-//     int   integer;
-// };
-
-uniform sampler2D colorTexture;
-uniform sampler2D depthTexture;
+layout (location = 0) uniform sampler2D colorTexture;
+layout (location = 1) uniform sampler2D worldPosTexture;
+layout (location = 2) uniform sampler2D depthTexture;
 
 // https://www.shadertoy.com/view/4ljBRy
 // quick and pretty sky colour
@@ -51,7 +44,8 @@ vec3 getSkyColor(vec3 ray) {
     vec3 skyColorMorning = SkyColourMorning(ray.xyz);
     vec3 skyColorZenit = SkyColour(ray.xyz);
 
-    vec3 color = mix(skyColorMorning, skyColorZenit, clamp(u_sunDotAngle, 0.0, 1.0));
+    // vec3 color = mix(skyColorMorni:ng, skyColorZenit, clamp(u_sunDotAngle, 0.0, 1.0));
+    vec3 color = mix(skyColorZenit, skyColorZenit, clamp(u_sunDotAngle, 0.0, 1.0));
     color *= tint;
 
     // corrections
@@ -75,34 +69,36 @@ const vec3 fog_color = vec3(0.8);
 //     return fog_factor;
 // }
 
-float calcExpFogFactor(float dist)
-{
-    const float exp_fog_density = 0.2;
-    float camera_to_pixel_dist = dist;//length(fs_in.frag_pos - u_view_position);
-    float dist_ratio = 4.0 * camera_to_pixel_dist / fog_end;
-    float fog_factor = exp(-dist_ratio*exp_fog_density * dist_ratio*exp_fog_density);
-    return fog_factor;
+// float calcExpFogFactor(float dist)
+// {
+//     const float exp_fog_density = 0.2;
+//     float camera_to_pixel_dist = dist;//length(fs_in.frag_pos - u_view_position);
+//     float dist_ratio = 4.0 * camera_to_pixel_dist / fog_end;
+//     float fog_factor = exp(-dist_ratio*exp_fog_density * dist_ratio*exp_fog_density);
+//     return fog_factor;
+// }
+
+vec3 applyFog(vec3  col,   // color of pixel
+              float t,     // distance to point
+              vec3  rd,    // camera to point
+              vec3  lig,   // sun direction
+              vec3 fogColor,
+              vec3 sunColor
+){
+    float b = 0.003;
+    float fogAmount = 1.0 - exp(-t*b * t*b);
+    float sunAmount = max( dot(rd, lig), 0.0 );
+    vec3  finalfogColor  = mix( fogColor, sunColor, pow(sunAmount, 8.0) );
+    // vec3  finalfogColor  = mix( vec3(0.5,0.6,0.7), // blue
+    //                        vec3(1.0,0.9,0.7), // yellow
+    //                        pow(sunAmount, 8.0) );
+    return mix( col, finalfogColor, fogAmount );
 }
 
 float linearize_depth(float d, float zNear, float zFar)
 {
     return zNear * zFar / (zFar + d * (zNear - zFar));
 }
-
-// Not sure if working
-// vec3 WorldPosFromDepth(float depth, vec2 uv) {
-//     float z = depth * 2.0 - 1.0;
-
-//     vec4 clipSpacePosition = vec4(uv * 2.0 - 1.0, z, 1.0);
-//     vec4 viewSpacePosition = inverse(u_projection) * clipSpacePosition;
-
-//     // Perspective division
-//     viewSpacePosition /= viewSpacePosition.w;
-
-//     vec4 worldSpacePosition = inverse(u_view) * viewSpacePosition;
-
-//     return worldSpacePosition.xyz;
-// }
 
 float depthToFragDistance(vec2 uv, float depth)
 {
@@ -117,20 +113,37 @@ void main()
 
     vec3 color = texture(colorTexture, TexCoords).rgb;
     float depth = texture(depthTexture, TexCoords).r;
+    vec3 worldPos = texture(worldPosTexture, TexCoords).rgb;
 
-    vec3 ray = mat3(inverse(u_view)) * skyray(uv + 0.5, u_FOV, u_resolution.x / u_resolution.y);
+    vec2 what_uv = vec2(uv.x * 0.5 + 0.5, uv.y + 0.5);
+
+    vec3 ray = normalize(mat3(inverse(u_view)) * skyray(what_uv, u_FOV, u_resolution.x / u_resolution.y));
     vec3 skyColor = getSkyColor(ray);
 
-    float fragDistance = depthToFragDistance(uv, depth);
+    // float fragDistance = depthToFragDistance(uv, depth);
+    float fragDistance = distance(u_viewPosition, worldPos); //worldPosdepthToFragDistance(uv, depth);
 
-    color = mix(skyColor, color, calcExpFogFactor(fragDistance));
+    vec3 rd = normalize(worldPos - u_viewPosition);
+
+    // color = mix(skyColor, color, calcExpFogFactor(fragDistance));
+    // color = applyFog(color, fragDistance, rd, u_sunDirection);
+    vec3 sunColor = vec3(1.0, 0.9, 0.7);
+    color = applyFog(color, fragDistance, rd, u_sunDirection, skyColor, sunColor);
+
+    // float b = 0.001;
+    // color = color*exp(-fragDistance*b) + skyColor*(1.0-exp(-fragDistance*b));
 
     if (depth == 1.0) // is skybox
     {
-        FragColor = vec4(skyColor, 1.0);
+        // reusing code from applyFog() function
+        float sunAmount = max( dot(ray, u_sunDirection), 0.0 );
+        vec3  finalfogColor  = mix( skyColor, sunColor, pow(sunAmount, 4.0) );
+
+        FragColor = vec4(finalfogColor, 1.0);
     }
     else
     {
         FragColor = vec4(color, 1.0);
+        // FragColor = vec4(worldPos, 1.0);
     }
 }

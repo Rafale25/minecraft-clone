@@ -25,7 +25,9 @@ in VS_OUT {
     in vec4 FragPosLightSpace;
 } fs_in;
 
-out vec4 FragColor;
+
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec3 gPosition;
 
 uniform vec3 u_sun_direction;
 // uniform vec3 u_view_position;
@@ -117,6 +119,7 @@ void main()
     }
 
     FragColor = vec4(lighting, 1.0);
+    gPosition = fs_in.frag_pos;
     // FragColor = vec4(fs_in.frag_pos, 1.0);
 
     // vec3 gammaCorrected = pow(lighting, vec3(1.0/2.2));
