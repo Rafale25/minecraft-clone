@@ -149,10 +149,11 @@ void main()
     }
     else
     {
-        float night_factor = 1.5;
+        //
+        float night_factor = 2.0;
         float steepness = 8.0;
         float ambiant_factor = 1.0 - pow(2.0, -steepness*u_sunDotAngle - night_factor);
-        ambiant_factor = clamp(ambiant_factor, 0.2, 1.0);
+        ambiant_factor = clamp(ambiant_factor, 0.25, 1.0);
 
         FragColor = vec4(color * ambiant_factor, 1.0);
         // FragColor = vec4(worldPos, 1.0);
