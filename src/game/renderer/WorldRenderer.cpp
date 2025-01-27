@@ -88,13 +88,14 @@ void WorldRenderer::render(const Camera &camera)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 
+    const float sun_dot_angle = glm::dot(glm::normalize(sunDir), {0.0f, 1.0f, 0.0f});
+
     postprocessing_shader.use();
     postprocessing_shader.setVec2("u_resolution", glm::vec2(_ctx.width, _ctx.height));
-    postprocessing_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
+    postprocessing_shader.setFloat("u_sunDotAngle", sun_dot_angle);
     postprocessing_shader.setFloat("u_FOV", glm::radians(camera.fov));
     postprocessing_shader.setMat4("u_view", camera.getView());
     postprocessing_shader.setMat4("u_projection", camera.getProjection());
-    postprocessing_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
     postprocessing_shader.setVec3("u_sunDirection", glm::normalize(sunDir));
     postprocessing_shader.setVec3("u_viewPosition", camera.getPosition());
 
