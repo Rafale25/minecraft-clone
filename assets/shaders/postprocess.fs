@@ -45,7 +45,7 @@ vec3 getSkyColor(vec3 ray) {
     vec3 skyColorZenit = SkyColour(ray.xyz);
 
     // vec3 color = mix(skyColorMorni:ng, skyColorZenit, clamp(u_sunDotAngle, 0.0, 1.0));
-    vec3 color = mix(skyColorZenit, skyColorZenit, clamp(u_sunDotAngle, 0.0, 1.0));
+    vec3 color = mix(skyColorMorning, skyColorZenit, clamp(u_sunDotAngle, 0.0, 1.0));
     color *= tint;
 
     // corrections
@@ -140,7 +140,7 @@ void main()
         vec3 finalfogColor  = mix( skyColor, sunColor, pow(sunAmount, 4.0) );
 
         // sun
-        float sun = pow(max(0.0, dot(ray, normalize(u_sunDirection))), 1024.0) * 1.0;
+        float sun = pow(max(0.0, dot(ray, normalize(u_sunDirection))), 4096.0) * 1.0;
         float groundToSkyT = smoothstep(-0.1, 0.0, ray.y);
         float sunMask = float(groundToSkyT >= 1.0);
         finalfogColor += sun * groundToSkyT;
