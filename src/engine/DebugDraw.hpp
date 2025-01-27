@@ -4,15 +4,19 @@
 #include <glm/glm.hpp>
 #include "Program.h"
 
+constexpr glm::vec3 DEFAULT_COLOR = {1.0f, 0.0f, 0.0f};
+
 class DebugDraw {
 public:
-    void drawLine(const glm::vec3& a, const glm::vec3& b, const glm::vec3& color = {1.0f, 0.0f, 0.0f});
-    void drawRay(const glm::vec3& start, const glm::vec3& v, const glm::vec3& color = {1.0f, 0.0f, 0.0f});
+    void drawLine(const glm::vec3& a, const glm::vec3& b, const glm::vec3& color = DEFAULT_COLOR);
+    void drawRay(const glm::vec3& start, const glm::vec3& v, const glm::vec3& color = DEFAULT_COLOR);
 
-    void drawCube(const glm::vec3 &center, float size, const glm::vec3 &color = {1.0f, 0.0f, 0.0f});
-    void drawCuboid(const glm::vec3& center, const glm::vec3& extents, const glm::vec3& color = {1.0f, 0.0f, 0.0f});
+    void drawCube(const glm::vec3 &center, float size = 1.0f, const glm::vec3 &color = DEFAULT_COLOR);
+    void drawCuboid(const glm::vec3& center, const glm::vec3& extents = {0.5f, 0.5f, 0.5f}, const glm::vec3& color = DEFAULT_COLOR);
 
-    // void drawSphere();
+    void drawSphere(const glm::vec3& center, float radius = 1.0f, const glm::vec3& color = DEFAULT_COLOR);
+
+    // void drawFrustum(const glm::mat4& view_projection)
 
     void drawAndFlush(const glm::mat4& view_projection);
 
