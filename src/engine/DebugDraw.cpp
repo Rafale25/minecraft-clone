@@ -1,5 +1,6 @@
 #include "DebugDraw.hpp"
 #include "VAO.hpp"
+#include "Frustum.hpp"
 #include <glm/gtc/constants.hpp>
 
 DebugDraw::DebugDraw()
@@ -80,6 +81,26 @@ void DebugDraw::drawSphere(const glm::vec3 &center, float radius, const glm::vec
             center + glm::vec3(0.0f, sin(theta0), cos(theta0)) * radius,
             center + glm::vec3(0.0f, sin(theta1), cos(theta1)) * radius);
     }
+}
+
+void DebugDraw::drawFrustum(const glm::mat4 &view_projection, const glm::vec3& color)
+{
+    const std::vector<glm::vec4> points = extractFrustumCornersWorldSpace(view_projection);
+
+    drawLine(points[0], points[1], color);
+    drawLine(points[0], points[2], color);
+    drawLine(points[3], points[1], color);
+    drawLine(points[3], points[2], color);
+
+    drawLine(points[0], points[4], color);
+    drawLine(points[1], points[5], color);
+    drawLine(points[2], points[6], color);
+    drawLine(points[3], points[7], color);
+
+    drawLine(points[4], points[5], color);
+    drawLine(points[4], points[6], color);
+    drawLine(points[7], points[5], color);
+    drawLine(points[7], points[6], color);
 }
 
 void DebugDraw::drawAndFlush(const glm::mat4& view_projection)

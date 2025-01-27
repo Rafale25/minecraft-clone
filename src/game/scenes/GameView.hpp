@@ -59,7 +59,7 @@ private:
     BlockRaycastHit player_blockraycasthit;
 
     // Player physic
-        bool free_cam = false;
+        bool free_cam = true;
         const float player_height = 1.8f;
         const float player_radius = 0.2f;
         const float player_gravity = 45.0f;

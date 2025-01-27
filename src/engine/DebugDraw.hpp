@@ -16,7 +16,7 @@ public:
 
     void drawSphere(const glm::vec3& center, float radius = 1.0f, const glm::vec3& color = DEFAULT_COLOR);
 
-    // void drawFrustum(const glm::mat4& view_projection)
+    void drawFrustum(const glm::mat4& view_projection, const glm::vec3& color = DEFAULT_COLOR);
 
     void drawAndFlush(const glm::mat4& view_projection);
 

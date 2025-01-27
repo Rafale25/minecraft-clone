@@ -49,7 +49,6 @@ void WorldRenderer::render(const Camera &camera)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glPolygonMode(GL_FRONT_AND_BACK, _wireframe ? GL_LINE : GL_FILL);
 
-
     const glm::mat4 view_projection = camera.getProjection() * camera.getView();
 
     // ZPrePass
@@ -242,6 +241,8 @@ void WorldRenderer::renderShadowmap(const Camera &camera)
 
     shadowmap.setSunDir(sunDir);
     light_view_projection = shadowmap.begin(camera_projection_shorter, camera.getView(), cube_shader_depth_only);
+    DebugDraw::instance().drawFrustum(light_view_projection);
+
     renderTerrain(light_view_projection, true);
     shadowmap.end();
 }

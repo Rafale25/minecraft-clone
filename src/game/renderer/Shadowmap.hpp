@@ -9,6 +9,7 @@
 class Camera;
 class Context;
 class Program;
+// struct AABB;
 
 struct FrustumBounds {
     float minX, maxX;
@@ -21,14 +22,12 @@ class Shadowmap
 public:
     Shadowmap(Context& ctx, GLsizei shadow_width, GLsizei shadow_height);
 
-    // void begin(const Camera& camera, const Program &program);
     glm::mat4 begin(const glm::mat4& projection, const glm::mat4& view, const Program &program);
 
     void end();
     void setSunDir(const glm::vec3& sunDir);
 
 private:
-    std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view);
     glm::mat4 getLighViewMatrix(const std::vector<glm::vec4>& cameraFrustumCorners, const glm::vec3& lightDir);
     FrustumBounds computeFrustumBounds(const glm::mat4& lightView, const std::vector<glm::vec4>& corners);
     glm::mat4 getLightProjectionMatrix(const glm::mat4& lightView, FrustumBounds& b);

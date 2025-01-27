@@ -7,6 +7,7 @@
 #include "Camera.hpp"
 #include "Texture.hpp"
 #include "Framebuffer.hpp"
+#include <Frustum.hpp>
 
 static const float borderColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
@@ -22,7 +23,7 @@ Shadowmap::Shadowmap(Context& ctx, GLsizei shadow_width, GLsizei shadow_height):
 
 glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, const Program &program)
 {
-    auto corners = getFrustumCornersWorldSpace(projection, view);
+    auto corners = extractFrustumCornersWorldSpace(projection * view);
 
     glm::mat4 lightViewMatrix = getLighViewMatrix(corners, _sunDir);
     FrustumBounds bounds = computeFrustumBounds(lightViewMatrix, corners);
@@ -50,28 +51,6 @@ void Shadowmap::end()
 void Shadowmap::setSunDir(const glm::vec3& sunDir)
 {
     _sunDir = sunDir;
-}
-
-std::vector<glm::vec4> Shadowmap::getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view)
-{
-    const auto inv = glm::inverse(proj * view);
-
-    std::vector<glm::vec4> frustumCorners;
-    for (unsigned int x = 0; x < 2; ++x) {
-        for (unsigned int y = 0; y < 2; ++y) {
-            for (unsigned int z = 0; z < 2; ++z) {
-                const glm::vec4 pt =
-                    inv * glm::vec4(
-                        2.0f * x - 1.0f,
-                        2.0f * y - 1.0f,
-                        2.0f * z - 1.0f,
-                        1.0f);
-                frustumCorners.push_back(pt / pt.w);
-            }
-        }
-    }
-
-    return frustumCorners;
 }
 
 glm::mat4 Shadowmap::getLighViewMatrix(const std::vector<glm::vec4>& cameraFrustumCorners, const glm::vec3& lightDir)

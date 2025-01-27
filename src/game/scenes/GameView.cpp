@@ -65,12 +65,14 @@ void GameView::onUpdate(double time_since_start, float dt)
         networkUpdate();
     }
 
-    // DebugDraw::instance().drawLine({0.0f, 0.0f, 0.0f}, {0.0f, 50.0f, 0.0f});
-    // DebugDraw::instance().drawLine(player_blockraycasthit.world_pos, player_blockraycasthit.world_pos + glm::vec3(0.0f, 1.0f, 0.0f));
-
     if (player_blockraycasthit.blocktype != BlockType::Air) {
-        // DebugDraw::instance().drawCube(player_blockraycasthit.world_pos + 0.5f, 1.01f, {0.8f, 0.8f, 0.8f});
         DebugDraw::instance().drawCube(player_blockraycasthit.world_pos + 0.5f, 1.0f, {0.8f, 0.8f, 0.8f});
+    }
+
+    if (_show_debug_gui) {
+        for (const auto& e : World::instance().entities) {
+            DebugDraw::instance().drawCuboid(e.transform.position, {0.3f, 1.0f, 0.3f});
+        }
     }
 }
 
@@ -362,7 +364,7 @@ void GameView::gui(float dt)
     ImGui::Text("forward: %.2f, %.2f, %.2f", camera.forward().x, camera.forward().y, camera.forward().z);
     ImGui::Text("block in hand: %d", (int)block_in_hand);
 
-    ImGui::Checkbox("Player physic", &free_cam);
+    ImGui::Checkbox("FreeCam", &free_cam);
 
     ImGui::Text("ClientId: %d", Client::instance().client_id);
 
