@@ -137,7 +137,13 @@ void main()
     {
         // reusing code from applyFog() function
         float sunAmount = max( dot(ray, u_sunDirection), 0.0 );
-        vec3  finalfogColor  = mix( skyColor, sunColor, pow(sunAmount, 4.0) );
+        vec3 finalfogColor  = mix( skyColor, sunColor, pow(sunAmount, 4.0) );
+
+        // sun
+        float sun = pow(max(0.0, dot(ray, normalize(u_sunDirection))), 1024.0) * 1.0;
+        float groundToSkyT = smoothstep(-0.1, 0.0, ray.y);
+        float sunMask = float(groundToSkyT >= 1.0);
+        finalfogColor += sun * groundToSkyT;
 
         FragColor = vec4(finalfogColor, 1.0);
     }
