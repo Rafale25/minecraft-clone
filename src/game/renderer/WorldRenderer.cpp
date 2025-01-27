@@ -241,7 +241,7 @@ void WorldRenderer::renderShadowmap(const Camera &camera)
 
     shadowmap.setSunDir(sunDir);
     light_view_projection = shadowmap.begin(camera_projection_shorter, camera.getView(), cube_shader_depth_only);
-    DebugDraw::instance().drawFrustum(light_view_projection);
+    // DebugDraw::instance().drawFrustum(light_view_projection);
 
     renderTerrain(light_view_projection, true);
     shadowmap.end();
