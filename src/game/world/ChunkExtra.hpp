@@ -1,17 +1,7 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glad/gl.h>
-
 #include "enums.hpp"
-#include "ChunkMesh.hpp"
 #include "Chunk.hpp"
-
-#include "World.hpp"
-#include <string.h>
-#include <cstring>
-
-#include "clock.h"
 
 struct ChunkExtra
 {

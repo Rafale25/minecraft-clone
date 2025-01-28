@@ -2,8 +2,9 @@
 
 #include "World.hpp"
 #include "BlockTextureManager.hpp"
-#include "ChunkExtra.hpp"
 #include "Chunk.hpp"
+#include "ChunkExtra.hpp"
+#include "BufferAllocator.hpp"
 
 GLuint packVertex(int x, int y, int z, int u, int v, int o, int t, int ao=3) {
     // 4 bytes, 32 bits

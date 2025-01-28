@@ -3,20 +3,19 @@
 #include <vector>
 #include <unordered_map>
 #include <shared_mutex>
-#include <atomic>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
 
 #include "Entity.hpp"
 #include "enums.hpp"
-#include "ServerPacket.hpp"
-
-#include "BlockRaycastHit.hpp"
 
 
 struct Chunk;
+struct BlockRaycastHit;
 
+
+// #include <atomic>
 // class ChunkAllocator {
 // public:
 //     ChunkAllocator() = default;

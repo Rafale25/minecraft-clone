@@ -11,7 +11,8 @@
 #include "ServerPacket.hpp"
 
 #include "ByteBuffer.h"
-#include "ThreadPool.h"
+#include "ThreadPool.hpp"
+#include "TaskQueue.hpp"
 
 #include "Network.hpp"
 

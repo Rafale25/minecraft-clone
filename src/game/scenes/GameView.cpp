@@ -6,6 +6,7 @@
 #include "Chunk.hpp"
 #include "Client.hpp"
 #include "Entity.hpp"
+// #include "FPSCamera.hpp"
 #include "AABB.hpp"
 
 #include "world_to_screen_space.h"
@@ -128,8 +129,10 @@ void GameView::playerMovements(float dt)
 
     glm::vec3 player_feet_position = camera.getPosition() - glm::vec3(0.0f, player_height, 0.0f);
 
+    printf("Y: %.4f\n", glm::mod(player_feet_position.y, 1.0f));
+
     AABB player_aabb_under_feet = {
-        player_feet_position + glm::vec3(-player_radius+0.01f, -0.005f, -player_radius+0.01f),
+        player_feet_position + glm::vec3(-player_radius+0.01f, -0.01f, -player_radius+0.01f),
         player_feet_position + glm::vec3(player_radius-0.01f, 0.1f, player_radius-0.01f)
     };
 

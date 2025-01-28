@@ -1,8 +1,10 @@
 #pragma once
 
-#include "glad/gl.h"
-#include "Transform.h"
 #include <string>
+#include <glm/ext/vector_float3.hpp>
+#include "Transform.hpp"
+
+typedef unsigned int GLuint;
 
 class Entity
 {

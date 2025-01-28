@@ -1,12 +1,7 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glad/gl.h>
-
+#include <glm/ext/vector_int3.hpp>
 #include "enums.hpp"
-
-class TextureManager;
-class World;
 
 struct Chunk
 {

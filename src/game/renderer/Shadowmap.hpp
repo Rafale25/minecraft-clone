@@ -1,7 +1,6 @@
 #pragma once
 
-#include <glad/gl.h>
-#include <glm/glm.hpp>
+#include <glm/detail/type_mat4x4.hpp>
 
 #include "Framebuffer.hpp"
 #include "Texture.hpp"
@@ -20,6 +19,7 @@ struct FrustumBounds {
 class Shadowmap
 {
 public:
+    // TODO: Remove ctx from shadowmap
     Shadowmap(Context& ctx, GLsizei shadow_width, GLsizei shadow_height);
 
     glm::mat4 begin(const glm::mat4& projection, const glm::mat4& view, const Program &program);

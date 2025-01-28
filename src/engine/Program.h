@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glm/glm.hpp>
+#include <glm/detail/type_mat4x4.hpp>
 
 #include <string>
 #include <fstream>

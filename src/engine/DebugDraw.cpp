@@ -1,4 +1,7 @@
+#include <glad/gl.h>
+
 #include "DebugDraw.hpp"
+
 #include "VAO.hpp"
 #include "Frustum.hpp"
 #include <glm/gtc/constants.hpp>

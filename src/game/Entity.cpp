@@ -1,6 +1,5 @@
 #include "Entity.hpp"
-#include <iostream>
-
+#include "glad/gl.h"
 #include "VAO.hpp"
 
 Entity::Entity(int id): id(id) {

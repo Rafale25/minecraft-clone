@@ -7,6 +7,8 @@
 #include "AABB.hpp"
 #include "BlockTextureManager.hpp"
 #include "DebugDraw.hpp"
+#include "VAO.hpp"
+#include "ChunkMesh.hpp"
 
 WorldRenderer::WorldRenderer(Context &context): _ctx(context)
 {

@@ -3,8 +3,6 @@
 #include <glad/gl.h>
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <iostream>
 #include <cassert>
 
 #define PRINT_ERRORS

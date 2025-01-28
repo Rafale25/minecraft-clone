@@ -1,23 +1,13 @@
+#include "Client.hpp"
+
 #include <iostream>
 #include <algorithm>
 #include <string>
 #include <cstring>
 
-// #include <fcntl.h>
-// #include <sys/socket.h>
-// #include <netinet/in.h>
-// #include <arpa/inet.h>
-// #include <poll.h>
-// #include <sys/select.h>
-
 #include "endianess.h"
 #include "command_line_args.h"
-
-#include "Client.hpp"
-#include "Chunk.hpp"
 #include "World.hpp"
-#include "Entity.hpp"
-
 #include "byte_manipulation.h"
 #include "ByteBuffer.h"
 

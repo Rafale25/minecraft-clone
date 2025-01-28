@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "VAO.hpp"
 
 FormatInfo FormatIterator::info() {

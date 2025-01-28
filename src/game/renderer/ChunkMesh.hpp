@@ -1,15 +1,9 @@
 #pragma once
 
-#include <vector>
-#include <glad/gl.h>
-#include <glm/glm.hpp>
+#include <glm/ext/vector_int3.hpp>
 
 #include "enums.hpp"
 #include "BufferAllocator.hpp"
-
-struct Chunk;
-struct ChunkExtra;
-class BufferAllocator;
 
 struct ChunkRawMesh {
     std::vector<GLuint> vertices;

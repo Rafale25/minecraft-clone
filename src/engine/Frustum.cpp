@@ -1,7 +1,5 @@
 #include "Frustum.hpp"
 
-#include <glm/glm.hpp>
-#include "Camera.hpp"
 #include "AABB.hpp"
 
 // https://iquilezles.org/articles/frustumcorrect/
@@ -71,12 +69,5 @@ Frustum createFrustumFromViewProjection(const glm::mat4& view_projection)
 {
     Frustum frustum;
     extractPlanesFromProjectionViewMatrix(view_projection, frustum.planes);
-    return frustum;
-}
-
-Frustum createFrustumFromCamera(const Camera& camera)
-{
-    Frustum frustum;
-    extractPlanesFromProjectionViewMatrix(camera.getProjection() * camera.getView(), frustum.planes);
     return frustum;
 }

@@ -1,22 +1,20 @@
 #pragma once
 
+#include <unordered_set>
+
 #include "glad/gl.h"
+#include "glm/gtx/hash.hpp"
 
 #include "Context.hpp"
 #include "Program.h"
 #include "Shadowmap.hpp"
-
 #include "Geometry.hpp"
 #include "BufferAllocator.hpp"
-
-#include "ChunkMesh.hpp"
-#include "glm/gtx/hash.hpp"
-
-#include "ThreadPool.h"
-
-#include <unordered_set>
+#include "ThreadPool.hpp"
 
 class Camera;
+struct ChunkRawMesh;
+struct ChunkMesh;
 
 class WorldRenderer
 {

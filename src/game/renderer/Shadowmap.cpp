@@ -4,10 +4,7 @@
 
 #include "Context.hpp"
 #include "Program.h"
-#include "Camera.hpp"
-#include "Texture.hpp"
-#include "Framebuffer.hpp"
-#include <Frustum.hpp>
+#include "Frustum.hpp"
 
 static const float borderColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 

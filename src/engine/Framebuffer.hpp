@@ -1,6 +1,7 @@
 #pragma once
 
-#include <glad/gl.h>
+typedef unsigned int GLenum;
+typedef unsigned int GLuint;
 
 class Framebuffer {
     public:

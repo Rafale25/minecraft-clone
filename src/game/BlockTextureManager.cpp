@@ -1,6 +1,7 @@
 #include "BlockTextureManager.hpp"
 
 #include "TextureManager.hpp"
+#include "stb_image.h"
 
 // #define DISABLE_BINDLESS_TEXTURE
 

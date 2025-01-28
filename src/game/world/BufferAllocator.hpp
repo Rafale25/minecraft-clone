@@ -1,10 +1,10 @@
 #pragma once
 
-#include <glad/gl.h>
-
-#include <sys/types.h>
+#include <cstdint>
 #include <stack>
 #include <mutex>
+
+typedef unsigned int GLuint;
 
 typedef struct {
     int32_t start; // bytes;
@@ -45,8 +45,6 @@ private:
     const size_t _max_slots;
 
     GLuint _buffer;
-
     std::stack<int32_t> _free_slots;
-
     std::mutex _mutex;
 };
