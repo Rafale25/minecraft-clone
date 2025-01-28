@@ -175,6 +175,8 @@ void GameView::playerMovements(float dt)
 
     glm::vec3 next_pos = player_feet_position + player_velocity * dt;
 
+    // TODO: find difference in AABB X and use it to place player perfectly against block
+
     AABB player_aabb_y = {
         glm::vec3(player_feet_position.x, next_pos.y, player_feet_position.z) + glm::vec3(-0.3f, 0.0f, -0.3f),
         glm::vec3(player_feet_position.x, next_pos.y, player_feet_position.z) + glm::vec3(0.3f, player_height, 0.3f)};
