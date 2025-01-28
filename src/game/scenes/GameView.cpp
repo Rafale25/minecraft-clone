@@ -35,7 +35,7 @@ void GameView::onUpdate(double time_since_start, float dt)
     Client::instance().task_queue.execute();
 
     processNewChunks();
-    // deleteFarChunks();
+    if (_delete_far_chunks) deleteFarChunks();
 
     world_renderer.update();
 
@@ -376,6 +376,7 @@ void GameView::gui(float dt)
     ImGui::SliderFloat("Bulk Edit Radius: ", &bulk_edit_radius, 1.0f, 32.0f, "%.2f");
     ImGui::Checkbox("Wireframe", &world_renderer._wireframe);
     ImGui::Checkbox("Chunks borders", &_draw_chunks_borders);
+    ImGui::Checkbox("Delete far chunks", &_delete_far_chunks);
     ImGui::Checkbox("Ambient occlusion", &world_renderer._ambient_occlusion);
     ImGui::SliderFloat("AO strength: ", &world_renderer._ambient_occlusion_strength, 0.0f, 1.0f, "%.2f");
 
