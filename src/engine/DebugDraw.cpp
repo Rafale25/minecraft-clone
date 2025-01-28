@@ -61,6 +61,11 @@ void DebugDraw::drawCuboid(const glm::vec3 &center, const glm::vec3 &extents, co
     drawLine(x1y0z1, x1y1z1, color);
 }
 
+void DebugDraw::drawCuboidMinMax(const glm::vec3 &min, const glm::vec3 &max, const glm::vec3 &color)
+{
+    drawCuboid((max + min) / 2.0f, (max - min) * 0.5f, color);
+}
+
 void DebugDraw::drawSphere(const glm::vec3 &center, float radius, const glm::vec3& color)
 {
     constexpr int resolution = 32;

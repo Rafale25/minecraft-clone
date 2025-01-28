@@ -13,6 +13,7 @@ public:
 
     void drawCube(const glm::vec3 &center, float size = 1.0f, const glm::vec3 &color = DEFAULT_COLOR);
     void drawCuboid(const glm::vec3& center, const glm::vec3& extents = {0.5f, 0.5f, 0.5f}, const glm::vec3& color = DEFAULT_COLOR);
+    void drawCuboidMinMax(const glm::vec3& min, const glm::vec3& max, const glm::vec3& color = DEFAULT_COLOR);
 
     void drawSphere(const glm::vec3& center, float radius = 1.0f, const glm::vec3& color = DEFAULT_COLOR);
 
