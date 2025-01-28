@@ -119,6 +119,8 @@ void GameView::playerMovements(float dt)
             ctx.keystate[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS ? 130.0f : 10.0f
         );
 
+        player_velocity = {0.0f, 0.0f, 0.0f};
+
         if (!_cursor_enabled && !ImGui::GetIO().WantCaptureKeyboard) camera.move(delta);
         return;
     }
