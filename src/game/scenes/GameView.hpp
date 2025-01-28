@@ -64,7 +64,7 @@ private:
     // Player physic
         bool free_cam = true;
         const float player_height = 1.8f;
-        const float player_radius = 0.2f;
+        const float player_radius = 0.3f;
         const float player_gravity = 45.0f;
         glm::vec3 player_velocity = {0.0f, 0.0f, 0.0f};
     // --

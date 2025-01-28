@@ -6,6 +6,7 @@
 #include "Chunk.hpp"
 #include "Client.hpp"
 #include "Entity.hpp"
+#include "AABB.hpp"
 
 #include "world_to_screen_space.h"
 #include "command_line_args.h"
@@ -121,12 +122,38 @@ void GameView::playerMovements(float dt)
         return;
     }
 
+
     glm::vec3 forward_xz = glm::normalize(glm::vec3(camera.forward().x, 0.0f, camera.forward().z));
     glm::vec3 move_vector = -delta.x * camera.right() + delta.z * forward_xz;
 
-    glm::vec3 player_position = camera.getPosition() - glm::vec3(0.0f, player_height, 0.0f);
+    glm::vec3 player_feet_position = camera.getPosition() - glm::vec3(0.0f, player_height, 0.0f);
 
-    bool is_grounded = World::instance().getBlock(player_position + glm::vec3(0.0f, -0.001f, 0.0f)) != BlockType::Air;
+    AABB player_aabb_under_feet = {
+        player_feet_position + glm::vec3(-player_radius+0.01f, -0.005f, -player_radius+0.01f),
+        player_feet_position + glm::vec3(player_radius-0.01f, 0.1f, player_radius-0.01f)
+    };
+
+    DebugDraw::instance().drawCuboidMinMax(player_aabb_under_feet.min, player_aabb_under_feet.max, {0.4f, 0.2, 0.8});
+
+    std::vector<AABB> neighbours_blocks_AABB;
+    for (int z = -3 ; z <= 3 ; ++z) {
+    for (int y = -3 ; y <= 3 ; ++y) {
+    for (int x = -3 ; x <= 3 ; ++x) {
+        glm::vec3 p = glm::floor(player_feet_position + glm::vec3(x, y, z));
+        if (World::instance().getBlock(p) != BlockType::Air) {
+            neighbours_blocks_AABB.push_back(AABB(p, p + 1.0f));
+            DebugDraw::instance().drawCuboidMinMax(p, p + 1.0f);
+        }
+    }}}
+
+    bool is_grounded = false;
+    for (const auto& aabb : neighbours_blocks_AABB) {
+        bool collide = AABB::AABBtoAABB(aabb, player_aabb_under_feet);
+        if (collide) {
+            is_grounded = true;
+            break;
+        }
+    }
 
     if (is_grounded) {
         player_velocity.x *= 0.8f;
@@ -145,14 +172,49 @@ void GameView::playerMovements(float dt)
         player_velocity += move_vector * 0.1f;
     }
 
-    const float EPSILON = 0.3f;
+    glm::vec3 next_pos = player_feet_position + player_velocity * dt;
 
-    glm::vec3 next_pos = player_position + player_velocity * dt;
+    AABB player_aabb_y = {
+        glm::vec3(player_feet_position.x, next_pos.y, player_feet_position.z) + glm::vec3(-0.3f, 0.0f, -0.3f),
+        glm::vec3(player_feet_position.x, next_pos.y, player_feet_position.z) + glm::vec3(0.3f, player_height, 0.3f)};
+    DebugDraw::instance().drawCuboidMinMax(player_aabb_y.min, player_aabb_y.max, {1.0f, 0.2, 0.8});
 
-    BlockType by = World::instance().getBlock(glm::vec3(player_position.x, next_pos.y, player_position.z));
-    if (by != BlockType::Air) {
-        player_velocity.y = 0.0f;
-        next_pos.y = glm::floor(next_pos.y) + 1.0f;
+    // Y
+    for (const auto& aabb : neighbours_blocks_AABB) {
+        bool collide = AABB::AABBtoAABB(aabb, player_aabb_y);
+        if (collide) {
+            next_pos.y = player_feet_position.y;
+            player_velocity.y = 0.0f;
+            break;
+        }
+    }
+
+    AABB player_aabb_x = {
+        glm::vec3(next_pos.x, next_pos.y, player_feet_position.z) + glm::vec3(-0.3f, 0.0f, -0.3f),
+        glm::vec3(next_pos.x, next_pos.y, player_feet_position.z) + glm::vec3(0.3f, player_height, 0.3f)};
+
+    // X
+    for (const auto& aabb : neighbours_blocks_AABB) {
+        bool collide = AABB::AABBtoAABB(aabb, player_aabb_x);
+        if (collide) {
+            next_pos.x = player_feet_position.x;
+            player_velocity.x = 0.0f;
+            break;
+        }
+    }
+
+    AABB player_aabb_z = {
+        glm::vec3(next_pos.x, next_pos.y, next_pos.z) + glm::vec3(-0.3f, 0.0f, -0.3f),
+        glm::vec3(next_pos.x, next_pos.y, next_pos.z) + glm::vec3(0.3f, player_height, 0.3f)};
+
+    // Z
+    for (const auto& aabb : neighbours_blocks_AABB) {
+        bool collide = AABB::AABBtoAABB(aabb, player_aabb_z);
+        if (collide) {
+            next_pos.z = player_feet_position.z;
+            player_velocity.z = 0.0f;
+            break;
+        }
     }
 
 

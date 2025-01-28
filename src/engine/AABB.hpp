@@ -5,14 +5,14 @@
 struct AABB {
 	glm::vec3 min, max;
 
-//     static bool AABBtoAABB(const AABB& a, const AABB& b) {
-//         return (
-//             a.high.x > b.low.x &&
-//             a.low.x < b.high.x &&
-//             a.high.y > b.low.y &&
-//             a.low.y < b.high.y &&
-//             a.high.z > b.low.z &&
-//             a.low.z < b.high.z
-//         );
-//     }
+    static bool AABBtoAABB(const AABB& a, const AABB& b) {
+        return (
+            a.max.x > b.min.x &&
+            a.min.x < b.max.x &&
+            a.max.y > b.min.y &&
+            a.min.y < b.max.y &&
+            a.max.z > b.min.z &&
+            a.min.z < b.max.z
+        );
+    }
 };
