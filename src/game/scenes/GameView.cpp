@@ -137,6 +137,10 @@ void GameView::playerMovements(float dt)
         player_feet_position + glm::vec3(player_radius-0.01f, 0.01f, player_radius-0.01f)
     };
 
+    AABB player_aabb = {
+        player_feet_position + glm::vec3(-0.3f, 0.0f, -0.3f),
+        player_feet_position + glm::vec3(0.3f, player_height, 0.3f)};
+
     if (_draw_player_colliders) DebugDraw::instance().drawCuboidMinMax(player_aabb_under_feet.min, player_aabb_under_feet.max, {0.4f, 0.2, 0.8});
 
     std::vector<AABB> neighbours_blocks_AABB;
@@ -145,8 +149,10 @@ void GameView::playerMovements(float dt)
     for (int x = -2 ; x <= 2 ; ++x) {
         glm::vec3 p = glm::floor(player_feet_position + glm::vec3(x, y, z));
         if (World::instance().getBlock(p) != BlockType::Air) {
-            if (x == 0 && (y == 0 || y == 1) && z == 0) continue; // Don't create collider if player already inside block
-            neighbours_blocks_AABB.push_back(AABB(p, p + 1.0f));
+            const AABB block_aabb = {p, p + 1.0f};
+            if (AABB::AABBtoAABB(player_aabb, block_aabb)) continue;  // Don't create collider if player already inside block
+
+            neighbours_blocks_AABB.push_back(block_aabb);
 
             if (_draw_player_colliders) DebugDraw::instance().drawCuboidMinMax(p, p + 1.0f);
         }
@@ -191,7 +197,7 @@ void GameView::playerMovements(float dt)
     for (const auto& aabb : neighbours_blocks_AABB) {
         if (AABB::AABBtoAABB(aabb, player_aabb_y)) {
             float dy = AABB::AABBtoAABBOverlapDistance(aabb, player_aabb_y).y;
-            next_pos.y += dy;
+            next_pos.y += dy + glm::sign(dy) * 0.0001f;
             player_velocity.y = 0.0f;
             break;
         }
@@ -205,7 +211,7 @@ void GameView::playerMovements(float dt)
     for (const auto& aabb : neighbours_blocks_AABB) {
         if (AABB::AABBtoAABB(aabb, player_aabb_x)) {
             float dx = AABB::AABBtoAABBOverlapDistance(aabb, player_aabb_x).x;
-            next_pos.x += dx;
+            next_pos.x += dx + glm::sign(dx) * 0.0001f;
             player_velocity.x = 0.0f;
             break;
         }
@@ -219,7 +225,7 @@ void GameView::playerMovements(float dt)
     for (const auto& aabb : neighbours_blocks_AABB) {
         if (AABB::AABBtoAABB(aabb, player_aabb_z)) {
             float dz = AABB::AABBtoAABBOverlapDistance(aabb, player_aabb_z).z;
-            next_pos.z += dz;
+            next_pos.z += dz + glm::sign(dz) * 0.0001f;
             player_velocity.z = 0.0f;
             break;
         }
