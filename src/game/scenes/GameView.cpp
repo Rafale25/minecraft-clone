@@ -129,11 +129,12 @@ void GameView::playerMovements(float dt)
 
     glm::vec3 player_feet_position = camera.getPosition() - glm::vec3(0.0f, player_height, 0.0f);
 
-    printf("Y: %.4f\n", glm::mod(player_feet_position.y, 1.0f));
+    printf("Y: %.6f %.6f %.6f\n", glm::mod(player_feet_position.x, 1.0f), glm::mod(player_feet_position.y, 1.0f), glm::mod(player_feet_position.z, 1.0f));
+    // printf("Y: %.5f\n", glm::mod(player_feet_position.y, 1.0f));
 
     AABB player_aabb_under_feet = {
         player_feet_position + glm::vec3(-player_radius+0.01f, -0.01f, -player_radius+0.01f),
-        player_feet_position + glm::vec3(player_radius-0.01f, 0.1f, player_radius-0.01f)
+        player_feet_position + glm::vec3(player_radius-0.01f, 0.01f, player_radius-0.01f)
     };
 
     if (_draw_player_colliders) DebugDraw::instance().drawCuboidMinMax(player_aabb_under_feet.min, player_aabb_under_feet.max, {0.4f, 0.2, 0.8});
@@ -187,9 +188,9 @@ void GameView::playerMovements(float dt)
 
     // Y
     for (const auto& aabb : neighbours_blocks_AABB) {
-        bool collide = AABB::AABBtoAABB(aabb, player_aabb_y);
-        if (collide) {
-            next_pos.y = player_feet_position.y;
+        if (AABB::AABBtoAABB(aabb, player_aabb_y)) {
+            float dy = AABB::AABBtoAABBOverlapDistance(aabb, player_aabb_y).y;
+            next_pos.y += dy;
             player_velocity.y = 0.0f;
             break;
         }
@@ -201,9 +202,9 @@ void GameView::playerMovements(float dt)
 
     // X
     for (const auto& aabb : neighbours_blocks_AABB) {
-        bool collide = AABB::AABBtoAABB(aabb, player_aabb_x);
-        if (collide) {
-            next_pos.x = player_feet_position.x;
+        if (AABB::AABBtoAABB(aabb, player_aabb_x)) {
+            float dx = AABB::AABBtoAABBOverlapDistance(aabb, player_aabb_x).x;
+            next_pos.x += dx;
             player_velocity.x = 0.0f;
             break;
         }
@@ -215,9 +216,9 @@ void GameView::playerMovements(float dt)
 
     // Z
     for (const auto& aabb : neighbours_blocks_AABB) {
-        bool collide = AABB::AABBtoAABB(aabb, player_aabb_z);
-        if (collide) {
-            next_pos.z = player_feet_position.z;
+        if (AABB::AABBtoAABB(aabb, player_aabb_z)) {
+            float dz = AABB::AABBtoAABBOverlapDistance(aabb, player_aabb_z).z;
+            next_pos.z += dz;
             player_velocity.z = 0.0f;
             break;
         }
