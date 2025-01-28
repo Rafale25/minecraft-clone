@@ -5,7 +5,7 @@
 
 DebugDraw::DebugDraw()
 {
-    constexpr int MAX_SIZE = sizeof(float) * 10'000;
+    constexpr int MAX_SIZE = sizeof(float) * 10'000'000; //12 * 4
 
     _vbo = createBufferStorage(nullptr, MAX_SIZE, GL_DYNAMIC_STORAGE_BIT);
     _vao = createVAO(_vbo, "3f 3f");
@@ -110,8 +110,15 @@ void DebugDraw::drawAndFlush(const glm::mat4& view_projection)
     _program.use();
     _program.setMat4("u_viewProjection", view_projection);
 
+    float line_width; // save state
+    glGetFloatv(GL_LINE_WIDTH, &line_width);
+    glLineWidth(2.0f);
+
     glNamedBufferSubData(_vbo, 0, sizeof(float) * 6 * vertex_count, (const void *)_vertices.data());
     glBindVertexArray(_vao);
     glDrawArrays(GL_LINES, 0, vertex_count);
+
+    glLineWidth(line_width);
+
     _vertices.clear();
 }

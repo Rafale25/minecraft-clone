@@ -15,10 +15,7 @@ out VS_OUT {
     out vec4 FragPosLightSpace;
 } vs_out;
 
-// uniform mat4 u_projectionMatrix;
-// uniform mat4 u_viewMatrix;
 uniform mat4 u_projection_view;
-// uniform mat4 u_viewMatrix;
 uniform mat4 u_lightSpaceMatrix;
 
 void main()

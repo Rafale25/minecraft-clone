@@ -2,32 +2,16 @@
 
 #include "imgui.h"
 
+#include "World.hpp"
 #include "Chunk.hpp"
 #include "Client.hpp"
 #include "Entity.hpp"
-#include "World.hpp"
 
 #include "world_to_screen_space.h"
 #include "command_line_args.h"
 #include "string_helpers.h"
 #include "mem_info.h"
 #include "clock.h"
-
-// struct AABB {
-//     glm::vec3 low;
-//     glm::vec3 high;
-
-//     static bool AABBtoAABB(const AABB& a, const AABB& b) {
-//         return (
-//             a.high.x > b.low.x &&
-//             a.low.x < b.high.x &&
-//             a.high.y > b.low.y &&
-//             a.low.y < b.high.y &&
-//             a.high.z > b.low.z &&
-//             a.low.z < b.high.z
-//         );
-//     }
-// };
 
 GameView::GameView(Context& ctx): View(ctx)
 {
@@ -72,6 +56,12 @@ void GameView::onUpdate(double time_since_start, float dt)
     if (_show_debug_gui) {
         for (const auto& e : World::instance().entities) {
             DebugDraw::instance().drawCuboid(e.transform.position, {0.3f, 1.0f, 0.3f});
+        }
+    }
+
+    if (_draw_chunks_borders) {
+        for (const auto& [pos, chunk] : World::instance().chunks) {
+            DebugDraw::instance().drawCube(glm::vec3(pos * 16) + glm::vec3(8.0f), 16.0f);
         }
     }
 }
@@ -385,6 +375,7 @@ void GameView::gui(float dt)
 
     ImGui::SliderFloat("Bulk Edit Radius: ", &bulk_edit_radius, 1.0f, 32.0f, "%.2f");
     ImGui::Checkbox("Wireframe", &world_renderer._wireframe);
+    ImGui::Checkbox("Chunks borders", &_draw_chunks_borders);
     ImGui::Checkbox("Ambient occlusion", &world_renderer._ambient_occlusion);
     ImGui::SliderFloat("AO strength: ", &world_renderer._ambient_occlusion_strength, 0.0f, 1.0f, "%.2f");
 

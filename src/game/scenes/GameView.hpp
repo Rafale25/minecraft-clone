@@ -46,6 +46,7 @@ private:
 
     bool _cursor_enabled = false;
     bool _show_debug_gui = false;
+    bool _draw_chunks_borders = false;
     bool _vsync = true;
 
     FPSCamera camera = {

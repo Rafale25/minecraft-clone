@@ -30,15 +30,10 @@ layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec3 gPosition;
 
 uniform vec3 u_sun_direction;
-// uniform vec3 u_view_position;
 uniform float u_shadow_bias;
 uniform bool u_ambient_occlusion_enabled = true;
 uniform float u_ambient_occlusion_strength = 0.9;
-
 uniform vec2 u_resolution;
-// uniform float u_FOV;
-// uniform mat4 u_viewMatrix;
-// uniform float u_sunDotAngle;
 
 uniform sampler2D shadowMap;
 

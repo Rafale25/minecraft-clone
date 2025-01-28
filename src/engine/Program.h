@@ -166,6 +166,7 @@ public:
     }
 
 private:
+    // TODO: add file path to error log
     void checkCompileErrors(GLuint shader, std::string type)
     {
         GLint success;

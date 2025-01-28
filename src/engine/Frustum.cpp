@@ -2,21 +2,22 @@
 
 #include <glm/glm.hpp>
 #include "Camera.hpp"
+#include "AABB.hpp"
 
 // https://iquilezles.org/articles/frustumcorrect/
-bool AABB::isOnFrustum(const Frustum& f) const
+bool isAABBOnFrustum(const AABB& aabb, const Frustum& f)
 {
     for (int i = 0; i < 6; i++)
     {
         int out = 0;
-        out += ((glm::dot( f.planes[i], glm::vec4(min.x, min.y, min.z, 1.0f) ) < 0.0 )?1:0);
-        out += ((glm::dot( f.planes[i], glm::vec4(max.x, min.y, min.z, 1.0f) ) < 0.0 )?1:0);
-        out += ((glm::dot( f.planes[i], glm::vec4(min.x, max.y, min.z, 1.0f) ) < 0.0 )?1:0);
-        out += ((glm::dot( f.planes[i], glm::vec4(max.x, max.y, min.z, 1.0f) ) < 0.0 )?1:0);
-        out += ((glm::dot( f.planes[i], glm::vec4(min.x, min.y, max.z, 1.0f) ) < 0.0 )?1:0);
-        out += ((glm::dot( f.planes[i], glm::vec4(max.x, min.y, max.z, 1.0f) ) < 0.0 )?1:0);
-        out += ((glm::dot( f.planes[i], glm::vec4(min.x, max.y, max.z, 1.0f) ) < 0.0 )?1:0);
-        out += ((glm::dot( f.planes[i], glm::vec4(max.x, max.y, max.z, 1.0f) ) < 0.0 )?1:0);
+        out += ((glm::dot( f.planes[i], glm::vec4(aabb.min.x, aabb.min.y, aabb.min.z, 1.0f) ) < 0.0 )?1:0);
+        out += ((glm::dot( f.planes[i], glm::vec4(aabb.max.x, aabb.min.y, aabb.min.z, 1.0f) ) < 0.0 )?1:0);
+        out += ((glm::dot( f.planes[i], glm::vec4(aabb.min.x, aabb.max.y, aabb.min.z, 1.0f) ) < 0.0 )?1:0);
+        out += ((glm::dot( f.planes[i], glm::vec4(aabb.max.x, aabb.max.y, aabb.min.z, 1.0f) ) < 0.0 )?1:0);
+        out += ((glm::dot( f.planes[i], glm::vec4(aabb.min.x, aabb.min.y, aabb.max.z, 1.0f) ) < 0.0 )?1:0);
+        out += ((glm::dot( f.planes[i], glm::vec4(aabb.max.x, aabb.min.y, aabb.max.z, 1.0f) ) < 0.0 )?1:0);
+        out += ((glm::dot( f.planes[i], glm::vec4(aabb.min.x, aabb.max.y, aabb.max.z, 1.0f) ) < 0.0 )?1:0);
+        out += ((glm::dot( f.planes[i], glm::vec4(aabb.max.x, aabb.max.y, aabb.max.z, 1.0f) ) < 0.0 )?1:0);
         if (out == 8) return false;
     }
 

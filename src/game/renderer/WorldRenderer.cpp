@@ -4,6 +4,7 @@
 #include "World.hpp"
 #include "Chunk.hpp"
 #include "Camera.hpp"
+#include "AABB.hpp"
 #include "BlockTextureManager.hpp"
 #include "DebugDraw.hpp"
 
@@ -52,6 +53,7 @@ void WorldRenderer::render(const Camera &camera)
     const glm::mat4 view_projection = camera.getProjection() * camera.getView();
 
     // ZPrePass
+    // TODO: should use a framebuffer with glDrawBuffer(GL_NONE) to completely disable fragment stage
     // cube_shader_depth_only.use();
     // cube_shader_depth_only.setMat4("u_lightSpaceMatrix", view_projection);
     // renderTerrain(camera.getProjection() * camera.getView(), true);
@@ -200,7 +202,7 @@ void WorldRenderer::renderTerrain(const glm::mat4 &view_projection, bool use_fru
 
         if (use_frustum_culling) {
             AABB chunk_aabb = {(chunk_pos * 16), (chunk_pos * 16) + 16};
-            if (!chunk_aabb.isOnFrustum(camera_frustum)) continue;
+            if (!isAABBOnFrustum(chunk_aabb, camera_frustum)) continue;
         }
 
         chunk_positions.push_back(glm::vec4(chunk_pos * 16, 1.0f));
