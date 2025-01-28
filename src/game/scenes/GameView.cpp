@@ -64,6 +64,42 @@ void GameView::onUpdate(double time_since_start, float dt)
             DebugDraw::instance().drawCube(glm::vec3(pos * 16) + glm::vec3(8.0f), 16.0f);
         }
     }
+
+    if (_draw_player_chunk) {
+        for (int i = 0; i <= 16 ; ++i) {
+            const glm::vec3 py00 = glm::floor(camera.getPosition() / 16.0f) * 16.0f + glm::vec3(0.0f, (float)i, 0.0f);
+            const glm::vec3 py11 = glm::floor(camera.getPosition() / 16.0f) * 16.0f + glm::vec3(16.0f, (float)i, 16.0f);
+            const glm::vec3 pz00 = glm::floor(camera.getPosition() / 16.0f) * 16.0f + glm::vec3((float)i, 0.0f, 0.0f);
+            const glm::vec3 pz11 = glm::floor(camera.getPosition() / 16.0f) * 16.0f + glm::vec3((float)i, 16.0f, 16.0f);
+            const glm::vec3 px00 = glm::floor(camera.getPosition() / 16.0f) * 16.0f + glm::vec3(0.0f, 0.0f, (float)i);
+            const glm::vec3 px11 = glm::floor(camera.getPosition() / 16.0f) * 16.0f + glm::vec3(16.0f, 16.0f, (float)i);
+
+            DebugDraw::instance().drawLine(py00, py00 + glm::vec3{16, 0, 0});
+            DebugDraw::instance().drawLine(py00, py00 + glm::vec3{0, 0, 16});
+            DebugDraw::instance().drawLine(py11, py11 + glm::vec3{-16, 0, 0});
+            DebugDraw::instance().drawLine(py11, py11 + glm::vec3{0, 0, -16});
+
+            DebugDraw::instance().drawLine(pz00, pz00 + glm::vec3{0, 16, 0});
+            DebugDraw::instance().drawLine(pz00, pz00 + glm::vec3{0, 0, 16});
+            DebugDraw::instance().drawLine(pz11, pz11 + glm::vec3{0, 0, -16});
+            DebugDraw::instance().drawLine(pz11, pz11 + glm::vec3{0, -16, 0});
+
+            DebugDraw::instance().drawLine(px00, px00 + glm::vec3{0, 16, 0});
+            DebugDraw::instance().drawLine(px00, px00 + glm::vec3{16, 0, 0});
+            DebugDraw::instance().drawLine(px11, px11 + glm::vec3{-16, 0, 0});
+            DebugDraw::instance().drawLine(px11, px11 + glm::vec3{0, -16, 0});
+        }
+
+        for (int z = - 1 ; z <= 1 ; ++z) {
+        for (int x = - 1 ; x <= 1 ; ++x) {
+            const glm::vec3 p = glm::floor(camera.getPosition() / 16.0f) * 16.0f + glm::vec3(x, 0, z) * 16.0f;
+            DebugDraw::instance().drawLine(p + glm::vec3(0, -128, 0), p + glm::vec3{0, 128, 0}, {1, 0, 1});
+            DebugDraw::instance().drawLine(p + glm::vec3(16, -128, 0), p + glm::vec3{16, 128, 0}, {1, 0, 1});
+            DebugDraw::instance().drawLine(p + glm::vec3(0, -128, 16), p + glm::vec3{0, 128, 16}, {1, 0, 1});
+            DebugDraw::instance().drawLine(p + glm::vec3(16, -128, 16), p + glm::vec3{16, 128, 16}, {1, 0, 1});
+        }
+        }
+    }
 }
 
 void GameView::playerMovements(float dt)
@@ -376,6 +412,7 @@ void GameView::gui(float dt)
     ImGui::SliderFloat("Bulk Edit Radius: ", &bulk_edit_radius, 1.0f, 32.0f, "%.2f");
     ImGui::Checkbox("Wireframe", &world_renderer._wireframe);
     ImGui::Checkbox("Chunks borders", &_draw_chunks_borders);
+    ImGui::Checkbox("Player Chunk borders", &_draw_player_chunk);
     ImGui::Checkbox("Delete far chunks", &_delete_far_chunks);
     ImGui::Checkbox("Ambient occlusion", &world_renderer._ambient_occlusion);
     ImGui::SliderFloat("AO strength: ", &world_renderer._ambient_occlusion_strength, 0.0f, 1.0f, "%.2f");
