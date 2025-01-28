@@ -133,16 +133,17 @@ void GameView::playerMovements(float dt)
         player_feet_position + glm::vec3(player_radius-0.01f, 0.1f, player_radius-0.01f)
     };
 
-    DebugDraw::instance().drawCuboidMinMax(player_aabb_under_feet.min, player_aabb_under_feet.max, {0.4f, 0.2, 0.8});
+    if (_draw_player_colliders) DebugDraw::instance().drawCuboidMinMax(player_aabb_under_feet.min, player_aabb_under_feet.max, {0.4f, 0.2, 0.8});
 
     std::vector<AABB> neighbours_blocks_AABB;
-    for (int z = -3 ; z <= 3 ; ++z) {
-    for (int y = -3 ; y <= 3 ; ++y) {
-    for (int x = -3 ; x <= 3 ; ++x) {
+    for (int z = -2 ; z <= 2 ; ++z) {
+    for (int y = -2 ; y <= 2 ; ++y) {
+    for (int x = -2 ; x <= 2 ; ++x) {
         glm::vec3 p = glm::floor(player_feet_position + glm::vec3(x, y, z));
         if (World::instance().getBlock(p) != BlockType::Air) {
             neighbours_blocks_AABB.push_back(AABB(p, p + 1.0f));
-            DebugDraw::instance().drawCuboidMinMax(p, p + 1.0f);
+
+            if (_draw_player_colliders) DebugDraw::instance().drawCuboidMinMax(p, p + 1.0f);
         }
     }}}
 
@@ -177,7 +178,7 @@ void GameView::playerMovements(float dt)
     AABB player_aabb_y = {
         glm::vec3(player_feet_position.x, next_pos.y, player_feet_position.z) + glm::vec3(-0.3f, 0.0f, -0.3f),
         glm::vec3(player_feet_position.x, next_pos.y, player_feet_position.z) + glm::vec3(0.3f, player_height, 0.3f)};
-    DebugDraw::instance().drawCuboidMinMax(player_aabb_y.min, player_aabb_y.max, {1.0f, 0.2, 0.8});
+    if (_draw_player_colliders) DebugDraw::instance().drawCuboidMinMax(player_aabb_y.min, player_aabb_y.max, {1.0f, 0.2, 0.8});
 
     // Y
     for (const auto& aabb : neighbours_blocks_AABB) {
@@ -475,6 +476,7 @@ void GameView::gui(float dt)
     ImGui::Checkbox("Wireframe", &world_renderer._wireframe);
     ImGui::Checkbox("Chunks borders", &_draw_chunks_borders);
     ImGui::Checkbox("Player Chunk borders", &_draw_player_chunk);
+    ImGui::Checkbox("Draw player colliders", &_draw_player_colliders);
     ImGui::Checkbox("Delete far chunks", &_delete_far_chunks);
     ImGui::Checkbox("Ambient occlusion", &world_renderer._ambient_occlusion);
     ImGui::SliderFloat("AO strength: ", &world_renderer._ambient_occlusion_strength, 0.0f, 1.0f, "%.2f");

@@ -48,6 +48,7 @@ private:
     bool _show_debug_gui = false;
     bool _draw_chunks_borders = false;
     bool _draw_player_chunk = false;
+    bool _draw_player_colliders = false;
     bool _delete_far_chunks = true;
     bool _vsync = true;
 
