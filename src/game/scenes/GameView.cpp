@@ -145,6 +145,7 @@ void GameView::playerMovements(float dt)
     for (int x = -2 ; x <= 2 ; ++x) {
         glm::vec3 p = glm::floor(player_feet_position + glm::vec3(x, y, z));
         if (World::instance().getBlock(p) != BlockType::Air) {
+            if (x == 0 && (y == 0 || y == 1) && z == 0) continue; // Don't create collider if player already inside block
             neighbours_blocks_AABB.push_back(AABB(p, p + 1.0f));
 
             if (_draw_player_colliders) DebugDraw::instance().drawCuboidMinMax(p, p + 1.0f);
