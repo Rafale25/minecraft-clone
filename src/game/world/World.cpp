@@ -88,9 +88,9 @@ BlockRaycastHit World::blockRaycast(const glm::vec3& origin, const glm::vec3& di
     glm::vec3 mapPos = glm::ivec3(glm::floor(rayPos));
 
     glm::vec3 sideDist = (sign(direction) * (mapPos - rayPos) + (sign(direction) * 0.5f) + 0.5f) * deltaDist;
-	glm::vec3 mask = {};
-    glm::vec3 normal = {};
-    glm::vec3 intersection_pos = {};
+	glm::vec3 mask = {0.0f, 0.0f, 0.0f};
+    glm::vec3 normal = {0.0f, 0.0f, 0.0f};
+    glm::vec3 intersection_pos = {0.0f, 0.0f, 0.0f};
     float intersection_distance = 0.0f;
 
     #define MAX_ITERATION 500
@@ -102,7 +102,7 @@ BlockRaycastHit World::blockRaycast(const glm::vec3& origin, const glm::vec3& di
         intersection_pos = rayPos + intersection_distance * direction;
 
         if (block != BlockType::Air) {
-            return {block, glm::floor(mapPos), intersection_pos, normal};
+            return {true, block, glm::floor(mapPos), intersection_pos, normal};
         };
 
         mask = glm::step(sideDist, glm::vec3(sideDist.y, sideDist.z, sideDist.x)) * glm::step(sideDist, glm::vec3(sideDist.z, sideDist.x, sideDist.y));
@@ -114,7 +114,7 @@ BlockRaycastHit World::blockRaycast(const glm::vec3& origin, const glm::vec3& di
         }
 	}
 
-    return {BlockType::Air, glm::floor(mapPos), intersection_pos, normal};
+    return {false, BlockType::Air, glm::floor(mapPos), intersection_pos, normal};
 }
 
 uint32_t hashBlocks(const uint8_t* values) {

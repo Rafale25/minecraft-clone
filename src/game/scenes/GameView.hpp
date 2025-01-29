@@ -44,13 +44,15 @@ private:
 
     float network_timer = 1.0f;
 
-    bool _cursor_enabled = false;
     bool _show_debug_gui = false;
+    bool _cursor_enabled = false;
+    bool _vsync = true;
+    bool _delete_far_chunks = true;
+
     bool _draw_chunks_borders = false;
     bool _draw_player_chunk = false;
     bool _draw_player_colliders = false;
-    bool _delete_far_chunks = true;
-    bool _vsync = true;
+    bool _draw_hit_point = false;
 
     FPSCamera camera = {
         glm::vec3(10.0f, 25.0, 12.0f), 0.0f, 0.0f,
@@ -62,7 +64,7 @@ private:
 
     BlockRaycastHit player_blockraycasthit;
 
-    // Player physic
+    // -- Player physic -- //
         bool free_cam = true;
         const float player_height = 1.8f;
         const float player_radius = 0.3f;
@@ -70,7 +72,11 @@ private:
         glm::vec3 player_velocity = {0.0f, 0.0f, 0.0f};
     // --
 
+    // -- World editor -- //
+    bool block_selection_mode = false;
+    glm::ivec3 blockA, blockB;
+    // --
 
-    char input_text_buffer[4096] = {0};
+    char input_text_buffer[4096] = {};
     std::vector<std::string> tchat;
 };

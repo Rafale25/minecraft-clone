@@ -52,7 +52,11 @@ void GameView::onUpdate(double time_since_start, float dt)
     }
 
     if (player_blockraycasthit.blocktype != BlockType::Air) {
-        DebugDraw::instance().drawCube(player_blockraycasthit.world_pos + 0.5f, 1.0f, {0.8f, 0.8f, 0.8f});
+        DebugDraw::instance().drawCube(glm::vec3(player_blockraycasthit.block_pos) + 0.5f, 1.0f, {0.8f, 0.8f, 0.8f});
+
+        if (_draw_hit_point) {
+            DebugDraw::instance().drawSphere(player_blockraycasthit.world_pos, 0.05f);
+        }
     }
 
     if (_show_debug_gui) {
@@ -101,6 +105,12 @@ void GameView::onUpdate(double time_since_start, float dt)
             DebugDraw::instance().drawLine(p + glm::vec3(16, -128, 16), p + glm::vec3{16, 128, 16}, {1, 0, 1});
         }
         }
+    }
+
+    if (block_selection_mode) {
+        const glm::ivec3 min = glm::min(blockA, blockB);
+        const glm::ivec3 max = glm::max(blockA, blockB);
+        DebugDraw::instance().drawCuboidMinMax(min, max + 1);
     }
 }
 
@@ -169,8 +179,8 @@ void GameView::playerMovements(float dt)
     }
 
     if (is_grounded) {
-    //     player_velocity.x *= 0.8f;
-    //     player_velocity.z *= 0.8f;
+        player_velocity.x *= 0.8f;
+        player_velocity.z *= 0.8f;
     }
     if (is_grounded && ctx.keystate[GLFW_KEY_SPACE]) {
         player_velocity.y += 12.0f;
@@ -354,11 +364,31 @@ void GameView::onKeyPress(int key)
 void GameView::onMousePress(int x, int y, int button) {
     if (_show_debug_gui && ImGui::GetIO().WantCaptureMouse) return;
 
+    // Pick block
+    if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
+        BlockType block = World::instance().blockRaycast(camera.getPosition(), camera.forward(), 64).blocktype;
+        block_in_hand = block;
+    }
+
+    if (block_selection_mode) {
+        if (!player_blockraycasthit.hit) return;
+
+        if (button == GLFW_MOUSE_BUTTON_LEFT) {
+            blockA = player_blockraycasthit.block_pos;
+        } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+            blockB = player_blockraycasthit.block_pos;
+        }
+
+        return;
+    }
+
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
         if (ctx.keystate[GLFW_KEY_LEFT_ALT])
             placeSphere(player_blockraycasthit.block_pos, bulk_edit_radius, BlockType::Air);
         else
-            Client::instance().sendBreakBlockPacket(player_blockraycasthit.block_pos);
+            if (player_blockraycasthit.blocktype != BlockType::Air) {
+                Client::instance().sendBreakBlockPacket(player_blockraycasthit.block_pos);
+            }
     } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
         if (ctx.keystate[GLFW_KEY_LEFT_ALT])
             placeSphere(player_blockraycasthit.block_pos, bulk_edit_radius, block_in_hand);
@@ -367,12 +397,6 @@ void GameView::onMousePress(int x, int y, int button) {
                 Client::instance().sendPlaceBlockPacket(player_blockraycasthit.block_pos + glm::ivec3(player_blockraycasthit.normal), block_in_hand);
             }
         }
-    }
-
-    // Pick block
-    if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
-        BlockType block = World::instance().blockRaycast(camera.getPosition(), camera.forward(), 64).blocktype;
-        block_in_hand = block;
     }
 }
 
@@ -470,6 +494,8 @@ void GameView::gui(float dt)
     ImGui::Text("block in hand: %d", (int)block_in_hand);
 
     ImGui::Checkbox("FreeCam", &free_cam);
+    ImGui::Checkbox("World edit", &block_selection_mode);
+    ImGui::SliderFloat("Bulk Edit Radius: ", &bulk_edit_radius, 1.0f, 32.0f, "%.2f");
 
     ImGui::Text("ClientId: %d", Client::instance().client_id);
 
@@ -487,12 +513,12 @@ void GameView::gui(float dt)
         ImGui::TreePop();
     }
 
-
-    ImGui::SliderFloat("Bulk Edit Radius: ", &bulk_edit_radius, 1.0f, 32.0f, "%.2f");
     ImGui::Checkbox("Wireframe", &world_renderer._wireframe);
     ImGui::Checkbox("Chunks borders", &_draw_chunks_borders);
     ImGui::Checkbox("Player Chunk borders", &_draw_player_chunk);
     ImGui::Checkbox("Draw player colliders", &_draw_player_colliders);
+    ImGui::Checkbox("Draw cursor hitpoint", &_draw_hit_point);
+
     ImGui::Checkbox("Delete far chunks", &_delete_far_chunks);
     ImGui::Checkbox("Ambient occlusion", &world_renderer._ambient_occlusion);
     ImGui::SliderFloat("AO strength: ", &world_renderer._ambient_occlusion_strength, 0.0f, 1.0f, "%.2f");
