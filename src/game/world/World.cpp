@@ -88,15 +88,16 @@ BlockRaycastHit World::blockRaycast(const glm::vec3& origin, const glm::vec3& di
     glm::vec3 mapPos = glm::ivec3(glm::floor(rayPos));
 
     glm::vec3 sideDist = (sign(direction) * (mapPos - rayPos) + (sign(direction) * 0.5f) + 0.5f) * deltaDist;
-	glm::vec3 mask;
-    glm::vec3 normal;
-    glm::vec3 intersection_pos;
-    float intersection_distance;
+	glm::vec3 mask = {};
+    glm::vec3 normal = {};
+    glm::vec3 intersection_pos = {};
+    float intersection_distance = 0.0f;
 
     #define MAX_ITERATION 500
 	for (int i = 0; i < MAX_ITERATION; i++) {
         auto block = getBlock(mapPos);
         normal = -mask * rayStep;
+
         intersection_distance = glm::length(mask * (sideDist - deltaDist));
         intersection_pos = rayPos + intersection_distance * direction;
 
@@ -104,7 +105,7 @@ BlockRaycastHit World::blockRaycast(const glm::vec3& origin, const glm::vec3& di
             return {block, glm::floor(mapPos), intersection_pos, normal};
         };
 
-		mask = glm::step(sideDist, glm::vec3(sideDist.y, sideDist.z, sideDist.x)) * glm::step(sideDist, glm::vec3(sideDist.z, sideDist.x, sideDist.y));
+        mask = glm::step(sideDist, glm::vec3(sideDist.y, sideDist.z, sideDist.x)) * glm::step(sideDist, glm::vec3(sideDist.z, sideDist.x, sideDist.y));
 		sideDist += mask * deltaDist;
 		mapPos += mask * rayStep;
 
