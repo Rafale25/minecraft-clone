@@ -145,9 +145,9 @@ void GameView::playerMovements(float dt)
     if (_draw_player_colliders) DebugDraw::instance().drawCuboidMinMax(player_aabb_under_feet.min, player_aabb_under_feet.max, {0.4f, 0.2, 0.8});
 
     std::vector<AABB> neighbours_blocks_AABB;
-    for (int z = -2 ; z <= 2 ; ++z) {
-    for (int y = -2 ; y <= 2 ; ++y) {
-    for (int x = -2 ; x <= 2 ; ++x) {
+    for (int z = -3 ; z <= 3 ; ++z) {
+    for (int y = -3 ; y <= 3 ; ++y) {
+    for (int x = -3 ; x <= 3 ; ++x) {
         glm::vec3 p = glm::floor(player_feet_position + glm::vec3(x, y, z));
         if (World::instance().getBlock(p) != BlockType::Air) {
             const AABB block_aabb = {p, p + 1.0f};
@@ -169,8 +169,8 @@ void GameView::playerMovements(float dt)
     }
 
     if (is_grounded) {
-        player_velocity.x *= 0.8f;
-        player_velocity.z *= 0.8f;
+    //     player_velocity.x *= 0.8f;
+    //     player_velocity.z *= 0.8f;
     }
     if (is_grounded && ctx.keystate[GLFW_KEY_SPACE]) {
         player_velocity.y += 12.0f;

@@ -134,7 +134,7 @@ void Context::run()
 
         double time = glfwGetTime();
         double time_since_start = time - start_time;
-        double delta_time = time - last_frame_time;
+        double delta_time = time - last_frame_time; // TODO: limit max delta time if it gets too laggy
         last_frame_time = time;
 
         _current_view->onUpdate(time_since_start, delta_time);
