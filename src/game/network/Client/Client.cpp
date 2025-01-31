@@ -265,7 +265,42 @@ void Client::sendBreakBlockPacket(const glm::ivec3& world_pos)
     sendPacket(&packet, sizeof(packet));
 }
 
-void Client::sendBlockBulkEditPacket(const std::vector<glm::ivec3>& world_pos, BlockType blocktype)
+void Client::sendBlockBulkEditPacket(const std::vector<std::tuple<glm::ivec3, BlockType>> blocks)
+{
+    size_t size_in_bytes = sizeof(uint8_t) +
+                            sizeof(uint32_t) +
+                            blocks.size() * (sizeof(uint8_t) + 3*sizeof(int32_t));
+
+    auto buffer = std::make_unique<uint8_t[]>(size_in_bytes);
+    uint8_t *head = &buffer[0];
+
+    // id
+    head[0] = Packet::Client::PACKET_EDIT_BLOCK_BULK;
+    head += sizeof(uint8_t);
+
+    // blockCount
+    putIntBe(head, blocks.size());
+    head += sizeof(int32_t);
+
+    for (const auto& [pos, blocktype] : blocks) {
+        head[0] = (uint8_t)blocktype;
+        head += sizeof(uint8_t);
+
+        putIntBe(head, pos.x);
+        head += sizeof(int32_t);
+
+        putIntBe(head, pos.y);
+        head += sizeof(int32_t);
+
+        putIntBe(head, pos.z);
+        head += sizeof(int32_t);
+    }
+
+    sendPacket(buffer.get(), size_in_bytes);
+}
+
+
+void Client::sendBlockBulkEditPacketMonotype(const std::vector<glm::ivec3>& world_pos, BlockType blocktype)
 {
     size_t size_in_bytes = sizeof(uint8_t) +
                             sizeof(uint32_t) +

@@ -14,6 +14,7 @@
 #include "string_helpers.h"
 #include "mem_info.h"
 #include "clock.h"
+#include "Blueprint.hpp"
 
 GameView::GameView(Context& ctx): View(ctx)
 {
@@ -329,7 +330,7 @@ void GameView::placeSphere(const glm::ivec3& center, float radius, BlockType blo
     }
     }
     }
-    Client::instance().sendBlockBulkEditPacket(positions, blocktype);
+    Client::instance().sendBlockBulkEditPacketMonotype(positions, blocktype);
 }
 
 void GameView::setPlayerPosition(const glm::vec3& p) {
@@ -496,6 +497,20 @@ void GameView::gui(float dt)
     ImGui::Checkbox("FreeCam", &free_cam);
     ImGui::Checkbox("World edit", &block_selection_mode);
     ImGui::SliderFloat("Bulk Edit Radius: ", &bulk_edit_radius, 1.0f, 32.0f, "%.2f");
+
+    if (ImGui::Button("Save Selection as Blueprint")) {
+        const glm::ivec3 min = glm::min(blockA, blockB);
+        const glm::ivec3 max = glm::max(blockA, blockB);
+        Blueprint bp = createBlueprintFromSelection(min, max);
+        saveBlueprintToFile(bp, "blueprint.txt");
+    }
+
+    if (ImGui::Button("Load Blueprint from file and paste")) {
+        Blueprint bp = createBlueprintFromFile("blueprint.txt");
+        // printf("%d %d %d\n", bp.dimensions.x, bp.dimensions.y, bp.dimensions.z);
+        // printf("%d\n", (int)bp.blocks.size());
+        pasteBlueprintIntoWorld(bp, player_blockraycasthit.block_pos);
+    }
 
     ImGui::Text("ClientId: %d", Client::instance().client_id);
 
