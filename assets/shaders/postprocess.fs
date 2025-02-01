@@ -11,6 +11,7 @@ uniform float u_FOV;
 uniform float u_sunDotAngle;
 uniform vec3 u_sunDirection;
 uniform vec3 u_viewPosition;
+uniform float u_fogDensity;
 
 layout (location = 0) uniform sampler2D colorTexture;
 layout (location = 1) uniform sampler2D worldPosTexture;
@@ -83,10 +84,10 @@ vec3 applyFog(vec3  col,   // color of pixel
               vec3  rd,    // camera to point
               vec3  lig,   // sun direction
               vec3 fogColor,
-              vec3 sunColor
+              vec3 sunColor,
+              float fogDensity = 0.003
 ){
-    float b = 0.003;
-    float fogAmount = 1.0 - exp(-t*b * t*b);
+    float fogAmount = 1.0 - exp(-t*fogDensity * t*fogDensity);
     float sunAmount = max( dot(rd, lig), 0.0 );
     vec3  finalfogColor  = mix( fogColor, sunColor, pow(sunAmount, 8.0) );
     // vec3  finalfogColor  = mix( vec3(0.5,0.6,0.7), // blue
@@ -128,7 +129,7 @@ void main()
     // color = mix(skyColor, color, calcExpFogFactor(fragDistance));
     // color = applyFog(color, fragDistance, rd, u_sunDirection);
     vec3 sunColor = vec3(1.0, 0.9, 0.7);
-    color = applyFog(color, fragDistance, rd, u_sunDirection, skyColor, sunColor);
+    color = applyFog(color, fragDistance, rd, u_sunDirection, skyColor, sunColor, u_fogDensity);
 
     // float b = 0.001;
     // color = color*exp(-fragDistance*b) + skyColor*(1.0-exp(-fragDistance*b));

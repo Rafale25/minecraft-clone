@@ -52,6 +52,7 @@ public:
     bool _wireframe = false;
     bool _ambient_occlusion = true;
     float _ambient_occlusion_strength = 0.67;
+    float _fog_density = 0.003f;
 
     Framebuffer _framebuffer;
     Texture _color_texture;

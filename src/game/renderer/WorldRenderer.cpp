@@ -101,6 +101,7 @@ void WorldRenderer::render(const Camera &camera)
     postprocessing_shader.setMat4("u_projection", camera.getProjection());
     postprocessing_shader.setVec3("u_sunDirection", glm::normalize(sunDir));
     postprocessing_shader.setVec3("u_viewPosition", camera.getPosition());
+    postprocessing_shader.setFloat("u_fogDensity", _fog_density);
 
     postprocessing_shader.setInt("colorTexture", 0);
     postprocessing_shader.setInt("worldPosTexture", 1);
