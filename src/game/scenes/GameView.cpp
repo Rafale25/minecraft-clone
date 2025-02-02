@@ -145,8 +145,8 @@ void GameView::playerMovements(float dt)
     // printf("Y: %.6f %.6f %.6f\n", glm::mod(player_feet_position.x, 1.0f), glm::mod(player_feet_position.y, 1.0f), glm::mod(player_feet_position.z, 1.0f));
 
     AABB player_aabb_under_feet = {
-        player_feet_position + glm::vec3(-player_radius+0.01f, -0.01f, -player_radius+0.01f),
-        player_feet_position + glm::vec3(player_radius-0.01f, 0.01f, player_radius-0.01f)
+        player_feet_position + glm::vec3(-player_radius+0.01f, -0.001f, -player_radius+0.01f),
+        player_feet_position + glm::vec3(player_radius-0.01f, 0.001f, player_radius-0.01f)
     };
 
     AABB player_aabb = {
