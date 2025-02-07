@@ -350,7 +350,7 @@ void Client::sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blockty
 
 void Client::sendUpdateEntityPacket(const glm::vec3& pos, float yaw, float pitch)
 {
-    if (client_id == -1) return;
+    // if (client_id == -1) return;
 
     Packet::Client::UpdateEntity packet = {};
 

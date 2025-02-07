@@ -29,6 +29,7 @@ public:
     void setPlayerPosition(const glm::vec3& p);
 
     void drawPlayersNames();
+    void guiWorldEdit();
     void gui(float dt);
 
     void onDraw(double time_since_start, float dt);
