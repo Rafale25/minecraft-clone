@@ -83,11 +83,13 @@ Blueprint createBlueprintFromFile(const std::string& name) {
 
 void pasteBlueprintIntoWorld(const Blueprint& bp, const glm::ivec3& pos)
 {
-    // Send in chunks of 2048 blocks
+    #define MAX_BULK_BLOCK_COUNT (4096) //(16'384)
+    // #define MAX_BULK_BLOCK_COUNT (8192) //(16'384)
+    // Send in chunks of MAX_BULK_BLOCK_COUNT blocks
 
     int i = 0;
     while (1) {
-        int next_i = glm::clamp(i + 2048, 0, (int)bp.blocks.size());
+        int next_i = glm::clamp(i + MAX_BULK_BLOCK_COUNT, 0, (int)bp.blocks.size());
         if (i > next_i) break;
 
         const auto& first = bp.blocks.begin() + i;
@@ -104,7 +106,7 @@ void pasteBlueprintIntoWorld(const Blueprint& bp, const glm::ivec3& pos)
             break;
         }
 
-        i += 2048;
+        i += MAX_BULK_BLOCK_COUNT;
     }
 }
 
