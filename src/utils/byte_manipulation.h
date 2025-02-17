@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-void putIntBe(uint8_t *buffer, int value)
+inline void putIntBe(uint8_t *buffer, int value)
 {
     buffer[0] = (value >> 24) & 0xFF;
     buffer[1] = (value >> 16) & 0xFF;
