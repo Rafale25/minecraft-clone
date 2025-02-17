@@ -83,9 +83,8 @@ Blueprint createBlueprintFromFile(const std::string& name) {
 
 void pasteBlueprintIntoWorld(const Blueprint& bp, const glm::ivec3& pos)
 {
-    #define MAX_BULK_BLOCK_COUNT (4096) //(16'384)
-    // #define MAX_BULK_BLOCK_COUNT (8192) //(16'384)
     // Send in chunks of MAX_BULK_BLOCK_COUNT blocks
+    #define MAX_BULK_BLOCK_COUNT (1'048'576)
 
     int i = 0;
     while (1) {

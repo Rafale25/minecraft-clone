@@ -212,10 +212,14 @@ int NetworkConnection::receiveAll(uint8_t* buffer, uint32_t size) {
 
 void NetworkConnection::sendD(const void *data, size_t size) {
 #if defined(_WIN32)
-   send(_socket, (const char*)data, size, 0);
+   int r = send(_socket, (const char*)data, size, 0);
 #else
-   send(_socket, data, size, 0);
+   int r = send(_socket, data, size, 0);
 #endif
+
+    if (r != (int)size) {
+        printf("Error: The data couldn't be send in one go - %d/%d bytes\n", r, (int)size);
+    }
 }
 
 #if defined(_WIN32)
