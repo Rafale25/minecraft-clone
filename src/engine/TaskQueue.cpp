@@ -24,4 +24,4 @@ void TaskQueue::execute() {
 //     return task;
 // }
 
-int TaskQueue::count() const { return _task_queue.size(); };
+int32_t TaskQueue::count() const { return _task_queue.size(); };

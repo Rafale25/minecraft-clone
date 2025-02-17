@@ -36,8 +36,8 @@ public:
     // BufferSlot updateAllocation(int32_t id, uint32_t size, const void * data);
 
     GLuint getBufferObject() const { return _buffer; };
-    int getFreeSlotsCount() const { return _free_slots.size(); };
-    int getMaxSlotsCount() const { return _max_slots; };
+    int32_t getFreeSlotsCount() const { return _free_slots.size(); };
+    int32_t getMaxSlotsCount() const { return _max_slots; };
 
 private:
     const char *_name;

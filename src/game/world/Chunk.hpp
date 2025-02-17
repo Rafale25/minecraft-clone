@@ -12,7 +12,7 @@ struct Chunk
     // bool is_monotype;
     BlockType blocks[4096]; // 16x16x16
 
-    static int XYZtoIndex(int x, int y, int z);
+    static int32_t XYZtoIndex(int32_t x, int32_t y, int32_t z);
 
     uint32_t hash();
 };

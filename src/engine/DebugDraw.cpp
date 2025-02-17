@@ -8,7 +8,7 @@
 
 DebugDraw::DebugDraw()
 {
-    constexpr int MAX_SIZE = sizeof(float) * 10'000'000; //12 * 4
+    constexpr int32_t MAX_SIZE = sizeof(float) * 10'000'000; //12 * 4
 
     _vbo = createBufferStorage(nullptr, MAX_SIZE, GL_DYNAMIC_STORAGE_BIT);
     _vao = createVAO(_vbo, "3f 3f");
@@ -71,7 +71,7 @@ void DebugDraw::drawCuboidMinMax(const glm::vec3 &min, const glm::vec3 &max, con
 
 void DebugDraw::drawSphere(const glm::vec3 &center, float radius, const glm::vec3& color)
 {
-    constexpr int resolution = 32;
+    constexpr int32_t resolution = 32;
 
     for (int32_t i = 0 ; i < resolution ; ++i) {
         const float theta0 = (float)i / (float)resolution * glm::tau<float>();

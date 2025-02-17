@@ -24,7 +24,7 @@ struct Chunk;
 class Client
 {
 
-static constexpr int DEFAULT_PORT = 20000;
+static constexpr int32_t DEFAULT_PORT = 20000;
 
 private:
     Client() = default;
@@ -76,7 +76,7 @@ public:
     void sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blocktype);
     void sendUpdateEntityPacket(const glm::vec3& pos, float yaw, float pitch);
     void sendChatMessagePacket(const char *buffer);
-    void sendClientMetadataPacket(int render_distance, std::string name);
+    void sendClientMetadataPacket(int32_t render_distance, std::string name);
 
     static Client& instance() {
         static Client instance;
@@ -92,7 +92,7 @@ public:
     std::deque<Packet::Server::ChunkPacket*> new_chunks;
     std::mutex new_chunks_mutex;
 
-    int client_id = -1;
+    int32_t client_id = -1;
 
 private:
     NetworkConnection _client;

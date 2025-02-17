@@ -23,7 +23,7 @@ public:
 
     void onDeletedChunk(const glm::ivec3& chunk_pos);
     void onAddedChunk(const glm::ivec3& chunk_pos);
-    void onResize(int width, int height);
+    void onResize(int32_t width, int32_t height);
 
     void render(const Camera &camera);
     void update();
@@ -48,7 +48,7 @@ public:
     float _max_shadow_distance = 120.0f;
 
     glm::vec3 sunDir = glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f));
-    int chunks_drawn;
+    int32_t chunks_drawn;
     bool _wireframe = false;
     bool _ambient_occlusion = true;
     float _ambient_occlusion_strength = 0.67;
@@ -72,8 +72,8 @@ public:
     const float chunk_delete_offset = 16.0f * 16.0f;
 
     const uint32_t MAX_COMMANDS = 16'000;
-    BufferAllocator buffer_allocator_vertices {"BufferAllocatorVertice", 25'000 * sizeof(int), MAX_COMMANDS};
-    BufferAllocator buffer_allocator_indices  {"BufferAllocatorIndices", 25'000 * sizeof(int), MAX_COMMANDS};
+    BufferAllocator buffer_allocator_vertices {"BufferAllocatorVertice", 25'000 * sizeof(int32_t), MAX_COMMANDS};
+    BufferAllocator buffer_allocator_indices  {"BufferAllocatorIndices", 25'000 * sizeof(int32_t), MAX_COMMANDS};
 
     GLuint chunk_vao;
     GLuint draw_command_buffer;

@@ -39,10 +39,10 @@ private:
 
 public:
     void addEntity(Entity e);
-    void removeEntity(int id);
-    void setEntityTransform(int id, const glm::vec3& pos, float yaw, float pitch);
-    void setEntityName(int id, std::string name);
-    Entity* getEntity(int id);
+    void removeEntity(int32_t id);
+    void setEntityTransform(int32_t id, const glm::vec3& pos, float yaw, float pitch);
+    void setEntityName(int32_t id, std::string name);
+    Entity* getEntity(int32_t id);
     void updateEntities();
 
     BlockRaycastHit blockRaycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance) const;
@@ -60,7 +60,7 @@ public:
         return instance;
     }
 
-    int getChunkCount() const { return chunks.size(); }
+    int32_t getChunkCount() const { return chunks.size(); }
 
 public:
     // std::unordered_map<glm::ivec3, Chunk*, KeyHasher> chunks;
@@ -68,14 +68,14 @@ public:
     mutable std::shared_mutex chunks_mutex;
 
     std::vector<Entity> entities;
-    // std::unordered_map<int, Entity> entities; // TODO: switch to this data structure
+    // std::unordered_map<int32_t, Entity> entities; // TODO: switch to this data structure
 };
 
 // struct KeyHasher
 // {
 //     std::size_t operator()(const glm::ivec3& key) const
 //     {
-//         constexpr int SIZE = 25;
+//         constexpr int32_t SIZE = 25;
 //         return key.x + key.y*SIZE + key.z*SIZE*SIZE;
 //         // return ((key.x * 5209) ^ (key.y * 1811)) ^ (key.z * 7297);
 //     }

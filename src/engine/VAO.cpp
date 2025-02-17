@@ -131,7 +131,7 @@ GLuint createVAO(GLuint buffer, const char * const format, GLuint EBO) {
 
     // printf("info: size:%d nodes:%d valid:%d\n", info.size, info.nodes, info.valid);
 
-    int attribute = 0;
+    int32_t attribute = 0;
     GLuint relative_offset = 0;
 
     while (1) {

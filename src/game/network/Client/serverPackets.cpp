@@ -130,7 +130,7 @@ void Client::sendChatMessagePacket(const char* buffer)
     sendPacket(&packet, sizeof(packet));
 }
 
-void Client::sendClientMetadataPacket(int render_distance, std::string name)
+void Client::sendClientMetadataPacket(int32_t render_distance, std::string name)
 {
     Packet::Client::ClientMetadata packet = {};
 

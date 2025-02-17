@@ -4,10 +4,10 @@
 
 const int SCR_WIDTH = 1280;
 const int SCR_HEIGHT = 720;
-const char * const TITLE = "Minecraft Clone";
+const char* const TITLE = "Minecraft Clone";
 const bool VSYNC = true;
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     global_argc = argc;
     global_argv = argv;

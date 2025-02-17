@@ -22,7 +22,7 @@ void Client::init(std::vector<std::string>& tchat, const char* ip)
     _client.init();
     _client.connectToServer(ip, DEFAULT_PORT);
 
-    int render_distance = 8;
+    int32_t render_distance = 8;
     if (global_argc > 2)
         render_distance = std::atoi(global_argv[2]);
     sendClientMetadataPacket(render_distance, "Rafale25");
@@ -44,7 +44,7 @@ void Client::Stop()
 void Client::clientThreadFunc()
 {
     uint8_t buffer[5000] = {};
-    int recv_size = -1;
+    int32_t recv_size = -1;
 
     while (!_stop_thread)
     {

@@ -3,4 +3,4 @@
 #include <glad/gl.h>
 #include "stb_image.h"
 
-GLuint createTextureFromPath(const char *path, int format=GL_RGB, int min_filter=GL_LINEAR, int max_filter=GL_LINEAR, int wrap=GL_REPEAT);
+GLuint createTextureFromPath(const char *path, int32_t format=GL_RGB, int32_t min_filter=GL_LINEAR, int32_t max_filter=GL_LINEAR, int32_t wrap=GL_REPEAT);

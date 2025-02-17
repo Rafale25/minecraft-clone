@@ -11,11 +11,6 @@
 #include "command_line_args.h"
 #include "Blueprint.hpp"
 
-/*
-    - save to file
-    - list file saved
-*/
-
 GameView::GameView(Context& ctx): View(ctx)
 {
     glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -73,7 +68,7 @@ void GameView::onUpdate(double time_since_start, float dt)
     }
 
     if (_draw_player_chunk) {
-        for (int i = 0; i <= 16 ; ++i) {
+        for (int32_t i = 0; i <= 16 ; ++i) {
             const glm::vec3 py00 = glm::floor(camera.getPosition() / 16.0f) * 16.0f + glm::vec3(0.0f, (float)i, 0.0f);
             const glm::vec3 py11 = glm::floor(camera.getPosition() / 16.0f) * 16.0f + glm::vec3(16.0f, (float)i, 16.0f);
             const glm::vec3 pz00 = glm::floor(camera.getPosition() / 16.0f) * 16.0f + glm::vec3((float)i, 0.0f, 0.0f);
@@ -97,8 +92,8 @@ void GameView::onUpdate(double time_since_start, float dt)
             DebugDraw::instance().drawLine(px11, px11 + glm::vec3{0, -16, 0});
         }
 
-        for (int z = - 1 ; z <= 1 ; ++z) {
-        for (int x = - 1 ; x <= 1 ; ++x) {
+        for (int32_t z = - 1 ; z <= 1 ; ++z) {
+        for (int32_t x = - 1 ; x <= 1 ; ++x) {
             const glm::vec3 p = glm::floor(camera.getPosition() / 16.0f) * 16.0f + glm::vec3(x, 0, z) * 16.0f;
             DebugDraw::instance().drawLine(p + glm::vec3(0, -128, 0), p + glm::vec3{0, 128, 0}, {1, 0, 1});
             DebugDraw::instance().drawLine(p + glm::vec3(16, -128, 0), p + glm::vec3{16, 128, 0}, {1, 0, 1});
@@ -156,9 +151,9 @@ void GameView::playerMovements(float dt)
     if (_draw_player_colliders) DebugDraw::instance().drawCuboidMinMax(player_aabb_under_feet.min, player_aabb_under_feet.max, {0.4f, 0.2, 0.8});
 
     std::vector<AABB> neighbours_blocks_AABB;
-    for (int z = -3 ; z <= 3 ; ++z) {
-    for (int y = -3 ; y <= 3 ; ++y) {
-    for (int x = -3 ; x <= 3 ; ++x) {
+    for (int32_t z = -3 ; z <= 3 ; ++z) {
+    for (int32_t y = -3 ; y <= 3 ; ++y) {
+    for (int32_t x = -3 ; x <= 3 ; ++x) {
         glm::vec3 p = glm::floor(player_feet_position + glm::vec3(x, y, z));
         if (World::instance().getBlock(p) != BlockType::Air) {
             const AABB block_aabb = {p, p + 1.0f};
@@ -320,10 +315,10 @@ void GameView::placeSphere(const glm::ivec3& center, float radius, BlockType blo
 {
     std::vector<glm::ivec3> positions;
 
-    int iradius = int(radius);
-    for (int x = -iradius ; x <= iradius ; ++x) {
-    for (int y = -iradius ; y <= iradius ; ++y) {
-    for (int z = -iradius ; z <= iradius ; ++z) {
+    int32_t iradius = int32_t(radius);
+    for (int32_t x = -iradius ; x <= iradius ; ++x) {
+    for (int32_t y = -iradius ; y <= iradius ; ++y) {
+    for (int32_t z = -iradius ; z <= iradius ; ++z) {
         glm::ivec3 p = center + glm::ivec3{x, y, z};
         if (glm::distance2(glm::vec3(center), glm::vec3(p)) > radius*radius) continue;
         positions.push_back(p);
@@ -408,9 +403,9 @@ void GameView::onMouseDrag(int x, int y, int dx, int dy)
 
 void GameView::onMouseScroll(int scroll_x, int scroll_y)
 {
-    int block = ((int)block_in_hand + scroll_y) % ((int)BlockType::INVALID-1);
+    int32_t block = ((int32_t)block_in_hand + scroll_y) % ((int32_t)BlockType::INVALID-1);
     if (block < 1)
-        block += (int)BlockType::INVALID-1;
+        block += (int32_t)BlockType::INVALID-1;
     block_in_hand = (BlockType)block;
 }
 

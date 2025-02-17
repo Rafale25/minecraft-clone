@@ -11,12 +11,12 @@ namespace Packet
         struct UpdateBlock {
             uint8_t id;
             uint8_t blockType;
-            int x, y, z;
+            int32_t x, y, z;
         };
 
         struct UpdateEntity {
             uint8_t id;
-            int x, y, z, yaw, pitch; // float encoded in int
+            int32_t x, y, z, yaw, pitch; // float encoded in int
         };
 
         struct ChatMessage {

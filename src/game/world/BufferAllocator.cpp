@@ -24,7 +24,7 @@ BufferAllocator::BufferAllocator(const char* name, uint32_t slot_size, uint32_t 
     glNamedBufferStorage(_buffer, buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
     /* Fill free_blocks stack starting from last so index 0 ends at the top */
-    for (int id = max_slots-1 ; id >= 0 ; --id) {
+    for (int32_t id = max_slots-1 ; id >= 0 ; --id) {
         _free_slots.push(id);
     }
 }
@@ -64,9 +64,9 @@ BufferSlot BufferAllocator::allocate(uint32_t size, const void * data) {
     #endif
 
     BufferSlot b = {
-        .start = (int) (id * _slot_size),
-        .size = (int) size,
-        .id = (int) id
+        .start = (int32_t) (id * _slot_size),
+        .size = (int32_t) size,
+        .id = (int32_t) id
     };
 
     glNamedBufferSubData(
@@ -95,9 +95,9 @@ BufferSlot BufferAllocator::allocate(uint32_t size, const void * data) {
 //     }
 
 //     BufferSlot b = {
-//         .start = (int) (id * _slot_size),
-//         .size = (int) size,
-//         .id = (int) id
+//         .start = (int32_t) (id * _slot_size),
+//         .size = (int32_t) size,
+//         .id = (int32_t) id
 //     };
 
 //     glNamedBufferSubData(

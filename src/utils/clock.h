@@ -28,7 +28,7 @@ struct Chrono {
 };
 
 struct Timing {
-    int count = 0;
+    int32_t count = 0;
     // bool started = false;
     system_clock::time_point t;
     double current_average = 0.0;

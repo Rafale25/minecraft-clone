@@ -97,7 +97,7 @@ void GameView::guiWorldEdit()
             } else {
                 const Blueprint& bp = createBlueprintFromFile(blueprint_infos[selected_index].entry.path().string());
                 // printf("%d %d %d\n", bp.dimensions.x, bp.dimensions.y, bp.dimensions.z);
-                // printf("%d\n", (int)bp.blocks.size());
+                // printf("%d\n", (int32_t)bp.blocks.size());
                 pasteBlueprintIntoWorld(bp, player_blockraycasthit.block_pos);
             }
         }
@@ -112,7 +112,7 @@ void GameView::guiWorldEdit()
     ImGui::Text("Blueprints");
     if (ImGui::BeginListBox(""))
     {
-        for (int i = 0 ; i < (int)blueprint_infos.size() ; ++i) {
+        for (int32_t i = 0 ; i < (int32_t)blueprint_infos.size() ; ++i) {
             if (ImGui::Selectable(blueprint_infos[i].name.c_str(), i == selected_index)) {
                 selected_index = i;
             }

@@ -6,7 +6,7 @@ World::World()
 {
 }
 
-Entity* World::getEntity(int id)
+Entity* World::getEntity(int32_t id)
 {
     for (size_t i = 0 ; i < entities.size() ; ++i)
     {
@@ -31,7 +31,7 @@ void World::addEntity(Entity e)
     entities.push_back(e);
 }
 
-void World::removeEntity(int id)
+void World::removeEntity(int32_t id)
 {
     for (size_t i = 0 ; i < entities.size() ; ++i)
     {
@@ -42,7 +42,7 @@ void World::removeEntity(int id)
     }
 }
 
-void World::setEntityTransform(int id, const glm::vec3& pos, float yaw, float pitch)
+void World::setEntityTransform(int32_t id, const glm::vec3& pos, float yaw, float pitch)
 {
     Entity* e = getEntity(id);
     if (e == nullptr) return;
@@ -50,7 +50,7 @@ void World::setEntityTransform(int id, const glm::vec3& pos, float yaw, float pi
     e->transform.rotation = glm::quat(glm::vec3(-pitch, -yaw, 0.0f));
 }
 
-void World::setEntityName(int id, std::string name)
+void World::setEntityName(int32_t id, std::string name)
 {
     Entity* e = getEntity(id);
     if (e == nullptr) return;
@@ -75,7 +75,7 @@ BlockType World::getBlock(const glm::ivec3& pos) const
     auto it = chunks.find(chunk_pos);
     if (it == chunks.end()) return BlockType::Air; // chunk doesn't exist //
 
-    int index = Chunk::XYZtoIndex(local_pos.x, local_pos.y, local_pos.z);
+    int32_t index = Chunk::XYZtoIndex(local_pos.x, local_pos.y, local_pos.z);
     return it->second->blocks[index];
 }
 
@@ -94,7 +94,7 @@ BlockRaycastHit World::blockRaycast(const glm::vec3& origin, const glm::vec3& di
     float intersection_distance = 0.0f;
 
     #define MAX_ITERATION 500
-	for (int i = 0; i < MAX_ITERATION; i++) {
+	for (int32_t i = 0; i < MAX_ITERATION; i++) {
         auto block = getBlock(mapPos);
         normal = -mask * rayStep;
 
@@ -120,7 +120,7 @@ BlockRaycastHit World::blockRaycast(const glm::vec3& origin, const glm::vec3& di
 uint32_t hashBlocks(const uint8_t* values) {
     uint32_t h = 1;
 
-    for (int i = 0 ; i < 4096 ; ++i) {
+    for (int32_t i = 0 ; i < 4096 ; ++i) {
         h *= (1779033703 + 2*(uint32_t)values[i]);
     }
 

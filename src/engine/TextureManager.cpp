@@ -1,7 +1,7 @@
 #include "TextureManager.hpp"
 #include "loadTexture.hpp"
 
-GLuint TextureManager::loadTexture(const char* path, int format, int min_filter, int max_filter, int wrap) {
+GLuint TextureManager::loadTexture(const char* path, int32_t format, int32_t min_filter, int32_t max_filter, int32_t wrap) {
     const std::string path_string = std::string(path);
     auto it = _textures.find(path_string);
 

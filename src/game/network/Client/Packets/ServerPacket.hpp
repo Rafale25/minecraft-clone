@@ -13,11 +13,11 @@ namespace Packet
 #pragma pack(push, 1)
 
         struct Identification {
-            int client_id;
+            int32_t client_id;
         };
 
         struct AddEntity {
-            int id;
+            int32_t id;
             glm::vec3 position;
             float yaw;
             float pitch;
@@ -25,11 +25,11 @@ namespace Packet
         };
 
         struct RemoveEntity {
-            int entity_id;
+            int32_t entity_id;
         };
 
         struct UpdateEntity {
-            int entity_id;
+            int32_t entity_id;
             glm::vec3 position;
             float yaw;
             float pitch;
@@ -50,7 +50,7 @@ namespace Packet
         };
 
         struct UpdateEntityMetadata {
-            int entity_id;
+            int32_t entity_id;
             char name[64];
         };
 

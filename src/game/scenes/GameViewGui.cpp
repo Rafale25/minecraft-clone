@@ -20,7 +20,7 @@ void GameView::drawPlayersNames()
     window_flags |= ImGuiWindowFlags_NoInputs;
     // window_flags |= ImGuiWindowFlags_NoBackground;
 
-    int idx = 0;
+    int32_t idx = 0;
     for (const Entity& e : World::instance().entities) {
 
         glm::ivec2 screen_pos = worldToScreenSpace(e.smooth_transform.position + glm::vec3(0.0f, 0.8f, 0.0f), camera.getProjection(), camera.getView(), ctx.width, ctx.height);
@@ -76,7 +76,7 @@ void GameView::gui(float dt)
     glm::vec3 camera_pos = camera.getPosition();
     ImGui::Text("position: %.2f, %.2f, %.2f", camera_pos.x, camera_pos.y, camera_pos.z);
     ImGui::Text("forward: %.2f, %.2f, %.2f", camera.forward().x, camera.forward().y, camera.forward().z);
-    ImGui::Text("block in hand: %d", (int)block_in_hand);
+    ImGui::Text("block in hand: %d", (int32_t)block_in_hand);
 
     ImGui::Checkbox("FreeCam", &free_cam);
     ImGui::Checkbox("World edit", &block_selection_mode);

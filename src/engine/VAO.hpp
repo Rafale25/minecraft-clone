@@ -3,9 +3,9 @@
 #include <glad/gl.h>
 
 struct FormatNode {
-    int size; // 1, 2, 4, 8
-    int count;
-    int type; // GL_UNSIGNED_BYTE, GL_HALF_FLOAT, GL_FLOAT, GL_DOUBLE
+    int32_t size; // 1, 2, 4, 8
+    int32_t count;
+    int32_t type; // GL_UNSIGNED_BYTE, GL_HALF_FLOAT, GL_FLOAT, GL_DOUBLE
     bool normalize;
     bool valid;
 
@@ -21,9 +21,9 @@ struct FormatNode {
 };
 
 struct FormatInfo {
-    int size;
-    int nodes;
-    int divisor;
+    int32_t size;
+    int32_t nodes;
+    int32_t divisor;
     bool valid;
 
     static FormatInfo invalid() {

@@ -2,17 +2,17 @@
 #include "glad/gl.h"
 #include "VAO.hpp"
 
-Entity::Entity(int id): id(id) {
+Entity::Entity(int32_t id): id(id) {
     init();
 }
 
-Entity::Entity(int id, const glm::vec3 &position): id(id) {
+Entity::Entity(int32_t id, const glm::vec3 &position): id(id) {
     transform.position = position;
     smooth_transform.position = position;
     init();
 }
 
-Entity::Entity(int id, const glm::vec3 &position, const std::string& name): id(id), name(name) {
+Entity::Entity(int32_t id, const glm::vec3 &position, const std::string& name): id(id), name(name) {
     transform.position = position;
     smooth_transform.position = position;
     init();

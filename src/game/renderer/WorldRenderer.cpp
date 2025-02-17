@@ -76,7 +76,7 @@ void WorldRenderer::render(const Camera &camera)
     glBindTextureUnit(0, shadowmap._depthTexture._texture);
 
     // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
-    unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    uint32_t attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
     glDrawBuffers(2, attachments);
 
     // glDepthFunc(GL_EQUAL);
@@ -124,15 +124,15 @@ void WorldRenderer::onDeletedChunk(const glm::ivec3 &chunk_pos) {
 }
 
 void WorldRenderer::onAddedChunk(const glm::ivec3 &chunk_pos) {
-    for (int z = -1 ; z <= 1; ++z) {
-    for (int y = -1 ; y <= 1; ++y) {
-    for (int x = -1 ; x <= 1; ++x) {
+    for (int32_t z = -1 ; z <= 1; ++z) {
+    for (int32_t y = -1 ; y <= 1; ++y) {
+    for (int32_t x = -1 ; x <= 1; ++x) {
         const glm::ivec3 offset = {x, y, z};
         chunks_to_remesh.insert(chunk_pos + offset);
     }}}
 }
 
-void WorldRenderer::onResize(int width, int height) {
+void WorldRenderer::onResize(int32_t width, int32_t height) {
     _framebuffer.destroy();
     _color_texture.destroy();
     _world_position_texture.destroy();

@@ -5,12 +5,12 @@
 
 // #define DISABLE_BINDLESS_TEXTURE
 
-static int getFormat(const char* filepath)
+static int32_t getFormat(const char* filepath)
 {
-    int width, height, channels;
+    int32_t width, height, channels;
     stbi_info(filepath, &width, &height, &channels);
 
-    int format;
+    int32_t format;
     switch (channels)
     {
         case 3:
@@ -34,7 +34,7 @@ void BlockTextureManager::_loadAllTextures()
 {
     const std::string textures_path = "./assets/textures/";
 
-    for (int i = 0 ; i < (int)BlockType::INVALID ; ++i) {
+    for (int32_t i = 0 ; i < (int32_t)BlockType::INVALID ; ++i) {
         const auto& [transparent, liquid, lz, hz, lx, hx, ly, hy] = blocks_info[i];
 
         std::string filepath_lz = (textures_path + textures_name[lz]);

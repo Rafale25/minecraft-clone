@@ -14,9 +14,9 @@ static const std::string BLUEPRINT_FOLDER_PATH = "./blueprints/";
 Blueprint createBlueprintFromSelection(const glm::ivec3 min, const glm::ivec3 max) {
     std::vector<std::tuple<glm::ivec3, BlockType>> blocks;
 
-    for (int z = min.z ; z <= max.z ; ++z) {
-    for (int y = min.y ; y <= max.y ; ++y) {
-    for (int x = min.x ; x <= max.x ; ++x) {
+    for (int32_t z = min.z ; z <= max.z ; ++z) {
+    for (int32_t y = min.y ; y <= max.y ; ++y) {
+    for (int32_t x = min.x ; x <= max.x ; ++x) {
         const BlockType block = World::instance().getBlock(glm::ivec3(x, y, z));
         if (block == BlockType::Air) continue;
         blocks.emplace_back(
@@ -29,7 +29,7 @@ Blueprint createBlueprintFromSelection(const glm::ivec3 min, const glm::ivec3 ma
 }
 
 void deleteBlueprint(const char* name) {
-    int r = std::remove((BLUEPRINT_FOLDER_PATH + name).c_str());
+    int32_t r = std::remove((BLUEPRINT_FOLDER_PATH + name).c_str());
     if (r != 0) {
         printf("Error: Couldn't remove file \"%s\"\n", name);
     }
@@ -42,7 +42,7 @@ void saveBlueprintToFile(const Blueprint& blueprint, const std::string& name)
 
     file << blueprint.dimensions.x << ',' << blueprint.dimensions.y << ',' << blueprint.dimensions.z << '\n';
     for (const auto& [pos, blocktype] : blueprint.blocks) {
-        file << pos.x << ',' << pos.y << ',' << pos.z << ',' << static_cast<int>(blocktype) << '\n';
+        file << pos.x << ',' << pos.y << ',' << pos.z << ',' << static_cast<int32_t>(blocktype) << '\n';
     }
 
     file.close();
@@ -86,9 +86,9 @@ void pasteBlueprintIntoWorld(const Blueprint& bp, const glm::ivec3& pos)
     // Send in chunks of MAX_BULK_BLOCK_COUNT blocks
     #define MAX_BULK_BLOCK_COUNT (1'048'576)
 
-    int i = 0;
+    int32_t i = 0;
     while (1) {
-        int next_i = glm::clamp(i + MAX_BULK_BLOCK_COUNT, 0, (int)bp.blocks.size());
+        int32_t next_i = glm::clamp(i + MAX_BULK_BLOCK_COUNT, 0, (int32_t)bp.blocks.size());
         if (i > next_i) break;
 
         const auto& first = bp.blocks.begin() + i;

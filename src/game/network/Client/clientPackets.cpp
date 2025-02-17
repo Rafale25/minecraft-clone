@@ -7,20 +7,20 @@ Packet::Server::ChunkPacket* readChunkPacket(ByteBuffer& buffer)
 {
     auto* chunk_data = new Packet::Server::ChunkPacket;
 
-    int x = buffer.getInt();
-    int y = buffer.getInt();
-    int z = buffer.getInt();
+    int32_t x = buffer.getInt();
+    int32_t y = buffer.getInt();
+    int32_t z = buffer.getInt();
 
     chunk_data->pos = glm::ivec3(x, y, z) / 16;
 
-    for (int i = 0 ; i < 16*16*16 ; ++i) {
+    for (int32_t i = 0 ; i < 16*16*16 ; ++i) {
         uint8_t byte = buffer.get();
 
         /* convert to BlackoutBurst indexing -_- */
-        // int x = i % 16;
-        // int y = (i / 16) % 16;
-        // int z = i / (16 * 16);
-        // int index = x * 16*16 + y * 16 + z;
+        // int32_t x = i % 16;
+        // int32_t y = (i / 16) % 16;
+        // int32_t z = i / (16 * 16);
+        // int32_t index = x * 16*16 + y * 16 + z;
         // chunk.blocks[index] = (BlockType)byte;
 
         chunk_data->blocks[i] = (BlockType)byte;
@@ -31,9 +31,9 @@ Packet::Server::ChunkPacket* readChunkPacket(ByteBuffer& buffer)
 
 Packet::Server::ChunkPacket* readFullMonoChunkPacket(ByteBuffer buffer)
 {
-    int x = buffer.getInt();
-    int y = buffer.getInt();
-    int z = buffer.getInt();
+    int32_t x = buffer.getInt();
+    int32_t y = buffer.getInt();
+    int32_t z = buffer.getInt();
     uint8_t blockType = buffer.get();
 
     auto *chunk_data = new Packet::Server::ChunkPacket;
@@ -106,7 +106,7 @@ void Client::decodePacketRemoveEntity(ByteBuffer buffer)
 {
     Client& client = Client::instance();
 
-    int entity_id = buffer.getInt();
+    int32_t entity_id = buffer.getInt();
     client.task_queue.push_safe([=]() {
         World::instance().removeEntity(entity_id);
     });

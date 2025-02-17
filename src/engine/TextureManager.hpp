@@ -22,7 +22,7 @@ public:
         return _instance;
     }
 
-    GLuint loadTexture(const char* path, int format=GL_RGB, int min_filter=GL_LINEAR, int max_filter=GL_LINEAR, int wrap=GL_REPEAT);
+    GLuint loadTexture(const char* path, int32_t format=GL_RGB, int32_t min_filter=GL_LINEAR, int32_t max_filter=GL_LINEAR, int32_t wrap=GL_REPEAT);
 
 private:
     std::unordered_map<std::string, GLuint> _textures;

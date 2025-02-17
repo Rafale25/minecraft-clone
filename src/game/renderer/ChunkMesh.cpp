@@ -6,7 +6,7 @@
 #include "ChunkExtra.hpp"
 #include "BufferAllocator.hpp"
 
-GLuint packVertex(int x, int y, int z, int u, int v, int o, int t, int ao=3) {
+GLuint packVertex(int32_t x, int32_t y, int32_t z, int32_t u, int32_t v, int32_t o, int32_t t, int32_t ao=3) {
     // 4 bytes, 32 bits
     // 00000000000000000000000000000000
     //  aaattttttttooouvzzzzzyyyyyxxxxx
@@ -23,7 +23,7 @@ GLuint packVertex(int x, int y, int z, int u, int v, int o, int t, int ao=3) {
     return p;
 }
 
-int vertexAO(int side1, int side2, int corner) {
+int32_t vertexAO(int32_t side1, int32_t side2, int32_t corner) {
     if (side1 && side2) return 0;
     return 3 - (side1 + side2 + corner);
 }
@@ -45,7 +45,7 @@ static inline glm::ivec3 orientationToDir(Orientation orientation) {
 // #pragma GCC diagnostic push
 // #pragma GCC diagnostic ignored "-Wc99-designator"
 
-const int infos[][50] = {
+const int32_t infos[][50] = {
     // [Orientation::Top] 0
     {
      // x, y, z,    u, v
@@ -183,7 +183,7 @@ const int infos[][50] = {
 inline void makeFace(
     std::vector<GLuint>& vertices,
     std::vector<GLuint>& indices,
-    int x, int y, int z,
+    int32_t x, int32_t y, int32_t z,
     const ChunkExtra &chunkextra,
     GLuint& ebo_offset,
     const glm::ivec3& local_pos,
@@ -192,28 +192,28 @@ inline void makeFace(
 ){
     glm::ivec3 dir = orientationToDir(orientation);
 
-    const int* info = infos[orientation];
+    const int32_t* info = infos[orientation];
 
     BlockType nb = chunkextra.getBlock(local_pos + dir);
 
-    BlockInfo binfo = blocks_info[(int)nb];
+    BlockInfo binfo = blocks_info[(int32_t)nb];
     if (binfo.transparent) {
 
         // TODO: use blocksMetadata to check if it's non transparent instead of >0
-        auto nb_lx = !blocks_info[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[26], info[27], info[28]))].transparent;
-        auto nb_hx = !blocks_info[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[29], info[30], info[31]))].transparent;
-        auto nb_ly = !blocks_info[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[32], info[33], info[34]))].transparent;
-        auto nb_hy = !blocks_info[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[35], info[36], info[37]))].transparent;
+        auto nb_lx = !blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[26], info[27], info[28]))].transparent;
+        auto nb_hx = !blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[29], info[30], info[31]))].transparent;
+        auto nb_ly = !blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[32], info[33], info[34]))].transparent;
+        auto nb_hy = !blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[35], info[36], info[37]))].transparent;
 
-        auto nb_lxly = !blocks_info[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[38], info[39], info[40]))].transparent;
-        auto nb_hxly = !blocks_info[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[41], info[42], info[43]))].transparent;
-        auto nb_lxhy = !blocks_info[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[44], info[45], info[46]))].transparent;
-        auto nb_hxhy = !blocks_info[(int)chunkextra.getBlock(local_pos + glm::ivec3(info[47], info[48], info[49]))].transparent;
+        auto nb_lxly = !blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[38], info[39], info[40]))].transparent;
+        auto nb_hxly = !blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[41], info[42], info[43]))].transparent;
+        auto nb_lxhy = !blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[44], info[45], info[46]))].transparent;
+        auto nb_hxhy = !blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[47], info[48], info[49]))].transparent;
 
-        int a00 = vertexAO(nb_lx, nb_ly, nb_lxly);
-        int a10 = vertexAO(nb_hx, nb_ly, nb_hxly);
-        int a11 = vertexAO(nb_hx, nb_hy, nb_hxhy);
-        int a01 = vertexAO(nb_lx, nb_hy, nb_lxhy);
+        int32_t a00 = vertexAO(nb_lx, nb_ly, nb_lxly);
+        int32_t a10 = vertexAO(nb_hx, nb_ly, nb_hxly);
+        int32_t a11 = vertexAO(nb_hx, nb_hy, nb_hxhy);
+        int32_t a01 = vertexAO(nb_lx, nb_hy, nb_lxhy);
 
         if(a00 + a11 > a01 + a10) {
             // generate normal quad
@@ -264,9 +264,9 @@ ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos)
 
     GLuint ebo_offset = 0;
 
-    for (int z = 0 ; z < 16 ; ++z) {
-    for (int y = 0 ; y < 16 ; ++y) {
-    for (int x = 0 ; x < 16 ; ++x) {
+    for (int32_t z = 0 ; z < 16 ; ++z) {
+    for (int32_t y = 0 ; y < 16 ; ++y) {
+    for (int32_t x = 0 ; x < 16 ; ++x) {
         BlockType block = chunkextra.getBlock({x, y, z});
 
         if (block == BlockType::Air) continue;

@@ -8,7 +8,7 @@ class TaskQueue {
 public:
     void push_safe(std::function<void()> task);
     void execute();
-    int count() const;
+    int32_t count() const;
 
 public:
     std::deque<std::function<void()>> _task_queue;
