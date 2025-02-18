@@ -2,6 +2,14 @@
 
 #include <stdint.h>
 
-struct GameState {
-    int32_t render_distance;
+const int32_t MIN_RENDER_DISTANCE = 2;
+const int32_t MAX_RENDER_DISTANCE = 64;
+
+struct _GameState {
+    int32_t render_distance = MIN_RENDER_DISTANCE;
 };
+
+namespace GameState {
+    void setRenderDistance(int value);
+    int32_t getRenderDistance();
+}

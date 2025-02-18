@@ -5,6 +5,7 @@
 #include <string>
 #include <cstring>
 
+#include "GameState.hpp"
 #include "endianess.h"
 #include "command_line_args.h"
 #include "World.hpp"
@@ -22,10 +23,7 @@ void Client::init(std::vector<std::string>& tchat, const char* ip)
     _client.init();
     _client.connectToServer(ip, DEFAULT_PORT);
 
-    int32_t render_distance = 8;
-    if (global_argc > 2)
-        render_distance = std::atoi(global_argv[2]);
-    sendClientMetadataPacket(render_distance, "Rafale25");
+    sendClientMetadataPacket(GameState::getRenderDistance(), "Rafale25");
 }
 
 void Client::Start()

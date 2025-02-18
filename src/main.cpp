@@ -1,4 +1,5 @@
 #include "command_line_args.h"
+#include "GameState.hpp"
 #include "Context.hpp"
 #include "GameView.hpp"
 
@@ -15,6 +16,10 @@ int main(int argc, char** argv)
     if (global_argc < 2) {
         printf("Error: Please enter server address in command line argument.\n");
         return -1;
+    }
+
+    if (global_argc > 2) {
+        GameState::setRenderDistance(std::atoi(global_argv[2]));
     }
 
     Context ctx(SCR_WIDTH, SCR_HEIGHT, TITLE, 0, 4);
