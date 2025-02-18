@@ -68,8 +68,7 @@ public:
     Program mesh_shader                 {"./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs"};
     Program postprocessing_shader       {"./assets/shaders/postprocess.vs", "./assets/shaders/postprocess.fs"};
 
-    const float chunk_view_distance = 16.0f * 16.0f;
-    const float chunk_delete_offset = 16.0f * 16.0f;
+    const float CHUNK_DELETE_DISTANCE_OFFSET = 3.0f * 16.0f;
 
     const uint32_t MAX_COMMANDS = 16'000;
     BufferAllocator buffer_allocator_vertices {"BufferAllocatorVertice", 25'000 * sizeof(int32_t), MAX_COMMANDS};

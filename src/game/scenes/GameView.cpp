@@ -2,6 +2,7 @@
 
 #include "imgui.h"
 
+#include "GameState.hpp"
 #include "World.hpp"
 #include "Chunk.hpp"
 #include "Client.hpp"
@@ -10,6 +11,13 @@
 
 #include "command_line_args.h"
 #include "Blueprint.hpp"
+#include <glm/gtx/component_wise.hpp>
+
+bool isInManhattanDistance(const glm::vec3& a, const glm::vec3& b, float distance)
+{
+    const glm::vec3 v = glm::abs(a - b);
+    return v.x < distance && v.y < distance && v.z < distance;
+}
 
 GameView::GameView(Context& ctx): View(ctx)
 {
@@ -252,8 +260,12 @@ void GameView::deleteFarChunks()
 
     auto& world_chunks = World::instance().chunks;
     for (const auto& [pos, chunk] : world_chunks) {
-        const float camera_chunk_dist = glm::distance(camera.getPosition(), glm::vec3(chunk->pos) * 16.0f);
-        if (camera_chunk_dist > world_renderer.chunk_view_distance + world_renderer.chunk_delete_offset) {
+
+        bool is_in_view_distance = isInManhattanDistance(
+                                    camera.getPosition(),
+                                    glm::vec3(chunk->pos) * 16.0f,
+                                    GameState::getRenderDistance() * 16.0f + world_renderer.CHUNK_DELETE_DISTANCE_OFFSET);
+        if (!is_in_view_distance) {
             pos_to_delete.push_back(pos);
         }
     }
@@ -274,8 +286,12 @@ void GameView::processNewChunks()
         Client::instance().new_chunks.pop_back();
 
         // Don't process imcoming chunk out of render distance
-        const float camera_chunk_dist = glm::distance(camera.getPosition(), glm::vec3(chunk_data->pos) * 16.0f);
-        if (camera_chunk_dist > world_renderer.chunk_view_distance + world_renderer.chunk_delete_offset) {
+        bool is_in_view_distance = isInManhattanDistance(
+                                    camera.getPosition(),
+                                    glm::vec3(chunk_data->pos) * 16.0f,
+                                    GameState::getRenderDistance() * 16.0f + world_renderer.CHUNK_DELETE_DISTANCE_OFFSET);
+
+        if (!is_in_view_distance) {
             delete chunk_data;
             continue;
         }

@@ -56,7 +56,7 @@ private:
     bool _draw_hit_point = false;
 
     FPSCamera camera = {
-        glm::vec3(10.0f, 25.0, 12.0f), 0.0f, 0.0f,
+        glm::vec3(0.0f, 25.0, 0.0f), 0.0f, 0.0f,
         60.0f, (float)ctx.width / (float)ctx.height, 0.1f, 2000.0f
     };
 
