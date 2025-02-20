@@ -68,9 +68,9 @@ public:
     Program mesh_shader                 {"./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs"};
     Program postprocessing_shader       {"./assets/shaders/postprocess.vs", "./assets/shaders/postprocess.fs"};
 
-    const float CHUNK_DELETE_DISTANCE_OFFSET = 8.0f * 16.0f;
+    const int32_t CHUNK_DELETE_DISTANCE_OFFSET = 4;// 0.0f * 16.0f;
 
-    const uint32_t MAX_COMMANDS = 16'000;
+    const uint32_t MAX_COMMANDS = 20'000;
     BufferAllocator buffer_allocator_vertices {"BufferAllocatorVertice", 25'000 * sizeof(int32_t), MAX_COMMANDS};
     BufferAllocator buffer_allocator_indices  {"BufferAllocatorIndices", 25'000 * sizeof(int32_t), MAX_COMMANDS};
 
@@ -79,6 +79,7 @@ public:
     GLuint ssbo_chunk_positions;
 
     ThreadPool thread_pool;
+
 
     std::unordered_set<glm::ivec3> chunks_to_remesh;
     std::vector<std::tuple<glm::ivec3, ChunkRawMesh>> chunks_waiting_bufferslot;

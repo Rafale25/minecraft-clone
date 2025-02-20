@@ -55,6 +55,10 @@ public:
     Chunk* getChunk(const glm::ivec3& pos) const;
     Chunk* getChunkUnsafe(const glm::ivec3 &pos) const; // Do not use mutex
 
+    static glm::ivec3 worldToChunkCoord(const glm::vec3& p) {
+        return glm::floor(p / 16.0f);
+    }
+
     static World& instance() {
         static World instance;
         return instance;

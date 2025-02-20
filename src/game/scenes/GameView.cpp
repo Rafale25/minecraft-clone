@@ -13,11 +13,18 @@
 #include "Blueprint.hpp"
 #include <glm/gtx/component_wise.hpp>
 
-bool isInManhattanDistance(const glm::vec3& a, const glm::vec3& b, float distance)
+// bool isInManhattanDistance(const glm::vec3& a, const glm::vec3& b, float distance)
+// {
+//     const glm::vec3 v = glm::abs(a - b);
+//     return v.x <= distance && v.y <= distance && v.z <= distance;
+// }
+
+bool isInManhattanDistance(const glm::ivec3& a, const glm::ivec3& b, int32_t distance)
 {
-    const glm::vec3 v = glm::abs(a - b);
-    return v.x < distance && v.y < distance && v.z < distance;
+    const glm::ivec3 v = glm::abs(a - b);
+    return v.x <= distance && v.y <= distance && v.z <= distance;
 }
+
 
 GameView::GameView(Context& ctx): View(ctx)
 {
@@ -262,9 +269,9 @@ void GameView::deleteFarChunks()
     for (const auto& [pos, chunk] : world_chunks) {
 
         bool is_in_view_distance = isInManhattanDistance(
-                                    camera.getPosition(),
-                                    glm::vec3(chunk->pos) * 16.0f,
-                                    GameState::getRenderDistance() * 16.0f + world_renderer.CHUNK_DELETE_DISTANCE_OFFSET);
+                                    World::worldToChunkCoord(camera.getPosition()),
+                                    chunk->pos,
+                                    GameState::getRenderDistance() + world_renderer.CHUNK_DELETE_DISTANCE_OFFSET);
         if (!is_in_view_distance) {
             pos_to_delete.push_back(pos);
         }
@@ -286,15 +293,15 @@ void GameView::processNewChunks()
         Client::instance().new_chunks.pop_back();
 
         // Don't process imcoming chunk out of render distance
-        bool is_in_view_distance = isInManhattanDistance(
-                                    camera.getPosition(),
-                                    glm::vec3(chunk_data->pos) * 16.0f,
-                                    GameState::getRenderDistance() * 16.0f + world_renderer.CHUNK_DELETE_DISTANCE_OFFSET);
+        // bool is_in_view_distance = isInManhattanDistance(
+        //                             camera.getPosition(),
+        //                             glm::vec3(chunk_data->pos) * 16.0f,
+        //                             GameState::getRenderDistance() * 16.0f + world_renderer.CHUNK_DELETE_DISTANCE_OFFSET);
 
-        if (!is_in_view_distance) {
-            delete chunk_data;
-            continue;
-        }
+        // if (!is_in_view_distance) {
+        //     delete chunk_data;
+        //     continue;
+        // }
 
         const Chunk* chunk = World::instance().setChunk(chunk_data->pos, chunk_data->blocks);
         if (chunk) {
