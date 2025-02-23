@@ -118,8 +118,8 @@ void WorldRenderer::onDeletedChunk(const glm::ivec3 &chunk_pos) {
     const auto& it = meshes.find(chunk_pos);
     if (it == meshes.end()) return;
 
-    buffer_allocator_vertices.deallocate(it->second.slot_vertices.id);
-    buffer_allocator_indices.deallocate(it->second.slot_indices.id);
+    buffer_allocator_vertices.deallocate(it->second.slot_vertices.start);
+    buffer_allocator_indices.deallocate(it->second.slot_indices.start);
     meshes.erase(it);
 }
 
@@ -178,8 +178,8 @@ void WorldRenderer::allocateVAOforWaitingChunks() {
         // find old chunk and delete its vertices
         const auto& it = meshes.find(chunk_pos);
         if (it != meshes.end()) {
-            buffer_allocator_vertices.deallocate(it->second.slot_vertices.id);
-            buffer_allocator_indices.deallocate(it->second.slot_indices.id);
+            buffer_allocator_vertices.deallocate(it->second.slot_vertices.start);
+            buffer_allocator_indices.deallocate(it->second.slot_indices.start);
         }
 
         ChunkMesh new_mesh;
@@ -201,7 +201,7 @@ void WorldRenderer::renderTerrain(const glm::mat4 &view_projection, bool use_fru
 
     for (const auto& [chunk_pos, mesh] : meshes)
     {
-        if (mesh.slot_vertices.id == -1 || mesh.slot_indices.id == -1) continue;
+        if (mesh.slot_vertices.start == -1 || mesh.slot_indices.start == -1) continue;
 
         if (use_frustum_culling) {
             AABB chunk_aabb = {(chunk_pos * 16), (chunk_pos * 16) + 16};

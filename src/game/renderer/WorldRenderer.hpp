@@ -68,11 +68,14 @@ public:
     Program mesh_shader                 {"./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs"};
     Program postprocessing_shader       {"./assets/shaders/postprocess.vs", "./assets/shaders/postprocess.fs"};
 
-    const int32_t CHUNK_DELETE_DISTANCE_OFFSET = 4;// 0.0f * 16.0f;
+    const int32_t CHUNK_DELETE_DISTANCE_OFFSET = 1;
 
-    const uint32_t MAX_COMMANDS = 20'000;
-    BufferAllocator buffer_allocator_vertices {"BufferAllocatorVertice", 25'000 * sizeof(int32_t), MAX_COMMANDS};
-    BufferAllocator buffer_allocator_indices  {"BufferAllocatorIndices", 25'000 * sizeof(int32_t), MAX_COMMANDS};
+    const uint32_t MAX_COMMANDS = 500'000;
+    const uint32_t MAX_MEMORY = 500'000'000;
+    // const uint32_t MAX_MEMORY = 2'000'000'000;
+
+    BufferAllocator buffer_allocator_vertices {"BufferAllocatorVertice", MAX_MEMORY};
+    BufferAllocator buffer_allocator_indices  {"BufferAllocatorIndices", MAX_MEMORY};
 
     GLuint chunk_vao;
     GLuint draw_command_buffer;

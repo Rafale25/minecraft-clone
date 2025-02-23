@@ -2,49 +2,75 @@
 
 #include <cstdint>
 #include <stack>
+#include <list>
 #include <mutex>
 
 typedef unsigned int GLuint;
 
-typedef struct {
+/*
+start, size, used
+
+slots [ {0, MAX_SIZE, false} ]
+
+allocate(64)
+slots [ {0, 64, true}, {64, MAX_SIZE, false} ]
+
+allocate(64)
+slots [ {0, 64, true}, {64, 64, true}, {128, MAX_SIZE, false} ]
+
+allocate(64)
+slots [ {0, 64, true}, {64, 64, true}, {128, 64, true}, {192, MAX_SIZE, false} ]
+
+deallocate(id(1))
+slots [ {0, 64, true}, {64, 64, false}, {128, 64, true}, {192, MAX_SIZE, false} ]
+
+deallocate(id(0))
+slots [ {0, 128, false}, {128, 64, true}, {192, MAX_SIZE, false} ]
+*/
+
+struct BufferSlot {
     int32_t start; // bytes;
     int32_t size; // bytes;
-    int32_t id;
 
-    // bool isValid() const { return id != -1; }
-} BufferSlot;
+    bool used = false;
 
-constexpr BufferSlot invalid_buffer_slot = {-1, -1, -1};
+    // bool is_valid;
+    // std::list<BufferSlot>::iterator it;
+};
 
-typedef struct {
+constexpr BufferSlot invalid_buffer_slot = {-1, -1, false};
+
+struct DrawElementsIndirectCommand {
     uint32_t count;
     uint32_t instanceCount;
     uint32_t firstIndex;
     int32_t  baseVertex;
     uint32_t baseInstance;
-} DrawElementsIndirectCommand;
+};
 
 // NOTE: Crash when max size exceed int32_t max
 static constexpr uint64_t MAX_BUFFER_SIZE = 20e8; // 2000 mb
 
 class BufferAllocator {
 public:
-    BufferAllocator(const char* name, uint32_t slot_size, uint32_t max_slots);
+    BufferAllocator(const char* name, uint32_t max_memory);
 
     BufferSlot allocate(uint32_t size, const void * data);
     void deallocate(int32_t id);
-    // BufferSlot updateAllocation(int32_t id, uint32_t size, const void * data);
 
     GLuint getBufferObject() const { return _buffer; };
-    int32_t getFreeSlotsCount() const { return _free_slots.size(); };
-    int32_t getMaxSlotsCount() const { return _max_slots; };
+    int32_t getMaxMemory() const { return _max_memory; };
+    int32_t getAvailableMemory() const { return _available_memory; };
+    int32_t getSlotCount() const { return _slots.size(); };
+
+    void defragmentAt(const std::list<BufferSlot>::iterator it);
 
 private:
     const char *_name;
-    const size_t _slot_size;
-    const size_t _max_slots;
+    const size_t _max_memory;
+    size_t _available_memory;
 
     GLuint _buffer;
-    std::stack<int32_t> _free_slots;
+    std::list<BufferSlot> _slots;
     std::mutex _mutex;
 };
