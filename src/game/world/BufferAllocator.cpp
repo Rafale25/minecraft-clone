@@ -113,52 +113,45 @@ BufferSlot BufferAllocator::allocate(uint32_t size, const void * data) {
 
 void BufferAllocator::deallocate(const BufferSlot& slot) {
     // NOTE: id is start
-    if (slot.start <= -1 || slot.size <= -1) return;
-
-    // std::cout << std::distance(slot.it, _slots.begin()) << std::endl;
+    if (slot.start <= -1 || slot.size <= -1 || slot.used == false) return;
 
     slot.it->used = false;
     // printf("[deallocate] size: %d, start: %d\n", slot.size, slot.start);
 
     _available_memory += slot.it->size;
 
-    _free_slot_of_size[slot.size].push_back(slot.it);
+    auto prev_it = std::prev(slot.it);
+    auto next_it = std::next(slot.it);
 
-    // HOW DO I DEALLOCATE ?????? WTF I NEED TO RETHING THAT
-    // I need to set slot.used to false
-    // then I need t
+    if (prev_it->used == false) {
+        slot.it->start = prev_it->start;
+        slot.it->size += prev_it->size;
 
-    // defragmentAt(slot.it);
-    // _available_memory += slot.it->size;
+        auto& free_slots = _free_slot_of_size.at(prev_it->size);
 
-    // for (auto it = _slots.begin() ; it != _slots.end() ; ++it) {
-    //     if (it->start == id) {
-    //         it->used = false;
-    //         _available_memory += it->size;
+        auto it = std::find_if(free_slots.begin(), free_slots.end(), [&](const std::list<BufferSlot>::iterator& slot_it){ return slot_it == prev_it; });
+        free_slots.erase(it);
+        _slots.erase(prev_it);
 
-    //         defragmentAt(it);
-    //         break;
-    //     }
-    // }
-}
-
-void BufferAllocator::defragmentAt(const std::list<BufferSlot>::iterator it) {
-    auto prev_it = it;
-    auto next_it = std::next(it);
-
-    // TODO: need to defragment in both direction
-
-    while (1) {
-        if (_slots.size() > 1 && next_it != _slots.end() && next_it->used == false) {
-            next_it->start = prev_it->start;
-            next_it->size += prev_it->size;
-
-            _slots.erase(prev_it);
-        } else {
-            break;
+        if (free_slots.size() == 0) {
+            _free_slot_of_size.erase(prev_it->size);
         }
-
-        prev_it = next_it;
-        next_it = std::next(next_it);
     }
+
+    if (next_it->used == false) {
+        // slot.it->start = next_it->start;
+        slot.it->size += next_it->size;
+
+        auto& free_slots = _free_slot_of_size.at(next_it->size);
+
+        auto it = std::find_if(free_slots.begin(), free_slots.end(), [&](const std::list<BufferSlot>::iterator& slot_it){ return slot_it == next_it; });
+        free_slots.erase(it);
+        _slots.erase(next_it);
+
+        if (free_slots.size() == 0) {
+            _free_slot_of_size.erase(next_it->size);
+        }
+    }
+
+    _free_slot_of_size[slot.it->size].push_back(slot.it);
 }

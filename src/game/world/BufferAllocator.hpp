@@ -67,8 +67,8 @@ public:
     int32_t getAvailableMemory() const { return _available_memory; };
     int32_t getSlotCount() const { return _slots.size(); };
 
-private:
-    void defragmentAt(const std::list<BufferSlot>::iterator it);
+// private:
+//     void defragmentAt(const std::list<BufferSlot>::iterator it);
 
 private:
     const char* _name;
