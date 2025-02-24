@@ -118,8 +118,8 @@ void WorldRenderer::onDeletedChunk(const glm::ivec3 &chunk_pos) {
     const auto& it = meshes.find(chunk_pos);
     if (it == meshes.end()) return;
 
-    buffer_allocator_vertices.deallocate(it->second.slot_vertices.start);
-    buffer_allocator_indices.deallocate(it->second.slot_indices.start);
+    buffer_allocator_vertices.deallocate(it->second.slot_vertices);
+    buffer_allocator_indices.deallocate(it->second.slot_indices);
     meshes.erase(it);
 }
 
@@ -178,8 +178,8 @@ void WorldRenderer::allocateVAOforWaitingChunks() {
         // find old chunk and delete its vertices
         const auto& it = meshes.find(chunk_pos);
         if (it != meshes.end()) {
-            buffer_allocator_vertices.deallocate(it->second.slot_vertices.start);
-            buffer_allocator_indices.deallocate(it->second.slot_indices.start);
+            buffer_allocator_vertices.deallocate(it->second.slot_vertices);
+            buffer_allocator_indices.deallocate(it->second.slot_indices);
         }
 
         ChunkMesh new_mesh;

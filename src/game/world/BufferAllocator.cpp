@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <cassert>
+#include <clock.h>
 
 #define PRINT_ERRORS
 
@@ -24,39 +25,73 @@ BufferAllocator::BufferAllocator(const char* name, uint32_t max_memory):
     glNamedBufferStorage(_buffer, max_memory, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
     _slots.emplace_back(0, max_memory, false);
+    _free_slot_of_size[max_memory].push_back(--_slots.end()); // iterator to last element
 }
 
 BufferSlot BufferAllocator::allocate(uint32_t size, const void * data) {
-    for (auto it = _slots.begin() ; it != _slots.end() ; ++it) {
-        if (it->used == true) continue;
+    SimpleProfiler::instance().start("BufferAllocator::allocate");
 
-        if (it->size == size) {
-            it->used = true;
+    const auto it = _free_slot_of_size.equal_range(size).first;
+
+    // printf("size found: %d\n", it->first);
+
+    if (it == _free_slot_of_size.end()) {
+        printf("ERROR: No slot of size bigger or equal to %d available\n", size);
+        return invalid_buffer_slot;
+    } else {
+        auto& free_slots = it->second; // vector of iterator
+        const int32_t slots_size = it->first;
+
+        if (free_slots.size() <= 0) {
+            printf("ERROR: THIS SHOULD NOT HAPPEN - Found size %d for requested size of %d - NO SLOTS INSIDE\n", it->first, size);
+            printf("ABORT\n");
+            abort();
+            return invalid_buffer_slot;
+        }
+
+        auto slot_it = free_slots.back();
+        BufferSlot& slot = *slot_it;
+        free_slots.pop_back();
+
+        if (free_slots.size() == 0) {
+            _free_slot_of_size.erase(it->first);
+        }
+
+        if (slots_size == size) {
+            // printf("SLOT SIZE EQUAL\n");
+
+            slot.used = true;
 
             _available_memory -= size;
 
             glNamedBufferSubData(
                 _buffer,
-                it->start,
-                it->size,
+                slot.start,
+                slot.size,
                 data
             );
 
-            return *it;
+            return slot;
         }
 
-        if (it->size > size) {
+        if (slots_size > size) {
+            // printf("SLOT SIZE LARGER\n");
+
             BufferSlot b {
-                .start = it->start,
+                .start = slot.start,
                 .size = size,
                 .used = true
             };
 
-            it->start += size;
-            it->size -= size;
-            it->used = false;
+            slot.start += size;
+            slot.size -= size;
+            slot.used = false;
 
-            _slots.insert(it, b);
+            auto inserted_it = _slots.insert(slot_it, b);
+            inserted_it->it = inserted_it;
+            b.it = inserted_it;
+
+            _free_slot_of_size[slot.size].push_back(slot_it);
 
             _available_memory -= size;
 
@@ -69,24 +104,42 @@ BufferSlot BufferAllocator::allocate(uint32_t size, const void * data) {
 
             return b;
         }
+
     }
 
+    // SimpleProfiler::instance().stop("BufferAllocator::allocate", false);
     return invalid_buffer_slot;
 }
 
-void BufferAllocator::deallocate(int32_t id) {
+void BufferAllocator::deallocate(const BufferSlot& slot) {
     // NOTE: id is start
-    if (id <= -1) return;
+    if (slot.start <= -1 || slot.size <= -1) return;
 
-    for (auto it = _slots.begin() ; it != _slots.end() ; ++it) {
-        if (it->start == id) {
-            it->used = false;
-            _available_memory += it->size;
+    // std::cout << std::distance(slot.it, _slots.begin()) << std::endl;
 
-            defragmentAt(it);
-            break;
-        }
-    }
+    slot.it->used = false;
+    // printf("[deallocate] size: %d, start: %d\n", slot.size, slot.start);
+
+    _available_memory += slot.it->size;
+
+    _free_slot_of_size[slot.size].push_back(slot.it);
+
+    // HOW DO I DEALLOCATE ?????? WTF I NEED TO RETHING THAT
+    // I need to set slot.used to false
+    // then I need t
+
+    // defragmentAt(slot.it);
+    // _available_memory += slot.it->size;
+
+    // for (auto it = _slots.begin() ; it != _slots.end() ; ++it) {
+    //     if (it->start == id) {
+    //         it->used = false;
+    //         _available_memory += it->size;
+
+    //         defragmentAt(it);
+    //         break;
+    //     }
+    // }
 }
 
 void BufferAllocator::defragmentAt(const std::list<BufferSlot>::iterator it) {
@@ -109,65 +162,3 @@ void BufferAllocator::defragmentAt(const std::list<BufferSlot>::iterator it) {
         next_it = std::next(next_it);
     }
 }
-
-
-// BufferSlot BufferAllocator::allocate(uint32_t size, const void * data) {
-//     if (size == 0) {
-//         #ifdef PRINT_ERRORS
-//         fprintf(stderr, "Error: %s - Trying to allocate size of 0!\n", _name);
-//         #endif
-
-//         return invalid_buffer_slot;
-//     }
-
-//     if (size > _slot_size) {
-//         #ifdef PRINT_ERRORS
-//         fprintf(stderr, "Error: %s - Allocate size demanded %u is higher than maximum slot size of %u\n", _name, (uint32_t)size, (uint32_t)_slot_size);
-//         #endif
-
-//         return invalid_buffer_slot;
-//     }
-
-//     if (_free_slots.size() <= 0) {
-//         #ifdef PRINT_ERRORS
-//         fprintf(stderr, "Error: %s - No free slot in buffer\n", _name);
-//         #endif
-
-//         return invalid_buffer_slot;
-//     }
-
-//     int32_t id = _free_slots.top();
-//     _free_slots.pop();
-
-//     assert(id >= 0 && "Error: bufferslot id is invalid!");
-
-//     #ifdef PRINT_ERRORS
-//     // printf("Info: %s - Allocating %d - ID %d == %ld\n", _name, size, id, id * _slot_size + size);
-//     #endif
-
-//     BufferSlot b = {
-//         .start = (int32_t) (id * _slot_size),
-//         .size = (int32_t) size,
-//         .id = (int32_t) id
-//     };
-
-//     glNamedBufferSubData(
-//         _buffer,
-//         b.start,
-//         size,
-//         data
-//     );
-
-//     return b;
-// }
-
-// void BufferAllocator::deallocate(int32_t id) {
-//     if (id <= -1) {
-//         #ifdef PRINT_ERRORS
-//         // printf("Error: %s - Tried to deallocated indalid id %d!\n", _name, id);
-//         #endif
-//         return;
-//     }
-
-//     _free_slots.push(id);
-// }
