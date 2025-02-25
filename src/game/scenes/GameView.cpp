@@ -314,7 +314,7 @@ void GameView::processNewChunks()
 
 void GameView::networkUpdate()
 {
-    Client::instance().sendUpdateEntityPacket(camera.getPosition(), camera.getYaw() + std::numbers::pi, - camera.getPitch());
+    Client::instance().sendUpdateEntityPacket(camera.getPosition(), camera.getYaw() + glm::pi<float>(), - camera.getPitch());
 }
 
 void GameView::onDraw(double time_since_start, float dt)

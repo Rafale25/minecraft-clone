@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <cassert>
 #include <clock.h>
+#include <algorithm>
 
 #define PRINT_ERRORS
 
@@ -16,7 +17,7 @@ BufferAllocator::BufferAllocator(const char* name, uint32_t max_memory):
     glCreateBuffers(1, &_buffer);
 
     if (max_memory > MAX_BUFFER_SIZE) {
-        fprintf(stderr, "Error BufferAllocator: %s - Trying to allocated %u which is more than the maximum of %llu\n", name, max_memory, MAX_BUFFER_SIZE);
+        fprintf(stderr, "Error BufferAllocator: %s - Trying to allocated %u which is more than the maximum of %lu\n", name, max_memory,  (unsigned long int)(MAX_BUFFER_SIZE));
         abort();
     }
 
@@ -24,16 +25,17 @@ BufferAllocator::BufferAllocator(const char* name, uint32_t max_memory):
 
     glNamedBufferStorage(_buffer, max_memory, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
-    _slots.emplace_back(0, max_memory, false);
+    const auto it = _slots.insert(_slots.end(), {.start=0, .size=(int32_t)max_memory, .used=false});
+    it->it = it; // assign first element its own iterator
+
     _free_slot_of_size[max_memory].push_back(--_slots.end()); // iterator to last element
 }
 
-BufferSlot BufferAllocator::allocate(uint32_t size, const void * data) {
-    SimpleProfiler::instance().start("BufferAllocator::allocate");
+BufferSlot BufferAllocator::allocate(int32_t size, const void * data) {
+    // SimpleProfiler::instance().start("BufferAllocator::allocate");
+    // defer SimpleProfiler::instance().stop("BufferAllocator::allocate");
 
     const auto it = _free_slot_of_size.equal_range(size).first;
-
-    // printf("size found: %d\n", it->first);
 
     if (it == _free_slot_of_size.end()) {
         printf("ERROR: No slot of size bigger or equal to %d available\n", size);
@@ -58,8 +60,6 @@ BufferSlot BufferAllocator::allocate(uint32_t size, const void * data) {
         }
 
         if (slots_size == size) {
-            // printf("SLOT SIZE EQUAL\n");
-
             slot.used = true;
 
             _available_memory -= size;
@@ -75,8 +75,6 @@ BufferSlot BufferAllocator::allocate(uint32_t size, const void * data) {
         }
 
         if (slots_size > size) {
-            // printf("SLOT SIZE LARGER\n");
-
             BufferSlot b {
                 .start = slot.start,
                 .size = size,
@@ -104,10 +102,9 @@ BufferSlot BufferAllocator::allocate(uint32_t size, const void * data) {
 
             return b;
         }
-
     }
 
-    // SimpleProfiler::instance().stop("BufferAllocator::allocate", false);
+    // SimpleProfiler::instance().stop("BufferAllocator::allocate");
     return invalid_buffer_slot;
 }
 

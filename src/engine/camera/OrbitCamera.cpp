@@ -40,10 +40,10 @@ void OrbitCamera::setYaw(float value) {
 }
 
 void OrbitCamera::setPitch(float value) {
-    if (value > (std::numbers::pi / 2.0))
-        value = (std::numbers::pi / 2.0) - 0.01f;
-    if (value < -(std::numbers::pi / 2.0))
-        value = -(std::numbers::pi / 2.0) + 0.01f;
+    if (value > (glm::pi<float>() / 2.0))
+        value = (glm::pi<float>() / 2.0) - 0.01f;
+    if (value < -(glm::pi<float>() / 2.0))
+        value = -(glm::pi<float>() / 2.0) + 0.01f;
 
     _pitch = value;
 }

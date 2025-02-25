@@ -210,7 +210,7 @@ int NetworkConnection::receiveAll(uint8_t* buffer, uint32_t size) {
     return recvAll(_socket, buffer, size);
 }
 
-void NetworkConnection::sendD(const void *data, size_t size) {
+void NetworkConnection::sendD(const void *data, uint32_t size) {
 #if defined(_WIN32)
    int r = send(_socket, (const char*)data, size, 0);
 #else

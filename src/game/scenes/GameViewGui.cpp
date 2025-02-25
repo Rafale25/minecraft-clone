@@ -115,9 +115,9 @@ void GameView::gui(float dt)
         ctx.setVsync(_vsync);
     }
 
-    ImGui::DragFloat3("Sun direction", &world_renderer.sunDir.x, 0.01f, -std::numbers::pi*2, std::numbers::pi*2, "%.2f");
+    ImGui::DragFloat3("Sun direction", &world_renderer.sunDir.x, 0.01f, -glm::pi<float>()*2, glm::pi<float>()*2, "%.2f");
     ImGui::SliderFloat("Shadow Bias", &world_renderer.shadowmap._shadow_bias, 0.000001f, 0.001f, "%.6f");
-    ImGui::SliderFloat("Shadow Distance", &world_renderer._max_shadow_distance, 0.3f, 500.0f, "%.2f");
+    ImGui::SliderFloat("Shadow Distance", &world_renderer._max_shadow_distance, 0.3f, 2000.0f, "%.2f");
     ImGui::SliderFloat("Fog density", &world_renderer._fog_density, 0.0f, 0.05f, "%.5f");
 
     ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 260), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);

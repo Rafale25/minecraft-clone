@@ -91,13 +91,13 @@ void Client::decodePacketAddEntity(ByteBuffer buffer)
 {
     Client& client = Client::instance();
 
-    auto [id, pos, yaw, pitch, name] = readAddEntityPacket(buffer);
+    Packet::Server::AddEntity packet = readAddEntityPacket(buffer);
 
-    client.task_queue.push_safe([=, name=std::string(name)]() { // wtf is this syntax
-        Entity e{id, pos};
+    client.task_queue.push_safe([&]() { // wtf is this syntax
+        Entity e{packet.id, packet.position};
         // e.transform.rotation.y = yaw;
         // e.transform.rotation.x = pitch;
-        e.name = name;
+        e.name = std::string(packet.name);
         World::instance().addEntity(e);
     } );
 }
@@ -116,10 +116,10 @@ void Client::decodePacketUpdateEntity(ByteBuffer buffer)
 {
     Client& client = Client::instance();
 
-    auto [entity_id, pos, yaw, pitch] = readUpdateEntityPacket(buffer);
+    Packet::Server::UpdateEntity packet = readUpdateEntityPacket(buffer);
 
-    client.task_queue.push_safe([=]() {
-        World::instance().setEntityTransform(entity_id, pos, yaw, pitch);
+    client.task_queue.push_safe([&]() {
+        World::instance().setEntityTransform(packet.entity_id, packet.position, packet.yaw, packet.pitch);
     } );
 }
 
@@ -154,10 +154,10 @@ void Client::decodePacketEntityMetadata(ByteBuffer buffer)
 {
     Client& client = Client::instance();
 
-    auto [id, name] = readUpdateEntityMetadata(buffer);
+    Packet::Server::UpdateEntityMetadata packet = readUpdateEntityMetadata(buffer);
 
-    client.task_queue.push_safe([=, name=std::string(name)]() {
-        World::instance().setEntityName(id, name);
+    client.task_queue.push_safe([=]() {
+        World::instance().setEntityName(packet.entity_id, std::string(packet.name));
     } );
 }
 

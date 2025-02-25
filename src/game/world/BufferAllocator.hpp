@@ -34,10 +34,7 @@ slots [ {0, 128, false}, {128, 64, true}, {192, MAX_SIZE, false} ]
 struct BufferSlot {
     int32_t start; // bytes;
     int32_t size; // bytes;
-
     bool used = false;
-
-    // bool is_valid;
     std::list<BufferSlot>::iterator it{nullptr};
 };
 
@@ -58,17 +55,13 @@ class BufferAllocator {
 public:
     BufferAllocator(const char* name, uint32_t max_memory);
 
-    BufferSlot allocate(uint32_t size, const void * data);
-    // void deallocate(int32_t id);
+    BufferSlot allocate(int32_t size, const void * data);
     void deallocate(const BufferSlot& slot);
 
     GLuint getBufferObject() const { return _buffer; };
     int32_t getMaxMemory() const { return _max_memory; };
     int32_t getAvailableMemory() const { return _available_memory; };
     int32_t getSlotCount() const { return _slots.size(); };
-
-// private:
-//     void defragmentAt(const std::list<BufferSlot>::iterator it);
 
 private:
     const char* _name;
@@ -77,21 +70,6 @@ private:
 
     GLuint _buffer;
 
-    // size // std::vector<starts>
-    // std::map<int32_t, std::vector<int32_t>> _free_slot_of_size;
-
-    // size // std::vector<reference to a BufferSlot in _slots>
-    // std::map<int32_t, std::vector<BufferSlot&>> _free_slot_of_size;
     std::map<int32_t, std::vector<std::list<BufferSlot>::iterator>> _free_slot_of_size;
-
     std::list<BufferSlot> _slots;
-
-    // dod::slot_map<BufferSlot> _slots;
-    // NEED TO IMPLEMENT A LINKED LIST
-
-    // CANT USE SLOT_MAP, cannot insert at specific place like a linked list
-    // SLOT_MAP is just a better unordered_map for O(1) insert, remove, and pretty fast iteration
-
-
-    std::mutex _mutex;
 };

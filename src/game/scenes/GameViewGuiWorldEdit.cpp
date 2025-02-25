@@ -23,11 +23,11 @@ void GameView::guiWorldEdit()
     std::vector<BlueprintFileInfo> blueprint_infos;
 
     for (const auto& entry : std::filesystem::directory_iterator(path)) {
-        blueprint_infos.emplace_back(
+        blueprint_infos.push_back({
             entry,
             entry.path().filename().replace_extension().string(),
-            entry.file_size()
-        );
+            (int32_t)(entry.file_size())
+        });
     }
 
     if (ImGui::Button("Save Selection as Blueprint")) {

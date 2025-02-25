@@ -4,7 +4,7 @@
 
 struct Mesh {
     GLuint VAO, VBO, EBO;
-    size_t count;
+    uint64_t count;
     int32_t geometry_type = GL_TRIANGLES;
     bool has_element_buffer = false;
     bool released = false;

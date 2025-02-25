@@ -15,7 +15,7 @@ public:
     int waitForData(const bool& should_stop);
     int receive(uint8_t* buffer, uint32_t size);
     int receiveAll(uint8_t* buffer, uint32_t size);
-    void sendD(const void *data, size_t size);
+    void sendD(const void *data, uint32_t size);
     void closeConnection();
 
 private:
