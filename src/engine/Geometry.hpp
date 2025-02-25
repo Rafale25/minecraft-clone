@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glad/gl.h>
+#include <cstdint>
 
 struct Mesh {
     GLuint VAO, VBO, EBO;

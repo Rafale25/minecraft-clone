@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glad/gl.h>
+#include <cstdint>
 
 struct FormatNode {
     int32_t size; // 1, 2, 4, 8
