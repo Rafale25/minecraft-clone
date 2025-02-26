@@ -1,8 +1,5 @@
 #pragma once
 
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
-
 class Context;
 
 class View {
@@ -51,8 +48,8 @@ class DefaultView: public View {
 
         void onDraw(double time_since_start, float dt)
         {
-            glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
+            // glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+            // glClear(GL_COLOR_BUFFER_BIT);
 
             // render
         }
@@ -94,6 +91,6 @@ class DefaultView: public View {
 
         void onResize(int width, int height)
         {
-            glViewport(0, 0, width, height);
+            // glViewport(0, 0, width, height);
         }
 };

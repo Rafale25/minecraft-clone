@@ -1,13 +1,12 @@
 #pragma once
 
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
+struct GLFWwindow;
 
 #include "View.hpp"
 
 class Context {
     public:
-        Context(int width, int height, const char *title, int maximized=GL_FALSE, int samples=4);
+        Context(int width, int height, const char *title, int maximized=0, int samples=4);
         ~Context();
 
         void run();
@@ -29,7 +28,7 @@ class Context {
 
     public:
         GLFWwindow* window = nullptr;
-        int keystate[GLFW_KEY_LAST] = {0};
+        int keystate[512] = {0}; // GLFW_LAST_KEY iS 348 but I glfw is included only in cpp implementation file (so we take 512 to be safe)
         int width = 0, height = 0;
 
     private:

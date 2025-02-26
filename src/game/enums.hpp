@@ -77,7 +77,7 @@ struct BlockInfo {
     TextureName lz, hz, lx, hx, ly, hy;
 };
 
-using T = enum TextureName;
+#define T TextureName
 
 constexpr BlockInfo blocks_info[] = {
     // Air = 0
@@ -137,6 +137,8 @@ constexpr BlockInfo blocks_info[] = {
     // INVALID
     { false, false, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID },
 };
+
+#undef T
 
 enum PacketId {
     IDENTIFICATION = 0x00,

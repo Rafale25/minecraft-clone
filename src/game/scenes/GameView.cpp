@@ -1,30 +1,23 @@
+#include "Client.hpp" // include before GLFW to avoid macro redefinition warning with MSVC
+
+#include <glad/gl.h>
+#include <GLFW/glfw3.h>
+#include <imgui.h>
+
 #include "GameView.hpp"
-
-#include "imgui.h"
-
 #include "GameState.hpp"
 #include "World.hpp"
 #include "Chunk.hpp"
-#include "Client.hpp"
 #include "Entity.hpp"
 #include "AABB.hpp"
-
 #include "command_line_args.h"
 #include "Blueprint.hpp"
-#include <glm/gtx/component_wise.hpp>
-
-// bool isInManhattanDistance(const glm::vec3& a, const glm::vec3& b, float distance)
-// {
-//     const glm::vec3 v = glm::abs(a - b);
-//     return v.x <= distance && v.y <= distance && v.z <= distance;
-// }
 
 bool isInManhattanDistance(const glm::ivec3& a, const glm::ivec3& b, int32_t distance)
 {
     const glm::ivec3 v = glm::abs(a - b);
     return v.x <= distance && v.y <= distance && v.z <= distance;
 }
-
 
 GameView::GameView(Context& ctx): View(ctx)
 {

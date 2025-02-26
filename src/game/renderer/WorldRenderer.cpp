@@ -1,5 +1,7 @@
-#include "WorldRenderer.hpp"
+#include <glad/gl.h>
+#include <GLFW/glfw3.h>
 
+#include "WorldRenderer.hpp"
 #include "Frustum.hpp"
 #include "World.hpp"
 #include "Chunk.hpp"

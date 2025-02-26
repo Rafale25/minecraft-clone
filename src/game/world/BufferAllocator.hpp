@@ -10,32 +10,11 @@
 
 typedef unsigned int GLuint;
 
-/*
-start, size, used
-
-slots [ {0, MAX_SIZE, false} ]
-
-allocate(64)
-slots [ {0, 64, true}, {64, MAX_SIZE, false} ]
-
-allocate(64)
-slots [ {0, 64, true}, {64, 64, true}, {128, MAX_SIZE, false} ]
-
-allocate(64)
-slots [ {0, 64, true}, {64, 64, true}, {128, 64, true}, {192, MAX_SIZE, false} ]
-
-deallocate(id(1))
-slots [ {0, 64, true}, {64, 64, false}, {128, 64, true}, {192, MAX_SIZE, false} ]
-
-deallocate(id(0))
-slots [ {0, 128, false}, {128, 64, true}, {192, MAX_SIZE, false} ]
-*/
-
 struct BufferSlot {
     int32_t start; // bytes;
     int32_t size; // bytes;
     bool used = false;
-    std::list<BufferSlot>::iterator it{nullptr};
+    std::list<BufferSlot>::iterator it{};
 };
 
 const BufferSlot invalid_buffer_slot = {.start=-1, .size=-1, .used=false};

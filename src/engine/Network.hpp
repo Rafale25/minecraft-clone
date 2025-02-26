@@ -3,7 +3,8 @@
 #include <cstdint>
 
 #if defined(_WIN32)
-#include <winsock2.h>
+#include <basetsd.h>
+typedef UINT_PTR SOCKET;
 #endif
 
 class NetworkConnection {

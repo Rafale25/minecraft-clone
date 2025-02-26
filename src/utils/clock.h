@@ -5,18 +5,16 @@
 #include <unordered_map>
 #include <chrono>
 
-using namespace std::chrono;
-
 struct Chrono {
 
     Chrono() {
-        t1 = high_resolution_clock::now();
+        t1 = std::chrono::high_resolution_clock::now();
     }
 
     double getTimeMs() {
-        auto t2 = high_resolution_clock::now();
-        // auto ms_int = duration_cast<milliseconds>(t2 - t1);
-        duration<double, std::milli> ms_double = t2 - t1;
+        auto t2 = std::chrono::high_resolution_clock::now();
+        auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+        std::chrono::duration<double, std::milli> ms_double = t2 - t1;
         return ms_double.count();
     }
 
@@ -24,13 +22,13 @@ struct Chrono {
         printf("%fms\n", getTimeMs());
     }
 
-    system_clock::time_point t1;
+    std::chrono::time_point<std::chrono::high_resolution_clock> t1;
 };
 
 struct Timing {
     int32_t count = 0;
     // bool started = false;
-    system_clock::time_point t;
+    std::chrono::time_point<std::chrono::high_resolution_clock> t;
     double current_average = 0.0;
     // (currentAverage * currentNumberOfItems + X) / (currentNumberOfItems + 1)
 };
@@ -57,18 +55,22 @@ public:
         // TODO: use below code to make Profile works in multithreaded environment
         // std::thread::id this_id = std::this_thread::get_id();
 
-        auto &timing = _timings[name];
-        timing.t = high_resolution_clock::now();
+        _timings[name].t = std::chrono::high_resolution_clock::now();
     }
 
-    void stop(const std::string& name) {
-        auto t = high_resolution_clock::now();
+    void stop(const std::string& name, bool print = false) {
+        auto t = std::chrono::high_resolution_clock::now();
 
         auto& timing = _timings.at(name);
 
-        duration<double, std::milli> duration = t - timing.t;
-        timing.current_average = (timing.current_average * timing.count + duration.count()) / (timing.count + 1);
-        // timing.current_average = duration.count();
+        std::chrono::duration<double, std::milli> duration = t - timing.t;
+        // timing.current_average = (timing.current_average * timing.count + duration.count()) / (timing.count + 1);
+        timing.current_average = duration.count();
+
+        if (print) {
+            printf("Timing: %s -- %f ms\n", name.c_str(), duration.count());
+        }
+
         timing.count += 1;
     }
 

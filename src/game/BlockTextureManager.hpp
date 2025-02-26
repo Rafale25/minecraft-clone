@@ -4,9 +4,10 @@
 #include <vector>
 #include <unordered_map>
 
-#include <glad/gl.h>
-
 #include "enums.hpp"
+
+typedef uint64_t GLuint64;
+typedef unsigned int GLuint;
 
 class BlockTextureManager
 {

@@ -3,9 +3,9 @@
 #include "Client.hpp"
 #include "World.hpp"
 #include "world_to_screen_space.h"
-#include "mem_info.h"
 #include "clock.h"
 #include "string_helpers.h"
+#include "mem_info.h"
 
 void GameView::drawPlayersNames()
 {
