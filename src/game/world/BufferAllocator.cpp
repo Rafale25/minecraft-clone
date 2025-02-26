@@ -131,7 +131,7 @@ void BufferAllocator::deallocate(const BufferSlot& slot) {
         if (free_slots.size() == 0) {
             _free_slot_of_size.erase(prev_it->size);
         }
-        _slots.erase(prev_it);
+        _slots.erase(prev_it); // NOTE: important to erase at the end because it's basically removing itself
 
     }
 
