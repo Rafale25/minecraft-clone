@@ -57,13 +57,13 @@ public:
         return byte_order == BE ? be32toh(value) : le32toh(value);
     }
 
-    uint64_t getLong() {
-        uint64_t value;
-        memcpy(&value, head, sizeof(uint64_t));
-        head += sizeof(uint64_t);
+    // uint64_t getLong() {
+    //     uint64_t value;
+    //     memcpy(&value, head, sizeof(uint64_t));
+    //     head += sizeof(uint64_t);
 
-        return byte_order == BE ? be64toh(value) : le64toh(value);
-    }
+    //     return byte_order == BE ? be64toh(value) : le64toh(value);
+    // }
 
     float getFloat() {
         // read float as if it was uint32_t
@@ -71,7 +71,7 @@ public:
         memcpy(&value, head, sizeof(uint32_t));
 
         // convert to different endianess
-        value =  byte_order == BE ? be32toh(value) : le32toh(value);
+        value = byte_order == BE ? be32toh(value) : le32toh(value);
 
         // move bytes into float variable without casting
         float float_value;

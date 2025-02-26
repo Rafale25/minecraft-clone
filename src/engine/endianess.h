@@ -84,7 +84,7 @@
 
 #		define htobe64(x) htonll(x)
 #		define htole64(x) (x)
-#		define be64toh(x) ntohll(x)
+// #		define be64toh(x) ntohll(x)
 #		define le64toh(x) (x)
 
 #	elif BYTE_ORDER == BIG_ENDIAN
