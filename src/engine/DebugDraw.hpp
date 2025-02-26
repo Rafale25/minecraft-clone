@@ -39,6 +39,5 @@ private:
 private:
     Program _program{"./assets/shaders/debug_draw/line.vert", "./assets/shaders/debug_draw/line.frag"};
     GLuint _vao, _vbo;
-    GLuint _buffer;
     std::vector<glm::vec3> _vertices;
 };
