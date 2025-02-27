@@ -24,7 +24,7 @@ struct Chunk;
 class Client
 {
 
-static constexpr int32_t DEFAULT_PORT = 20000;
+// static constexpr int32_t DEFAULT_PORT = 20000;
 
 private:
     Client() = default;
@@ -63,7 +63,7 @@ private:
     };
 
 public:
-    void init(std::vector<std::string>& tchat, const char* ip);
+    void init(std::vector<std::string>& tchat, const char* ip, int32_t port);
 
     void Start();
     void Stop();

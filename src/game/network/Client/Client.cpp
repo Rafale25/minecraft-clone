@@ -16,12 +16,12 @@ void Client::decode(PacketId id, ByteBuffer buffer) {
     packets.at(id).decode(buffer);
 }
 
-void Client::init(std::vector<std::string>& tchat, const char* ip)
+void Client::init(std::vector<std::string>& tchat, const char* ip, int32_t port)
 {
     _tchat = &tchat;
 
     _client.init();
-    _client.connectToServer(ip, DEFAULT_PORT);
+    _client.connectToServer(ip, port);
 
     sendClientMetadataPacket(GameState::getRenderDistance(), "Rafale25");
 }

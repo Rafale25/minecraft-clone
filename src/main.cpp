@@ -18,8 +18,8 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    if (global_argc > 2) {
-        GameState::setRenderDistance(std::atoi(global_argv[2]));
+    if (global_argc > 3) {
+        GameState::setRenderDistance(std::atoi(global_argv[3]));
     }
 
     Context ctx(SCR_WIDTH, SCR_HEIGHT, TITLE, 0, 4);
