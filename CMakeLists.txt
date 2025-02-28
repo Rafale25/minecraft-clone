@@ -63,6 +63,8 @@ target_include_directories(${PROJECT_NAME}
         ${IMGUI_DIR}/backends
 )
 
+target_compile_definitions(${PROJECT_NAME} PUBLIC NOMINMAX WIN32_LEAN_AND_MEAN) # Removes a lot of includes from windows.h and less namespace pollution
+
 target_link_libraries(${PROJECT_NAME} PRIVATE imgui glfw)
 
 IF (WIN32)
