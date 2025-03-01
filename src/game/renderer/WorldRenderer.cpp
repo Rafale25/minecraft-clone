@@ -250,7 +250,10 @@ void WorldRenderer::renderShadowmap(const Camera &camera)
     light_view_projection = shadowmap.begin(camera_projection_shorter, camera.getView(), cube_shader_depth_only);
     // DebugDraw::instance().drawFrustum(light_view_projection);
 
+    glDisable(GL_CULL_FACE);
     renderTerrain(light_view_projection, true);
+    glEnable(GL_CULL_FACE);
+
     shadowmap.end();
 }
 
