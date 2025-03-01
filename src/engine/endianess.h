@@ -68,7 +68,11 @@
 #elif defined(__WINDOWS__)
 
 #	include <winsock2.h>
-#	include <sys/param.h>
+// #	include <sys/param.h>
+
+#define BIG_ENDIAN	4321
+#define LITTLE_ENDIAN	1234
+#define BYTE_ORDER	LITTLE_ENDIAN
 
 #	if BYTE_ORDER == LITTLE_ENDIAN
 

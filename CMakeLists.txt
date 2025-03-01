@@ -9,7 +9,7 @@ set(GLFW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/glfw)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-# include_directories("submodules/glfw/include")
+include_directories("submodules/glfw/include")
 add_subdirectory(${GLFW_DIR})
 
 set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/imgui)
@@ -62,6 +62,8 @@ target_include_directories(${PROJECT_NAME}
         ${IMGUI_DIR}
         ${IMGUI_DIR}/backends
 )
+
+target_compile_definitions(${PROJECT_NAME} PUBLIC NOMINMAX WIN32_LEAN_AND_MEAN) # Removes a lot of includes from windows.h and less namespace pollution
 
 target_link_libraries(${PROJECT_NAME} PRIVATE imgui glfw)
 
