@@ -12,6 +12,10 @@ GLuint createTextureFromPath(const char *path, int32_t format, int32_t min_filte
     glTextureParameteri(texture, GL_TEXTURE_WRAP_S, wrap);
     glTextureParameteri(texture, GL_TEXTURE_WRAP_T, wrap);
 
+    GLfloat value;
+    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &value);
+    glTextureParameterf(texture, GL_TEXTURE_MAX_ANISOTROPY, value);
+
     glBindTexture(GL_TEXTURE_2D, texture);
 
     int32_t width, height, nrChannels;
