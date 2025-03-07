@@ -41,7 +41,7 @@ void Client::Stop()
 
 void Client::clientThreadFunc()
 {
-    uint8_t buffer[5000] = {};
+    uint8_t buffer[35000] = {};
     int32_t recv_size = -1;
 
     while (!_stop_thread)

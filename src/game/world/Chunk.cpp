@@ -2,7 +2,7 @@
 #include "constants.hpp"
 
 int32_t Chunk::XYZtoIndex(int32_t x, int32_t y, int32_t z) {
-    if (x < 0 || x > 15 || y < 0 || y > 15 || z < 0 || z > 15) return -1;
+    if (x < 0 || x > (CHUNK_SIZE-1) || y < 0 || y > (CHUNK_SIZE-1) || z < 0 || z > (CHUNK_SIZE-1)) return -1;
     return z * CHUNK_SIZE*CHUNK_SIZE + y * CHUNK_SIZE + x;
 }
 
