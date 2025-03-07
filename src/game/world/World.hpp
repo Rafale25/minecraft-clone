@@ -9,11 +9,11 @@
 
 #include "Entity.hpp"
 #include "enums.hpp"
+#include "constants.hpp"
 
 
 struct Chunk;
 struct BlockRaycastHit;
-
 
 // #include <atomic>
 // class ChunkAllocator {
@@ -25,6 +25,7 @@ struct BlockRaycastHit;
 //     static constexpr size_t MAX_CHUNKS = 10'000;
 //     std::array<Chunk, MAX_CHUNKS> chunks;
 // };
+
 
 class World
 {
@@ -56,7 +57,7 @@ public:
     Chunk* getChunkUnsafe(const glm::ivec3 &pos) const; // Do not use mutex
 
     static glm::ivec3 worldToChunkCoord(const glm::vec3& p) {
-        return glm::floor(p / 16.0f);
+        return glm::floor(p / CHUNK_SIZEF);
     }
 
     static World& instance() {
@@ -67,20 +68,9 @@ public:
     int32_t getChunkCount() const { return chunks.size(); }
 
 public:
-    // std::unordered_map<glm::ivec3, Chunk*, KeyHasher> chunks;
     std::unordered_map<glm::ivec3, Chunk*> chunks;
     mutable std::shared_mutex chunks_mutex;
 
     std::vector<Entity> entities;
     // std::unordered_map<int32_t, Entity> entities; // TODO: switch to this data structure
 };
-
-// struct KeyHasher
-// {
-//     std::size_t operator()(const glm::ivec3& key) const
-//     {
-//         constexpr int32_t SIZE = 25;
-//         return key.x + key.y*SIZE + key.z*SIZE*SIZE;
-//         // return ((key.x * 5209) ^ (key.y * 1811)) ^ (key.z * 7297);
-//     }
-// };
