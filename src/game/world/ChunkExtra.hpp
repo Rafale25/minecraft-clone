@@ -1,13 +1,14 @@
 #pragma once
 
-#include "enums.hpp"
 #include "Chunk.hpp"
+#include "enums.hpp"
+#include "constants.hpp"
 
 struct ChunkExtra
 {
     BlockType blocks[18*18*18];
 
-    // work from -1 to 16 included
+    // work from -1 to CHUNK_SIZE included
     static int32_t XYZtoIndex(int32_t x, int32_t y, int32_t z) {
         return (x+1) + (y+1)*18 + (z+1)*18*18;
     }
@@ -32,7 +33,7 @@ struct ChunkExtra
         // for (int32_t y = 0 ; y < 18 ; ++y) {
         // for (int32_t x = 0 ; x < 18 ; ++x) {
         //     int32_t index = x + y*18 + z*18*18;
-        //     glm::ivec3 world_pos = (pos * 16) + glm::ivec3(x-1, y-1, z-1);
+        //     glm::ivec3 world_pos = (pos * CHUNK_SIZE) + glm::ivec3(x-1, y-1, z-1);
         //     chunkextra_test.blocks[index] = World::instance().getBlock(world_pos);
         // }}}
         // ----- //
@@ -43,7 +44,7 @@ struct ChunkExtra
         //    if (z != 0 && y != 0 && x != 0 && z != 17 && y != 17 && x != 17) continue; // middle chunk is already copied so skip it
 
         //     int32_t index = x + y*18 + z*18*18;
-        //     glm::ivec3 world_pos = (pos * 16) + glm::ivec3(x-1, y-1, z-1);
+        //     glm::ivec3 world_pos = (pos * CHUNK_SIZE) + glm::ivec3(x-1, y-1, z-1);
         //     chunkextra.blocks[index] = World::instance().getBlock(world_pos);
         // }}}
 
@@ -62,56 +63,56 @@ struct ChunkExtra
         const Chunk* chunk_hxlylz = World::instance().getChunkUnsafe(pos + glm::ivec3(1, -1, -1));
         if (chunk_hxlylz != nullptr) {
             int32_t index = Chunk::XYZtoIndex(0, 15, 15);
-            int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(16, -1, -1);
+            int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(CHUNK_SIZE, -1, -1);
             chunkextra.blocks[index_chunk_extra] = chunk_hxlylz->blocks[index];
         }
 
         const Chunk* chunk_lxlyhz = World::instance().getChunkUnsafe(pos + glm::ivec3(-1, -1, 1));
         if (chunk_lxlyhz != nullptr) {
             int32_t index = Chunk::XYZtoIndex(15, 15, 0);
-            int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(-1, -1, 16);
+            int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(-1, -1, CHUNK_SIZE);
             chunkextra.blocks[index_chunk_extra] = chunk_lxlyhz->blocks[index];
         }
 
         const Chunk* chunk_hxlyhz = World::instance().getChunkUnsafe(pos + glm::ivec3(1, -1, 1));
         if (chunk_hxlyhz != nullptr) {
             int32_t index = Chunk::XYZtoIndex(0, 15, 0);
-            int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(16, -1, 16);
+            int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(CHUNK_SIZE, -1, CHUNK_SIZE);
             chunkextra.blocks[index_chunk_extra] = chunk_hxlyhz->blocks[index];
         }
 
         const Chunk* chunk_lxhylz = World::instance().getChunkUnsafe(pos + glm::ivec3(-1, 1, -1));
         if (chunk_lxhylz != nullptr) {
             int32_t index = Chunk::XYZtoIndex(15, 0, 15);
-            int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(-1, 16, -1);
+            int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(-1, CHUNK_SIZE, -1);
             chunkextra.blocks[index_chunk_extra] = chunk_lxhylz->blocks[index];
         }
 
         const Chunk* chunk_hxhylz = World::instance().getChunkUnsafe(pos + glm::ivec3(1, 1, -1));
         if (chunk_hxhylz != nullptr) {
             int32_t index = Chunk::XYZtoIndex(0, 0, 15);
-            int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(16, 16, -1);
+            int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(CHUNK_SIZE, CHUNK_SIZE, -1);
             chunkextra.blocks[index_chunk_extra] = chunk_hxhylz->blocks[index];
         }
 
         const Chunk* chunk_lxhyhz = World::instance().getChunkUnsafe(pos + glm::ivec3(-1, 1, 1));
         if (chunk_lxhyhz != nullptr) {
             int32_t index = Chunk::XYZtoIndex(15, 0, 0);
-            int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(-1, 16, 16);
+            int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(-1, CHUNK_SIZE, CHUNK_SIZE);
             chunkextra.blocks[index_chunk_extra] = chunk_lxhyhz->blocks[index];
         }
 
         const Chunk* chunk_hxhyhz = World::instance().getChunkUnsafe(pos + glm::ivec3(1, 1, 1));
         if (chunk_hxhyhz != nullptr) {
             int32_t index = Chunk::XYZtoIndex(0, 0, 0);
-            int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(16, 16, 16);
+            int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE);
             chunkextra.blocks[index_chunk_extra] = chunk_hxhyhz->blocks[index];
         }
 
         // Diagonals //
         const Chunk* chunk_lxly = World::instance().getChunkUnsafe(pos + glm::ivec3(-1, -1, 0));
         if (chunk_lxly != nullptr) {
-            for (int32_t i = 0 ; i < 16 ; ++i) {
+            for (int32_t i = 0 ; i < CHUNK_SIZE ; ++i) {
                 int32_t index = Chunk::XYZtoIndex(15, 15, i);
                 int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(-1, -1, i);
                 chunkextra.blocks[index_chunk_extra] = chunk_lxly->blocks[index];
@@ -120,16 +121,16 @@ struct ChunkExtra
 
         const Chunk* chunk_hxly = World::instance().getChunkUnsafe(pos + glm::ivec3(1, -1, 0));
         if (chunk_hxly != nullptr) {
-            for (int32_t i = 0 ; i < 16 ; ++i) {
+            for (int32_t i = 0 ; i < CHUNK_SIZE ; ++i) {
                 int32_t index = Chunk::XYZtoIndex(0, 15, i);
-                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(16, -1, i);
+                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(CHUNK_SIZE, -1, i);
                 chunkextra.blocks[index_chunk_extra] = chunk_hxly->blocks[index];
             }
         }
 
         const Chunk* chunk_lylz = World::instance().getChunkUnsafe(pos + glm::ivec3(0, -1, -1));
         if (chunk_lylz != nullptr) {
-            for (int32_t i = 0 ; i < 16 ; ++i) {
+            for (int32_t i = 0 ; i < CHUNK_SIZE ; ++i) {
                 int32_t index = Chunk::XYZtoIndex(i, 15, 15);
                 int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(i, -1, -1);
                 chunkextra.blocks[index_chunk_extra] = chunk_lylz->blocks[index];
@@ -138,51 +139,51 @@ struct ChunkExtra
 
         const Chunk* chunk_lyhz = World::instance().getChunkUnsafe(pos + glm::ivec3(0, -1, 1));
         if (chunk_lyhz != nullptr) {
-            for (int32_t i = 0 ; i < 16 ; ++i) {
+            for (int32_t i = 0 ; i < CHUNK_SIZE ; ++i) {
                 int32_t index = Chunk::XYZtoIndex(i, 15, 0);
-                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(i, -1, 16);
+                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(i, -1, CHUNK_SIZE);
                 chunkextra.blocks[index_chunk_extra] = chunk_lyhz->blocks[index];
             }
         }
 
         const Chunk* chunk_lxhy = World::instance().getChunkUnsafe(pos + glm::ivec3(-1, 1, 0));
         if (chunk_lxhy != nullptr) {
-            for (int32_t i = 0 ; i < 16 ; ++i) {
+            for (int32_t i = 0 ; i < CHUNK_SIZE ; ++i) {
                 int32_t index = Chunk::XYZtoIndex(15, 0, i);
-                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(-1, 16, i);
+                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(-1, CHUNK_SIZE, i);
                 chunkextra.blocks[index_chunk_extra] = chunk_lxhy->blocks[index];
             }
         }
 
         const Chunk* chunk_hxhy = World::instance().getChunkUnsafe(pos + glm::ivec3(1, 1, 0));
         if (chunk_hxhy != nullptr) {
-            for (int32_t i = 0 ; i < 16 ; ++i) {
+            for (int32_t i = 0 ; i < CHUNK_SIZE ; ++i) {
                 int32_t index = Chunk::XYZtoIndex(0, 0, i);
-                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(16, 16, i);
+                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(CHUNK_SIZE, CHUNK_SIZE, i);
                 chunkextra.blocks[index_chunk_extra] = chunk_hxhy->blocks[index];
             }
         }
 
         const Chunk* chunk_hylz = World::instance().getChunkUnsafe(pos + glm::ivec3(0, 1, -1));
         if (chunk_hylz != nullptr) {
-            for (int32_t i = 0 ; i < 16 ; ++i) {
+            for (int32_t i = 0 ; i < CHUNK_SIZE ; ++i) {
                 int32_t index = Chunk::XYZtoIndex(i, 0, 15);
-                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(i, 16, -1);
+                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(i, CHUNK_SIZE, -1);
                 chunkextra.blocks[index_chunk_extra] = chunk_hylz->blocks[index];
             }
         }
         const Chunk* chunk_hyhz = World::instance().getChunkUnsafe(pos + glm::ivec3(0, 1, 1));
         if (chunk_hyhz != nullptr) {
-            for (int32_t i = 0 ; i < 16 ; ++i) {
+            for (int32_t i = 0 ; i < CHUNK_SIZE ; ++i) {
                 int32_t index = Chunk::XYZtoIndex(i, 0, 0);
-                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(i, 16, 16);
+                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(i, CHUNK_SIZE, CHUNK_SIZE);
                 chunkextra.blocks[index_chunk_extra] = chunk_hyhz->blocks[index];
             }
         }
 
         const Chunk* chunk_lxlz = World::instance().getChunkUnsafe(pos + glm::ivec3(-1, 0, -1));
         if (chunk_lxlz != nullptr) {
-            for (int32_t i = 0 ; i < 16 ; ++i) {
+            for (int32_t i = 0 ; i < CHUNK_SIZE ; ++i) {
                 int32_t index = Chunk::XYZtoIndex(15, i, 15);
                 int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(-1, i, -1);
                 chunkextra.blocks[index_chunk_extra] = chunk_lxlz->blocks[index];
@@ -190,25 +191,25 @@ struct ChunkExtra
         }
         const Chunk* chunk_hxlz = World::instance().getChunkUnsafe(pos + glm::ivec3(1, 0, -1));
         if (chunk_hxlz != nullptr) {
-            for (int32_t i = 0 ; i < 16 ; ++i) {
+            for (int32_t i = 0 ; i < CHUNK_SIZE ; ++i) {
                 int32_t index = Chunk::XYZtoIndex(0, i, 15);
-                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(16, i, -1);
+                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(CHUNK_SIZE, i, -1);
                 chunkextra.blocks[index_chunk_extra] = chunk_hxlz->blocks[index];
             }
         }
         const Chunk* chunk_lxhz = World::instance().getChunkUnsafe(pos + glm::ivec3(-1, 0, 1));
         if (chunk_lxhz != nullptr) {
-            for (int32_t i = 0 ; i < 16 ; ++i) {
+            for (int32_t i = 0 ; i < CHUNK_SIZE ; ++i) {
                 int32_t index = Chunk::XYZtoIndex(15, i, 0);
-                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(-1, i, 16);
+                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(-1, i, CHUNK_SIZE);
                 chunkextra.blocks[index_chunk_extra] = chunk_lxhz->blocks[index];
             }
         }
         const Chunk* chunk_hxhz = World::instance().getChunkUnsafe(pos + glm::ivec3(1, 0, 1));
         if (chunk_hxhz != nullptr) {
-            for (int32_t i = 0 ; i < 16 ; ++i) {
+            for (int32_t i = 0 ; i < CHUNK_SIZE ; ++i) {
                 int32_t index = Chunk::XYZtoIndex(0, i, 0);
-                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(16, i, 16);
+                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(CHUNK_SIZE, i, CHUNK_SIZE);
                 chunkextra.blocks[index_chunk_extra] = chunk_hxhz->blocks[index];
             }
         }
@@ -217,9 +218,9 @@ struct ChunkExtra
         // Adjacents //
         const Chunk* middle_chunk = World::instance().getChunkUnsafe(pos);
         if (middle_chunk != nullptr) {
-            for (int32_t z = 0 ; z < 16 ; ++z) {
-            for (int32_t y = 0 ; y < 16 ; ++y) {
-            for (int32_t x = 0 ; x < 16 ; ++x) {
+            for (int32_t z = 0 ; z < CHUNK_SIZE ; ++z) {
+            for (int32_t y = 0 ; y < CHUNK_SIZE ; ++y) {
+            for (int32_t x = 0 ; x < CHUNK_SIZE ; ++x) {
                 int32_t index = Chunk::XYZtoIndex(x, y, z);
                 int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(x, y, z);
                 chunkextra.blocks[index_chunk_extra] = middle_chunk->blocks[index];
@@ -228,8 +229,8 @@ struct ChunkExtra
 
         const Chunk* chunk_hz = World::instance().getChunkUnsafe(pos - glm::ivec3(0, 0, 1));
         if (chunk_hz != nullptr) {
-            for (int32_t y = 0 ; y < 16 ; ++y) {
-            for (int32_t x = 0 ; x < 16 ; ++x) {
+            for (int32_t y = 0 ; y < CHUNK_SIZE ; ++y) {
+            for (int32_t x = 0 ; x < CHUNK_SIZE ; ++x) {
                 int32_t index = Chunk::XYZtoIndex(x, y, 15);
                 int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(x, y, -1);
                 chunkextra.blocks[index_chunk_extra] = chunk_hz->blocks[index];
@@ -238,28 +239,28 @@ struct ChunkExtra
 
         const Chunk* chunk_lz = World::instance().getChunkUnsafe(pos - glm::ivec3(0, 0, -1));
         if (chunk_lz != nullptr) {
-            for (int32_t y = 0 ; y < 16 ; ++y) {
-            for (int32_t x = 0 ; x < 16 ; ++x) {
+            for (int32_t y = 0 ; y < CHUNK_SIZE ; ++y) {
+            for (int32_t x = 0 ; x < CHUNK_SIZE ; ++x) {
                 int32_t index = Chunk::XYZtoIndex(x, y, 0);
-                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(x, y, 16);
+                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(x, y, CHUNK_SIZE);
                 chunkextra.blocks[index_chunk_extra] = chunk_lz->blocks[index];
             }}
         }
 
         const Chunk* chunk_lx = World::instance().getChunkUnsafe(pos - glm::ivec3(-1, 0, 0));
         if (chunk_lx != nullptr) {
-            for (int32_t y = 0 ; y < 16 ; ++y) {
-            for (int32_t x = 0 ; x < 16 ; ++x) {
+            for (int32_t y = 0 ; y < CHUNK_SIZE ; ++y) {
+            for (int32_t x = 0 ; x < CHUNK_SIZE ; ++x) {
                 int32_t index = Chunk::XYZtoIndex(0, x, y);
-                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(16, x, y);
+                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(CHUNK_SIZE, x, y);
                 chunkextra.blocks[index_chunk_extra] = chunk_lx->blocks[index];
             }}
         }
 
         const Chunk* chunk_hx = World::instance().getChunkUnsafe(pos - glm::ivec3(1, 0, 0));
         if (chunk_hx != nullptr) {
-            for (int32_t y = 0 ; y < 16 ; ++y) {
-            for (int32_t x = 0 ; x < 16 ; ++x) {
+            for (int32_t y = 0 ; y < CHUNK_SIZE ; ++y) {
+            for (int32_t x = 0 ; x < CHUNK_SIZE ; ++x) {
                 int32_t index = Chunk::XYZtoIndex(15, x, y);
                 int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(-1, x, y);
                 chunkextra.blocks[index_chunk_extra] = chunk_hx->blocks[index];
@@ -268,18 +269,18 @@ struct ChunkExtra
 
         const Chunk* chunk_ly = World::instance().getChunkUnsafe(pos - glm::ivec3(0, -1, 0));
         if (chunk_ly != nullptr) {
-            for (int32_t y = 0 ; y < 16 ; ++y) {
-            for (int32_t x = 0 ; x < 16 ; ++x) {
+            for (int32_t y = 0 ; y < CHUNK_SIZE ; ++y) {
+            for (int32_t x = 0 ; x < CHUNK_SIZE ; ++x) {
                 int32_t index = Chunk::XYZtoIndex(x, 0, y);
-                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(x, 16, y);
+                int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(x, CHUNK_SIZE, y);
                 chunkextra.blocks[index_chunk_extra] = chunk_ly->blocks[index];
             }}
         }
 
         const Chunk* chunk_hy = World::instance().getChunkUnsafe(pos - glm::ivec3(0, 1, 0));
         if (chunk_hy != nullptr) {
-            for (int32_t y = 0 ; y < 16 ; ++y) {
-            for (int32_t x = 0 ; x < 16 ; ++x) {
+            for (int32_t y = 0 ; y < CHUNK_SIZE ; ++y) {
+            for (int32_t x = 0 ; x < CHUNK_SIZE ; ++x) {
                 int32_t index = Chunk::XYZtoIndex(x, 15, y);
                 int32_t index_chunk_extra = ChunkExtra::XYZtoIndex(x, -1, y);
                 chunkextra.blocks[index_chunk_extra] = chunk_hy->blocks[index];

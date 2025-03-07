@@ -2,6 +2,7 @@
 
 #include <glm/ext/vector_int3.hpp>
 #include "enums.hpp"
+#include "constants.hpp"
 
 struct Chunk
 {
@@ -10,7 +11,7 @@ struct Chunk
 
     // TODO: add is_monotype variable
     // bool is_monotype;
-    BlockType blocks[4096]; // 16x16x16
+    BlockType blocks[CHUNK_BLOCK_COUNT]; // 16x16x16
 
     static int32_t XYZtoIndex(int32_t x, int32_t y, int32_t z);
 

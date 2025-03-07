@@ -71,42 +71,42 @@ void GameView::onUpdate(double time_since_start, float dt)
 
     if (_draw_chunks_borders) {
         for (const auto& [pos, chunk] : World::instance().chunks) {
-            DebugDraw::instance().drawCube(glm::vec3(pos * 16) + glm::vec3(8.0f), 16.0f);
+            DebugDraw::instance().drawCube(glm::vec3(pos * CHUNK_SIZE) + glm::vec3(CHUNK_SIZE / 2), CHUNK_SIZE);
         }
     }
 
     if (_draw_player_chunk) {
-        for (int32_t i = 0; i <= 16 ; ++i) {
-            const glm::vec3 py00 = glm::floor(camera.getPosition() / 16.0f) * 16.0f + glm::vec3(0.0f, (float)i, 0.0f);
-            const glm::vec3 py11 = glm::floor(camera.getPosition() / 16.0f) * 16.0f + glm::vec3(16.0f, (float)i, 16.0f);
-            const glm::vec3 pz00 = glm::floor(camera.getPosition() / 16.0f) * 16.0f + glm::vec3((float)i, 0.0f, 0.0f);
-            const glm::vec3 pz11 = glm::floor(camera.getPosition() / 16.0f) * 16.0f + glm::vec3((float)i, 16.0f, 16.0f);
-            const glm::vec3 px00 = glm::floor(camera.getPosition() / 16.0f) * 16.0f + glm::vec3(0.0f, 0.0f, (float)i);
-            const glm::vec3 px11 = glm::floor(camera.getPosition() / 16.0f) * 16.0f + glm::vec3(16.0f, 16.0f, (float)i);
+        for (int32_t i = 0; i <= CHUNK_SIZE ; ++i) {
+            const glm::vec3 py00 = glm::floor(camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3(0.0f, (float)i, 0.0f);
+            const glm::vec3 py11 = glm::floor(camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3(CHUNK_SIZEF, (float)i, CHUNK_SIZEF);
+            const glm::vec3 pz00 = glm::floor(camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3((float)i, 0.0f, 0.0f);
+            const glm::vec3 pz11 = glm::floor(camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3((float)i, CHUNK_SIZEF, CHUNK_SIZEF);
+            const glm::vec3 px00 = glm::floor(camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3(0.0f, 0.0f, (float)i);
+            const glm::vec3 px11 = glm::floor(camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3(CHUNK_SIZEF, CHUNK_SIZEF, (float)i);
 
-            DebugDraw::instance().drawLine(py00, py00 + glm::vec3{16, 0, 0});
-            DebugDraw::instance().drawLine(py00, py00 + glm::vec3{0, 0, 16});
-            DebugDraw::instance().drawLine(py11, py11 + glm::vec3{-16, 0, 0});
-            DebugDraw::instance().drawLine(py11, py11 + glm::vec3{0, 0, -16});
+            DebugDraw::instance().drawLine(py00, py00 + glm::vec3{CHUNK_SIZE, 0, 0});
+            DebugDraw::instance().drawLine(py00, py00 + glm::vec3{0, 0, CHUNK_SIZE});
+            DebugDraw::instance().drawLine(py11, py11 + glm::vec3{-CHUNK_SIZE, 0, 0});
+            DebugDraw::instance().drawLine(py11, py11 + glm::vec3{0, 0, -CHUNK_SIZE});
 
-            DebugDraw::instance().drawLine(pz00, pz00 + glm::vec3{0, 16, 0});
-            DebugDraw::instance().drawLine(pz00, pz00 + glm::vec3{0, 0, 16});
-            DebugDraw::instance().drawLine(pz11, pz11 + glm::vec3{0, 0, -16});
-            DebugDraw::instance().drawLine(pz11, pz11 + glm::vec3{0, -16, 0});
+            DebugDraw::instance().drawLine(pz00, pz00 + glm::vec3{0, CHUNK_SIZE, 0});
+            DebugDraw::instance().drawLine(pz00, pz00 + glm::vec3{0, 0, CHUNK_SIZE});
+            DebugDraw::instance().drawLine(pz11, pz11 + glm::vec3{0, 0, -CHUNK_SIZE});
+            DebugDraw::instance().drawLine(pz11, pz11 + glm::vec3{0, -CHUNK_SIZE, 0});
 
-            DebugDraw::instance().drawLine(px00, px00 + glm::vec3{0, 16, 0});
-            DebugDraw::instance().drawLine(px00, px00 + glm::vec3{16, 0, 0});
-            DebugDraw::instance().drawLine(px11, px11 + glm::vec3{-16, 0, 0});
-            DebugDraw::instance().drawLine(px11, px11 + glm::vec3{0, -16, 0});
+            DebugDraw::instance().drawLine(px00, px00 + glm::vec3{0, CHUNK_SIZE, 0});
+            DebugDraw::instance().drawLine(px00, px00 + glm::vec3{CHUNK_SIZE, 0, 0});
+            DebugDraw::instance().drawLine(px11, px11 + glm::vec3{-CHUNK_SIZE, 0, 0});
+            DebugDraw::instance().drawLine(px11, px11 + glm::vec3{0, -CHUNK_SIZE, 0});
         }
 
         for (int32_t z = - 1 ; z <= 1 ; ++z) {
         for (int32_t x = - 1 ; x <= 1 ; ++x) {
-            const glm::vec3 p = glm::floor(camera.getPosition() / 16.0f) * 16.0f + glm::vec3(x, 0, z) * 16.0f;
+            const glm::vec3 p = glm::floor(camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3(x, 0, z) * CHUNK_SIZEF;
             DebugDraw::instance().drawLine(p + glm::vec3(0, -128, 0), p + glm::vec3{0, 128, 0}, {1, 0, 1});
-            DebugDraw::instance().drawLine(p + glm::vec3(16, -128, 0), p + glm::vec3{16, 128, 0}, {1, 0, 1});
-            DebugDraw::instance().drawLine(p + glm::vec3(0, -128, 16), p + glm::vec3{0, 128, 16}, {1, 0, 1});
-            DebugDraw::instance().drawLine(p + glm::vec3(16, -128, 16), p + glm::vec3{16, 128, 16}, {1, 0, 1});
+            DebugDraw::instance().drawLine(p + glm::vec3(CHUNK_SIZE, -128, 0), p + glm::vec3{CHUNK_SIZE, 128, 0}, {1, 0, 1});
+            DebugDraw::instance().drawLine(p + glm::vec3(0, -128, CHUNK_SIZE), p + glm::vec3{0, 128, CHUNK_SIZE}, {1, 0, 1});
+            DebugDraw::instance().drawLine(p + glm::vec3(CHUNK_SIZE, -128, CHUNK_SIZE), p + glm::vec3{CHUNK_SIZE, 128, CHUNK_SIZE}, {1, 0, 1});
         }
         }
     }

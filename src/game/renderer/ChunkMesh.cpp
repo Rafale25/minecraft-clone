@@ -264,9 +264,9 @@ ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos)
 
     GLuint ebo_offset = 0;
 
-    for (int32_t z = 0 ; z < 16 ; ++z) {
-    for (int32_t y = 0 ; y < 16 ; ++y) {
-    for (int32_t x = 0 ; x < 16 ; ++x) {
+    for (int32_t z = 0 ; z < CHUNK_SIZE ; ++z) {
+    for (int32_t y = 0 ; y < CHUNK_SIZE ; ++y) {
+    for (int32_t x = 0 ; x < CHUNK_SIZE ; ++x) {
         BlockType block = chunkextra.getBlock({x, y, z});
 
         if (block == BlockType::Air) continue;

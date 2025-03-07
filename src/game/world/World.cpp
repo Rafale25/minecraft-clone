@@ -65,11 +65,11 @@ BlockType World::getBlock(const glm::vec3& posf) const
 
 BlockType World::getBlock(const glm::ivec3& pos) const
 {
-    glm::ivec3 chunk_pos = glm::floor(glm::vec3(pos) / 16.0f);
-    glm::ivec3 local_pos = {pos.x % 16, pos.y % 16, pos.z % 16};
-    if (local_pos.x < 0) local_pos.x += 16;
-    if (local_pos.y < 0) local_pos.y += 16;
-    if (local_pos.z < 0) local_pos.z += 16;
+    glm::ivec3 chunk_pos = glm::floor(glm::vec3(pos) / CHUNK_SIZEF);
+    glm::ivec3 local_pos = {pos.x % CHUNK_SIZE, pos.y % CHUNK_SIZE, pos.z % CHUNK_SIZE};
+    if (local_pos.x < 0) local_pos.x += CHUNK_SIZE;
+    if (local_pos.y < 0) local_pos.y += CHUNK_SIZE;
+    if (local_pos.z < 0) local_pos.z += CHUNK_SIZE;
 
     // printf("chunck pos: %d %d %d\n", chunk_pos.x, chunk_pos.y, chunk_pos.z);
     // printf("local_pos: %d %d %d\n", local_pos.x, local_pos.y, local_pos.z);
@@ -121,7 +121,7 @@ BlockRaycastHit World::blockRaycast(const glm::vec3& origin, const glm::vec3& di
 uint32_t hashBlocks(const uint8_t* values) {
     uint32_t h = 1;
 
-    for (int32_t i = 0 ; i < 4096 ; ++i) {
+    for (int32_t i = 0 ; i < CHUNK_BLOCK_COUNT ; ++i) {
         h *= (1779033703 + 2*(uint32_t)values[i]);
     }
 
@@ -157,7 +157,7 @@ Chunk* World::setChunk(const glm::ivec3& pos, const BlockType* blocks)
     }
 
     // TODO: do the memcpy outside of the mutex lock
-    memcpy(chunk->blocks, blocks, 4096 * sizeof(uint8_t));
+    memcpy(chunk->blocks, blocks, CHUNK_BLOCK_COUNT * sizeof(uint8_t));
 
     return chunk;
 }

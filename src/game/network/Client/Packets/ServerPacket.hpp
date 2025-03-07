@@ -4,6 +4,7 @@
 #include <glm/ext/vector_int3.hpp>
 
 #include "enums.hpp"
+#include "constants.hpp"
 
 namespace Packet
 {
@@ -37,7 +38,7 @@ namespace Packet
 
         struct ChunkPacket {
             glm::ivec3 pos;
-            BlockType blocks[4096];
+            BlockType blocks[CHUNK_BLOCK_COUNT];
         };
 
         struct MonoChunkPacket {

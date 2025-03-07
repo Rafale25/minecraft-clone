@@ -206,11 +206,11 @@ void WorldRenderer::renderTerrain(const glm::mat4 &view_projection, bool use_fru
         if (mesh.slot_vertices.start == -1 || mesh.slot_indices.start == -1) continue;
 
         if (use_frustum_culling) {
-            AABB chunk_aabb = {(chunk_pos * 16), (chunk_pos * 16) + 16};
+            AABB chunk_aabb = {(chunk_pos * CHUNK_SIZE), (chunk_pos * CHUNK_SIZE) + CHUNK_SIZE};
             if (!isAABBOnFrustum(chunk_aabb, camera_frustum)) continue;
         }
 
-        chunk_positions.push_back(glm::vec4(chunk_pos * 16, 1.0f));
+        chunk_positions.push_back(glm::vec4(chunk_pos * CHUNK_SIZE, 1.0f));
 
         commands.push_back({
             (uint32_t)(mesh.slot_indices.size / sizeof(GLuint)),

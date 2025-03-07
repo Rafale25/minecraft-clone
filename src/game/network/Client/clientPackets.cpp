@@ -1,7 +1,8 @@
-#include "Client.hpp"
-
 #include <algorithm>
+
+#include "Client.hpp"
 #include "World.hpp"
+#include "constants.hpp"
 
 Packet::Server::ChunkPacket* readChunkPacket(ByteBuffer& buffer)
 {
@@ -11,9 +12,9 @@ Packet::Server::ChunkPacket* readChunkPacket(ByteBuffer& buffer)
     int32_t y = buffer.getInt();
     int32_t z = buffer.getInt();
 
-    chunk_data->pos = glm::ivec3(x, y, z) / 16;
+    chunk_data->pos = glm::ivec3(x, y, z) / CHUNK_SIZE;
 
-    for (int32_t i = 0 ; i < 16*16*16 ; ++i) {
+    for (int32_t i = 0 ; i < CHUNK_BLOCK_COUNT ; ++i) {
         uint8_t byte = buffer.get();
 
         /* convert to BlackoutBurst indexing -_- */
@@ -37,8 +38,8 @@ Packet::Server::ChunkPacket* readFullMonoChunkPacket(ByteBuffer buffer)
     uint8_t blockType = buffer.get();
 
     auto *chunk_data = new Packet::Server::ChunkPacket;
-    chunk_data->pos = glm::ivec3(x, y, z) / 16;
-    memset(chunk_data->blocks, blockType, 16*16*16);
+    chunk_data->pos = glm::ivec3(x, y, z) / CHUNK_SIZE;
+    memset(chunk_data->blocks, blockType, CHUNK_BLOCK_COUNT);
 
     return chunk_data;
 }
