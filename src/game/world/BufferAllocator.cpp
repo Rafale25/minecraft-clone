@@ -136,7 +136,6 @@ void BufferAllocator::deallocate(const BufferSlot& slot) {
     }
 
     if (next_it != _slots.end() && next_it->used == false) {
-        // slot.it->start = next_it->start;
         slot.it->size += next_it->size;
 
         auto& free_slots = _free_slot_of_size.at(next_it->size);
