@@ -36,6 +36,8 @@
 
 .vscode
 CMakeCache.txt
+CMakeUserPresets.json
+*.sln
 *.ini
 
 .idea

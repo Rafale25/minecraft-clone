@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.24.0)
+cmake_minimum_required(VERSION 3.28.0)
 
 set(PROJECT_ROOT ./)
 set(PROJECT_NAME "Minecraft_Clone")
@@ -26,22 +26,22 @@ target_sources(imgui
 )
 target_include_directories(imgui PUBLIC ${IMGUI_DIR})
 
-file(GLOB_RECURSE SRC_C ./src/*.c)
-file(GLOB_RECURSE SRC_CPP ./src/*.cpp)
+file(GLOB_RECURSE SRC_C CONFIGURE_DEPENDS ./src/*.c)
+file(GLOB_RECURSE SRC_CPP CONFIGURE_DEPENDS ./src/*.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_CPP} ${SRC_C})
-target_compile_options(${PROJECT_NAME} PRIVATE
-    -W -Wall -Wextra -Wpedantic
-    # -Werror
-    -Wno-unused-variable
-    -Wno-unused-parameter
-    -Wno-strict-aliasing
-    # -O3
-    # -g3
-    # -fno-omit-frame-pointer
-    # -fsanitize=address
-    # -fsanitize=leak
-)
+# target_compile_options(${PROJECT_NAME} PRIVATE
+#     -W -Wall -Wextra -Wpedantic
+#     # -Werror
+#     -Wno-unused-variable
+#     -Wno-unused-parameter
+#     -Wno-strict-aliasing
+#     # -O3
+#     # -g3
+#     # -fno-omit-frame-pointer
+#     # -fsanitize=address
+#     # -fsanitize=leak
+# )
 
 # target_compile_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
 # target_link_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
@@ -63,11 +63,10 @@ target_include_directories(${PROJECT_NAME}
         ${IMGUI_DIR}/backends
 )
 
-target_compile_definitions(${PROJECT_NAME} PUBLIC NOMINMAX WIN32_LEAN_AND_MEAN) # Removes a lot of includes from windows.h and less namespace pollution
-
 target_link_libraries(${PROJECT_NAME} PRIVATE imgui glfw)
 
 IF (WIN32)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC NOMINMAX WIN32_LEAN_AND_MEAN) # Removes a lot of includes from windows.h and less namespace pollution
     target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
 ENDIF()
 
