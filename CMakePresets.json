@@ -22,6 +22,11 @@
             "hidden": true,
             "binaryDir": "${sourceDir}/build",
             "generator": "Visual Studio 17 2022",
+            "cacheVariables": {
+                "CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE": "${sourceDir}/build",
+                "CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG": "${sourceDir}/build",
+                "CMAKE_ARCHIVE_OUTPUT_DIRECTORY": "${sourceDir}/build"
+            },
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",
