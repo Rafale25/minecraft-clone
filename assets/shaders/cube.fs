@@ -83,7 +83,7 @@ void main()
 {
     vec2 uv = (gl_FragCoord.xy - 0.5*u_resolution.xy) / u_resolution.y;
 
-    vec4 color = texture(sampler2D(texture_handles[fs_in.texture_id]), fs_in.uv).rgba;
+    vec4 color = texture(texture_handles[fs_in.texture_id], fs_in.uv).rgba;
     vec3 normal = orientation_normal_table[fs_in.orientation];
     vec3 lightColor = vec3(255.0, 244.0, 196.0) / 255.0;
 
