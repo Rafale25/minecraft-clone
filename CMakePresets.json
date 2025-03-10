@@ -7,8 +7,8 @@
     },
     "configurePresets": [
         {
-            "name": "common",
-            "description": "General settings that apply to all configurations",
+            "name": "conf-common",
+            "description": "",
             "hidden": true,
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build",
@@ -17,9 +17,33 @@
             }
         },
         {
+            "name": "conf-windows-common",
+            "description": "",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build",
+            "generator": "Visual Studio 17 2022",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "toolset": {
+                "value": "host=x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "ENABLE_CPPCHECK_DEFAULT": "FALSE",
+                "ENABLE_CLANG_TIDY_DEFAULT": "FALSE"
+            }
+        },
+        {
             "name": "gcc-debug",
             "displayName": "GCC Debug",
-            "inherits": "common",
+            "inherits": "conf-common",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_C_COMPILER": "gcc",
@@ -30,7 +54,7 @@
         {
             "name": "gcc-release",
             "displayName": "GCC Release",
-            "inherits": "common",
+            "inherits": "conf-common",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_C_COMPILER": "gcc",
@@ -40,8 +64,8 @@
         },
         {
             "name": "clang-debug",
-            "displayName": "GCC Debug",
-            "inherits": "common",
+            "displayName": "Clang Debug",
+            "inherits": "conf-common",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_C_COMPILER": "clang",
@@ -51,8 +75,8 @@
         },
         {
             "name": "clang-release",
-            "displayName": "GCC Release",
-            "inherits": "common",
+            "displayName": "Clang Release",
+            "inherits": "conf-common",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_C_COMPILER": "clang",
@@ -61,31 +85,23 @@
             }
         },
         {
+            "name": "windows",
+            "displayName": "MSVC",
+            "inherits": "conf-windows-common"
+        }
+    ],
+    "buildPresets": [
+        {
             "name": "msvc-debug",
-            "displayName": "MSVC Debug",
-            "generator": "Visual Studio 17 2022",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_CXX_FLAGS": ""
-            }
+            "displayName": "Build Debug",
+            "configurePreset": "windows",
+            "configuration": "Debug"
         },
         {
             "name": "msvc-release",
-            "displayName": "MSVC Release",
-            "generator": "Visual Studio 17 2022",
-            "binaryDir": "${sourceDir}/build",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
-            }
+            "displayName": "Build Release",
+            "configurePreset": "windows",
+            "configuration": "Release"
         }
     ]
-    // ,
-    // "buildPresets": [
-    //     {
-    //         "name": "release",
-    //         "displayName": "Build Release",
-    //         "configurePreset": "msvc-release",
-    //         "configuration": "Release"
-    //     }
-    // ]
-  }
+}
