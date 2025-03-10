@@ -91,13 +91,15 @@
             "name": "msvc-debug",
             "displayName": "Build Debug",
             "configurePreset": "windows",
-            "configuration": "Debug"
+            "configuration": "Debug",
+            "jobs": 0
         },
         {
             "name": "msvc-release",
             "displayName": "Build Release",
             "configurePreset": "windows",
-            "configuration": "Release"
+            "configuration": "Release",
+            "jobs": 0
         }
     ]
 }
