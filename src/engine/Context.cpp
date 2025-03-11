@@ -102,8 +102,8 @@ Context::Context(int width, int height, const char *title, int maximized, int sa
     }
 
     // During init, enable debug output
-    glEnable              ( GL_DEBUG_OUTPUT );
-    // glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    // glEnable(GL_DEBUG_OUTPUT); // Cause OpenGL Error on AMD ???
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback( MessageCallback, 0 );
     // glDebugMessageControl // https://www.khronos.org/opengl/wiki/Debug_Output#Getting_messages
 
