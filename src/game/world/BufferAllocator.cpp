@@ -117,24 +117,25 @@ void BufferAllocator::deallocate(const BufferSlot& slot) {
 
     _available_memory += slot.it->size;
 
-    auto prev_it = std::prev(slot.it);
-    auto next_it = std::next(slot.it);
+    if (slot.it != _slots.begin()) {
+        auto prev_it = std::prev(slot.it);
 
-    if (slot.it != _slots.begin() && prev_it->used == false) {
-        slot.it->start = prev_it->start;
-        slot.it->size += prev_it->size;
+        if (prev_it->used == false) {
+            slot.it->start = prev_it->start;
+            slot.it->size += prev_it->size;
 
-        auto& free_slots = _free_slot_of_size.at(prev_it->size);
+            auto& free_slots = _free_slot_of_size.at(prev_it->size);
 
-        auto it = std::find_if(free_slots.begin(), free_slots.end(), [&](const std::list<BufferSlot>::iterator& slot_it){ return slot_it == prev_it; });
-        free_slots.erase(it);
-        if (free_slots.size() == 0) {
-            _free_slot_of_size.erase(prev_it->size);
+            auto it = std::find_if(free_slots.begin(), free_slots.end(), [&](const std::list<BufferSlot>::iterator& slot_it){ return slot_it == prev_it; });
+            free_slots.erase(it);
+            if (free_slots.size() == 0) {
+                _free_slot_of_size.erase(prev_it->size);
+            }
+            _slots.erase(prev_it); // NOTE: important to erase at the end because it's basically removing itself
         }
-        _slots.erase(prev_it); // NOTE: important to erase at the end because it's basically removing itself
-
     }
 
+    auto next_it = std::next(slot.it);
     if (next_it != _slots.end() && next_it->used == false) {
         slot.it->size += next_it->size;
 
