@@ -73,6 +73,7 @@ enum class TextureName : int32_t {
 struct BlockInfo {
     // TODO: Use bit field instead
     bool transparent;
+    bool affectsAmbiantOcclusion;
     bool liquid;
     TextureName lz, hz, lx, hx, ly, hy;
 };
@@ -81,61 +82,61 @@ struct BlockInfo {
 
 constexpr BlockInfo blocks_info[] = {
     // Air = 0
-    { true, false, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID },
+    { true, false, false, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID },
 
     // Grass = 1
-    { false, false, T::GrassSide, T::GrassSide, T::GrassSide, T::GrassSide, T::Dirt, T::GrassTop },
+    { false, true, false, T::GrassSide, T::GrassSide, T::GrassSide, T::GrassSide, T::Dirt, T::GrassTop },
 
     // Dirt = 2
-    { false, false, T::Dirt, T::Dirt, T::Dirt, T::Dirt, T::Dirt, T::Dirt },
+    { false, true, false, T::Dirt, T::Dirt, T::Dirt, T::Dirt, T::Dirt, T::Dirt },
 
     // Stone = 3
-    { false, false, T::Stone, T::Stone, T::Stone, T::Stone, T::Stone, T::Stone },
+    { false, true, false, T::Stone, T::Stone, T::Stone, T::Stone, T::Stone, T::Stone },
 
     // OakLog = 4
-    { false, false, T::OakLog, T::OakLog, T::OakLog, T::OakLog, T::OakLogTop, T::OakLogTop },
+    { false, true, false, T::OakLog, T::OakLog, T::OakLog, T::OakLog, T::OakLogTop, T::OakLogTop },
 
     // OakLeaves = 5
-    { true, false, T::OakLeaves, T::OakLeaves, T::OakLeaves, T::OakLeaves, T::OakLeaves, T::OakLeaves },
+    { true, true, false, T::OakLeaves, T::OakLeaves, T::OakLeaves, T::OakLeaves, T::OakLeaves, T::OakLeaves },
 
     // Glass = 6
-    { true, false, T::Glass, T::Glass, T::Glass, T::Glass, T::Glass, T::Glass },
+    { true, false, false, T::Glass, T::Glass, T::Glass, T::Glass, T::Glass, T::Glass },
 
     // Water = 7
-    { false, false, T::Water, T::Water, T::Water, T::Water, T::Water, T::Water },
+    { false, true, false, T::Water, T::Water, T::Water, T::Water, T::Water, T::Water },
 
     // Sand = 8
-    { false, false, T::Sand, T::Sand, T::Sand, T::Sand, T::Sand, T::Sand },
+    { false, true, false, T::Sand, T::Sand, T::Sand, T::Sand, T::Sand, T::Sand },
 
     // Snow = 9
-    { false, false, T::Snow, T::Snow, T::Snow, T::Snow, T::Snow, T::Snow },
+    { false, true, false, T::Snow, T::Snow, T::Snow, T::Snow, T::Snow, T::Snow },
 
     // OakPlank = 10
-    { false, false, T::OakPlank, T::OakPlank, T::OakPlank, T::OakPlank, T::OakPlank, T::OakPlank },
+    { false, true, false, T::OakPlank, T::OakPlank, T::OakPlank, T::OakPlank, T::OakPlank, T::OakPlank },
 
     // StoneBrick = 11
-    { false, false, T::StoneBrick, T::StoneBrick, T::StoneBrick, T::StoneBrick, T::StoneBrick, T::StoneBrick },
+    { false, true, false, T::StoneBrick, T::StoneBrick, T::StoneBrick, T::StoneBrick, T::StoneBrick, T::StoneBrick },
 
     // Netherrack = 12
-    { false, false, T::Netherrack, T::Netherrack, T::Netherrack, T::Netherrack, T::Netherrack, T::Netherrack },
+    { false, true, false, T::Netherrack, T::Netherrack, T::Netherrack, T::Netherrack, T::Netherrack, T::Netherrack },
 
     // Gold = 13
-    { false, false, T::Gold, T::Gold, T::Gold, T::Gold, T::Gold, T::Gold },
+    { false, true, false, T::Gold, T::Gold, T::Gold, T::Gold, T::Gold, T::Gold },
 
     // PackedIce = 14
-    { false, false, T::PackedIce, T::PackedIce, T::PackedIce, T::PackedIce, T::PackedIce, T::PackedIce },
+    { false, true, false, T::PackedIce, T::PackedIce, T::PackedIce, T::PackedIce, T::PackedIce, T::PackedIce },
 
     // Lava = 15
-    { false, false, T::Lava, T::Lava, T::Lava, T::Lava, T::Lava, T::Lava },
+    { false, true, false, T::Lava, T::Lava, T::Lava, T::Lava, T::Lava, T::Lava },
 
     // Barrel = 16
-    { false, false, T::BarrelSide, T::BarrelSide, T::BarrelSide, T::BarrelSide, T::BarrelBottom, T::BarrelTop },
+    { false, false, false, T::BarrelSide, T::BarrelSide, T::BarrelSide, T::BarrelSide, T::BarrelBottom, T::BarrelTop },
 
     // Bookshelf = 17
-    { false, false, T::BookshelfSide, T::BookshelfSide, T::BookshelfSide, T::BookshelfSide, T::BookshelfBottom, T::BookshelfTop },
+    { false, false, false, T::BookshelfSide, T::BookshelfSide, T::BookshelfSide, T::BookshelfSide, T::BookshelfBottom, T::BookshelfTop },
 
     // INVALID
-    { false, false, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID },
+    { false, false, false, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID },
 };
 
 #undef T

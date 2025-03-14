@@ -199,16 +199,15 @@ inline void makeFace(
     BlockInfo binfo = blocks_info[(int32_t)nb];
     if (binfo.transparent) {
 
-        // TODO: use blocksMetadata to check if it's non transparent instead of >0
-        auto nb_lx = !blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[26], info[27], info[28]))].transparent;
-        auto nb_hx = !blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[29], info[30], info[31]))].transparent;
-        auto nb_ly = !blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[32], info[33], info[34]))].transparent;
-        auto nb_hy = !blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[35], info[36], info[37]))].transparent;
+        auto nb_lx = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[26], info[27], info[28]))].affectsAmbiantOcclusion;
+        auto nb_hx = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[29], info[30], info[31]))].affectsAmbiantOcclusion;
+        auto nb_ly = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[32], info[33], info[34]))].affectsAmbiantOcclusion;
+        auto nb_hy = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[35], info[36], info[37]))].affectsAmbiantOcclusion;
 
-        auto nb_lxly = !blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[38], info[39], info[40]))].transparent;
-        auto nb_hxly = !blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[41], info[42], info[43]))].transparent;
-        auto nb_lxhy = !blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[44], info[45], info[46]))].transparent;
-        auto nb_hxhy = !blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[47], info[48], info[49]))].transparent;
+        auto nb_lxly = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[38], info[39], info[40]))].affectsAmbiantOcclusion;
+        auto nb_hxly = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[41], info[42], info[43]))].affectsAmbiantOcclusion;
+        auto nb_lxhy = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[44], info[45], info[46]))].affectsAmbiantOcclusion;
+        auto nb_hxhy = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[47], info[48], info[49]))].affectsAmbiantOcclusion;
 
         int32_t a00 = vertexAO(nb_lx, nb_ly, nb_lxly);
         int32_t a10 = vertexAO(nb_hx, nb_ly, nb_hxly);
