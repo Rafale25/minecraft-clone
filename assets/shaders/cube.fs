@@ -25,7 +25,6 @@ in VS_OUT {
     in vec4 FragPosLightSpace;
 } fs_in;
 
-
 layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec3 gPosition;
 
@@ -35,7 +34,35 @@ uniform bool u_ambient_occlusion_enabled = true;
 uniform float u_ambient_occlusion_strength = 0.9;
 uniform vec2 u_resolution;
 
+uniform vec3 u_view_position;
+uniform vec3 u_view_dir;
+
 uniform sampler2D shadowMap;
+
+float sdSphere( vec3 p, float s ) {
+    return length(p)-s;
+}
+
+float sdTorus( vec3 p, vec2 t )
+{
+  vec2 q = vec2(length(p.xz)-t.x,p.y);
+  return length(q)-t.y;
+}
+
+mat4 rotation3d(vec3 axis, float angle) {
+  axis = normalize(axis);
+  float s = sin(angle);
+  float c = cos(angle);
+  float oc = 1.0 - c;
+
+  return mat4(
+    oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+    oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+    oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+    0.0,                                0.0,                                0.0,                                1.0
+  );
+}
+
 
 float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
 {
@@ -79,6 +106,27 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
     return shadow;
 }
 
+vec3 CalcLight(vec3 _diffuse, vec3 _specular, vec3 normal, vec3 fragPos, vec3 viewDir)
+{
+    vec3 light_position = u_view_position + vec3(50.0, 0.0, 0.0);
+    vec3 light_color = vec3(1.0, 0.2, 0.1) * 2;
+    float light_linear = 0.09;
+    float light_quadratic = 0.032;
+
+    vec4 p = rotation3d(vec3(0, 0, 1), 3.14*0.5) * vec4(fragPos - light_position, 1.0);
+    float dist = sdTorus(p.xyz, vec2(20.0, 0.2));
+    // if (dist < 0) return vec3(100, 0, 0);
+    dist = max(0.0, dist);
+
+    // diffuse
+    vec3 lightDir = normalize(light_position - fragPos);
+    vec3 diffuse = _diffuse * light_color;
+    // attenuation
+    float attenuation = 1.0 / (1.0 + light_linear * dist + light_quadratic * dist * dist);
+    diffuse *= attenuation;
+    return diffuse;
+}
+
 void main()
 {
     vec2 uv = (gl_FragCoord.xy - 0.5*u_resolution.xy) / u_resolution.y;
@@ -108,6 +156,8 @@ void main()
         shadow = 1.0;
 
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse)) * color.rgb;
+
+    lighting += CalcLight(color.rgb, vec3(0.0, 0.0, 0.0), normal, fs_in.frag_pos, u_view_dir);
 
     if (u_ambient_occlusion_enabled) {
         lighting = mix(lighting * (1.0 - u_ambient_occlusion_strength), lighting, fs_in.ambient_occlusion);

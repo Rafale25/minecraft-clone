@@ -68,13 +68,15 @@ void WorldRenderer::render(const Camera &camera)
     cube_shader.setFloat("u_shadow_bias", shadowmap._shadow_bias);
     cube_shader.setFloat("u_ambient_occlusion_enabled", _ambient_occlusion);
     cube_shader.setFloat("u_ambient_occlusion_strength", _ambient_occlusion_strength);
-
     cube_shader.setVec2("u_resolution", glm::vec2(_ctx.width, _ctx.height));
-    cube_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
-    cube_shader.setFloat("u_FOV", glm::radians(camera.fov));
     cube_shader.setMat4("u_projection_view", view_projection);
     cube_shader.setVec3("u_view_position", camera.getPosition());
-    cube_shader.setFloat("u_time", glfwGetTime());
+    cube_shader.setVec3("u_view_dir", camera.forward());
+
+    // cube_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
+    // cube_shader.setFloat("u_FOV", glm::radians(camera.fov));
+    // cube_shader.setFloat("u_time", glfwGetTime());
+
     glBindTextureUnit(0, shadowmap._depthTexture._texture);
 
     // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
