@@ -45,14 +45,14 @@ private:
 
 public:
     Shadowmap shadowmap{_ctx, 4096, 4096};
-    float _max_shadow_distance = 120.0f;
+    float _max_shadow_distance = 350.0f;
 
     glm::vec3 sunDir = glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f));
     int32_t chunks_drawn;
     bool _wireframe = false;
     bool _ambient_occlusion = true;
     float _ambient_occlusion_strength = 0.67;
-    float _fog_density = 0.003f;
+    float _fog_density = 0.0007f;
 
     Framebuffer _framebuffer;
     Texture _color_texture;
@@ -68,7 +68,7 @@ public:
     Program mesh_shader                 {"./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs"};
     Program postprocessing_shader       {"./assets/shaders/postprocess.vs", "./assets/shaders/postprocess.fs"};
 
-    const int32_t CHUNK_DELETE_DISTANCE_OFFSET = 1;
+    const int32_t CHUNK_DELETE_DISTANCE_OFFSET = 2;
 
     const uint32_t MAX_COMMANDS = 500'000;
     const uint32_t MAX_MEMORY = 500'000'000;
