@@ -30,17 +30,10 @@ file(GLOB_RECURSE SRC_C CONFIGURE_DEPENDS ./src/*.c)
 file(GLOB_RECURSE SRC_CPP CONFIGURE_DEPENDS ./src/*.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_CPP} ${SRC_C})
+
 # target_compile_options(${PROJECT_NAME} PRIVATE
-#     -W -Wall -Wextra -Wpedantic
-#     # -Werror
-#     -Wno-unused-variable
-#     -Wno-unused-parameter
-#     -Wno-strict-aliasing
-#     # -O3
-#     # -g3
-#     # -fno-omit-frame-pointer
-#     # -fsanitize=address
-#     # -fsanitize=leak
+    # -fsanitize=address
+    # -fsanitize=leak
 # )
 
 # target_compile_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
