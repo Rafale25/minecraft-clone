@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.28.0)
 set(PROJECT_ROOT ./)
 set(PROJECT_NAME "Minecraft_Clone")
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_SCAN_FOR_MODULES 0)
 project(${PROJECT_NAME})
 
 set(GLFW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/glfw)
