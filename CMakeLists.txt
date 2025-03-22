@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.28.0)
 
 set(PROJECT_ROOT ./)
 set(PROJECT_NAME "Minecraft_Clone")
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_SCAN_FOR_MODULES 0)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
 project(${PROJECT_NAME})
 
 set(GLFW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/glfw)
@@ -33,8 +34,8 @@ file(GLOB_RECURSE SRC_CPP CONFIGURE_DEPENDS ./src/*.cpp)
 add_executable(${PROJECT_NAME} ${SRC_CPP} ${SRC_C})
 
 # target_compile_options(${PROJECT_NAME} PRIVATE
-    # -fsanitize=address
-    # -fsanitize=leak
+# -fsanitize=address
+# -fsanitize=leak
 # )
 
 # target_compile_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
