@@ -1,6 +1,8 @@
 #pragma once
 
-#include <glm/detail/type_vec3.hpp>
+#include <glm/ext/vector_float3.hpp>
+#include <glm/ext/vector_bool3.hpp>
+#include <glm/common.hpp>
 
 struct AABB {
 	glm::vec3 min, max;

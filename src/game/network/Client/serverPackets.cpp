@@ -1,8 +1,7 @@
 #include "Client.hpp"
 
 #include "endianess.h"
-#include "World.hpp"
-#include "byte_manipulation.h"
+#include "byte_manipulation.hpp"
 
 void Client::sendBreakBlockPacket(const glm::ivec3& world_pos)
 {

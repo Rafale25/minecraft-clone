@@ -1,6 +1,5 @@
-#include "loadTexture.hpp"
-
 #include <iostream>
+#include "loadTexture.hpp"
 
 GLuint createTextureFromPath(const char *path, int32_t format, int32_t min_filter, int32_t max_filter, int32_t wrap)
 {

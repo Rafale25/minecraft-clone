@@ -1,16 +1,10 @@
 #pragma once
 
 #include "Context.hpp"
-
 #include "View.hpp"
 #include "FpsCamera.hpp"
-
-#include "Entity.hpp"
 #include "WorldRenderer.hpp"
 #include "BlockRaycastHit.hpp"
-
-#include "ChunkMesh.hpp"
-#include "DebugDraw.hpp"
 
 class GameView: public View {
 public:

@@ -1,9 +1,8 @@
-#include "FpsCamera.hpp"
-
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/glm.hpp>
+#include <glm/common.hpp>
 
-#include "lerp.h"
+#include "FpsCamera.hpp"
+#include "lerp.hpp"
 
 glm::mat4 FPSCamera::getView() const
 {

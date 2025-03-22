@@ -3,10 +3,7 @@
 #include <cstdint>
 #include <map>
 #include <vector>
-#include <stack>
 #include <list>
-#include <tuple>
-#include <mutex>
 
 typedef unsigned int GLuint;
 

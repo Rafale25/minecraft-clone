@@ -48,5 +48,6 @@ perf.data
 perf.data.old
 
 .clang-format
+.cache
 
 /blueprints/

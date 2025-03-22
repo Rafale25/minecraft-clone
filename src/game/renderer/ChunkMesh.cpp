@@ -1,10 +1,6 @@
 #include "ChunkMesh.hpp"
-
-#include "World.hpp"
 #include "BlockTextureManager.hpp"
-#include "Chunk.hpp"
 #include "ChunkExtra.hpp"
-#include "BufferAllocator.hpp"
 
 GLuint packVertex(int32_t x, int32_t y, int32_t z, int32_t u, int32_t v, int32_t o, int32_t t, int32_t ao=3) {
     // 4 bytes, 32 bits

@@ -1,5 +1,4 @@
 #include "Frustum.hpp"
-
 #include "AABB.hpp"
 
 // https://iquilezles.org/articles/frustumcorrect/

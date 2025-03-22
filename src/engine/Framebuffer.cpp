@@ -1,6 +1,5 @@
-#include "Framebuffer.hpp"
-
 #include <glad/gl.h>
+#include "Framebuffer.hpp"
 
 Framebuffer::Framebuffer() {
     glCreateFramebuffers(1, &_framebuffer);

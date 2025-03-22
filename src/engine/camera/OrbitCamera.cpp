@@ -1,6 +1,5 @@
-#include "OrbitCamera.hpp"
-
 #include <glm/gtx/rotate_vector.hpp>
+#include "OrbitCamera.hpp"
 
 glm::mat4 OrbitCamera::getView() const {
     glm::vec3 eye = glm::vec3(1.0f, 0.0f, 0.0f);

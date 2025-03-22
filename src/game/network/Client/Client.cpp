@@ -1,16 +1,12 @@
 #include "Client.hpp"
 
 #include <iostream>
-#include <algorithm>
 #include <string>
 #include <cstring>
 
 #include "GameState.hpp"
+#include "ByteBuffer.hpp"
 #include "endianess.h"
-#include "command_line_args.h"
-#include "World.hpp"
-#include "byte_manipulation.h"
-#include "ByteBuffer.h"
 
 void Client::decode(PacketId id, ByteBuffer buffer) {
     packets.at(id).decode(buffer);

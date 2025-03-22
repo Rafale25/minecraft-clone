@@ -1,10 +1,10 @@
-#include "imgui.h"
+#include <imgui.h>
 #include "GameView.hpp"
 #include "Client.hpp"
 #include "World.hpp"
-#include "world_to_screen_space.h"
-#include "clock.h"
-#include "string_helpers.h"
+#include "world_to_screen_space.hpp"
+#include "clock.hpp"
+#include "string_helpers.hpp"
 #include "mem_info.h"
 
 void GameView::drawPlayersNames()

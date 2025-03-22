@@ -6,15 +6,11 @@
 #include <deque>
 
 #include "enums.hpp"
-
-#include "ClientPacket.hpp"
-#include "ServerPacket.hpp"
-
-#include "ByteBuffer.h"
-#include "ThreadPool.hpp"
+#include "ByteBuffer.hpp"
 #include "TaskQueue.hpp"
-
 #include "Network.hpp"
+#include "ServerPacket.hpp"
+#include "ClientPacket.hpp"
 
 class World;
 struct Chunk;

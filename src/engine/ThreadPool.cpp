@@ -1,6 +1,5 @@
-#include "ThreadPool.hpp"
-
 #include <iostream>
+#include "ThreadPool.hpp"
 
 ThreadPool::ThreadPool(size_t num_threads) {
     std::cout << "num_threads: " << num_threads << std::endl;

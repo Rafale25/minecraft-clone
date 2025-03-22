@@ -1,7 +1,7 @@
+#include <string.h>
 #include "World.hpp"
 #include "Chunk.hpp"
 #include "BlockRaycastHit.hpp"
-#include <string.h>
 
 World::World()
 {

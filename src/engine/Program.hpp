@@ -1,11 +1,11 @@
 #pragma once
 
-#include <glm/detail/type_mat4x4.hpp>
-
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <glm/detail/type_mat4x4.hpp>
+#include "glad/gl.h"
 
 class Program
 {

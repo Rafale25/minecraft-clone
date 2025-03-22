@@ -1,11 +1,9 @@
-#include "BufferAllocator.hpp"
-
 #include <glad/gl.h>
-
 #include <stdio.h>
 #include <cassert>
-#include <clock.h>
+#include <clock.hpp>
 #include <algorithm>
+#include "BufferAllocator.hpp"
 
 #define PRINT_ERRORS
 

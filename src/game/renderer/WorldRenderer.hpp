@@ -2,19 +2,20 @@
 
 #include <unordered_set>
 
-#include "glad/gl.h"
-#include "glm/gtx/hash.hpp"
+#include <glad/gl.h>
+#include <glm/gtx/hash.hpp>
 
+#include "ChunkMesh.hpp"
 #include "Context.hpp"
-#include "Program.h"
+#include "Program.hpp"
 #include "Shadowmap.hpp"
 #include "Geometry.hpp"
 #include "BufferAllocator.hpp"
 #include "ThreadPool.hpp"
 
-class Camera;
-struct ChunkRawMesh;
 struct ChunkMesh;
+struct ChunkRawMesh;
+class Camera;
 
 class WorldRenderer
 {

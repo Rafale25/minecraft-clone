@@ -1,5 +1,4 @@
 #include "Geometry.hpp"
-
 #include "VAO.hpp"
 
 void Mesh::draw() {

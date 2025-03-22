@@ -2,7 +2,6 @@
 #include <algorithm>
 
 #include "GameView.hpp"
-#include "Client.hpp"
 #include "Blueprint.hpp"
 #include "imgui.h"
 

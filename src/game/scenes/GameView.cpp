@@ -11,7 +11,7 @@
 #include "Entity.hpp"
 #include "AABB.hpp"
 #include "command_line_args.h"
-#include "Blueprint.hpp"
+#include "DebugDraw.hpp"
 
 bool isInManhattanDistance(const glm::ivec3& a, const glm::ivec3& b, int32_t distance)
 {
