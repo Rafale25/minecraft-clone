@@ -19,7 +19,7 @@ Entity* World::getEntity(int32_t id)
 
 void World::updateEntities()
 {
-    const float smoothness = 0.075f;
+    const float smoothness = 0.2f;
     for (auto& entity : entities)
     {
         entity.smooth_transform.position = glm::mix(entity.smooth_transform.position, entity.transform.position, smoothness);
