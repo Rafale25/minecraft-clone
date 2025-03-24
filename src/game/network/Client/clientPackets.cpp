@@ -94,7 +94,7 @@ void Client::decodePacketAddEntity(ByteBuffer buffer)
 
     Packet::Server::AddEntity packet = readAddEntityPacket(buffer);
 
-    client.task_queue.push_safe([&]() { // wtf is this syntax
+    client.task_queue.push_safe([=]() {
         Entity e{packet.id, packet.position};
         // e.transform.rotation.y = yaw;
         // e.transform.rotation.x = pitch;
@@ -119,7 +119,7 @@ void Client::decodePacketUpdateEntity(ByteBuffer buffer)
 
     Packet::Server::UpdateEntity packet = readUpdateEntityPacket(buffer);
 
-    client.task_queue.push_safe([&]() {
+    client.task_queue.push_safe([=]() {
         World::instance().setEntityTransform(packet.entity_id, packet.position, packet.yaw, packet.pitch);
     } );
 }
@@ -159,7 +159,7 @@ void Client::decodePacketEntityMetadata(ByteBuffer buffer)
 
     client.task_queue.push_safe([=]() {
         World::instance().setEntityName(packet.entity_id, std::string(packet.name));
-    } );
+    });
 }
 
 void Client::decodePacketChatMessage(ByteBuffer buffer)
