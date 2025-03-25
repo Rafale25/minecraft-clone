@@ -109,7 +109,7 @@ void GameView::guiWorldEdit()
     ImGui::Separator();
 
     ImGui::Text("Blueprints");
-    if (ImGui::BeginListBox(""))
+    if (ImGui::BeginListBox("##blueprints"))
     {
         for (int32_t i = 0 ; i < (int32_t)blueprint_infos.size() ; ++i) {
             if (ImGui::Selectable(blueprint_infos[i].name.c_str(), i == selected_index)) {
