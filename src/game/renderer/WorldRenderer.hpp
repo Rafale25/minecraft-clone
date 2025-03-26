@@ -64,16 +64,16 @@ public:
 
     GLuint ssbo_texture_handles;
 
-    Program cube_shader                 {"./assets/shaders/cube.vs", "./assets/shaders/cube.fs"};
-    Program cube_shader_depth_only      {"./assets/shaders/cube_depth_only.vs", "./assets/shaders/cube_depth_only.fs"};
-    Program mesh_shader                 {"./assets/shaders/mesh.vs", "./assets/shaders/mesh.fs"};
-    Program postprocessing_shader       {"./assets/shaders/postprocess.vs", "./assets/shaders/postprocess.fs"};
+    Program cube_shader                 {RESSOURCE_PATH "shaders/cube.vs",            RESSOURCE_PATH "shaders/cube.fs"};
+    Program cube_shader_depth_only      {RESSOURCE_PATH "shaders/cube_depth_only.vs", RESSOURCE_PATH "shaders/cube_depth_only.fs"};
+    Program mesh_shader                 {RESSOURCE_PATH "shaders/mesh.vs",            RESSOURCE_PATH "shaders/mesh.fs"};
+    Program postprocessing_shader       {RESSOURCE_PATH "shaders/postprocess.vs",     RESSOURCE_PATH "shaders/postprocess.fs"};
 
     const int32_t CHUNK_DELETE_DISTANCE_OFFSET = 2;
 
     const uint32_t MAX_COMMANDS = 500'000;
-    const uint32_t MAX_MEMORY = 500'000'000;
-    // const uint32_t MAX_MEMORY = 2'000'000'000;
+    // const uint32_t MAX_MEMORY = 500'000'000;
+    const uint32_t MAX_MEMORY = 2'000'000'000;
 
     BufferAllocator buffer_allocator_vertices {"BufferAllocatorVertice", MAX_MEMORY};
     BufferAllocator buffer_allocator_indices  {"BufferAllocatorIndices", MAX_MEMORY};

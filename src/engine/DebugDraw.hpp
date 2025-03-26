@@ -36,7 +36,7 @@ private:
     DebugDraw& operator=(DebugDraw&&) = delete;
 
 private:
-    Program _program{"./assets/shaders/debug_draw/line.vert", "./assets/shaders/debug_draw/line.frag"};
+    Program _program{RESSOURCE_PATH "shaders/debug_draw/line.vert", RESSOURCE_PATH "shaders/debug_draw/line.frag"};
     GLuint _vao, _vbo;
     std::vector<glm::vec3> _vertices;
 };

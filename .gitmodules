@@ -1,6 +1,8 @@
 [submodule "submodules/imgui"]
 	path = submodules/imgui
 	url = https://github.com/ocornut/imgui
+	shallow = true
 [submodule "submodules/glfw"]
 	path = submodules/glfw
 	url = https://github.com/glfw/glfw
+	shallow = true

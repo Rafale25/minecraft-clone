@@ -41,6 +41,8 @@ add_executable(${PROJECT_NAME} ${SRC_CPP} ${SRC_C})
 # target_compile_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
 # target_link_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE RESSOURCE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/assets/")
+
 target_include_directories(${PROJECT_NAME}
     PRIVATE
         ./include/

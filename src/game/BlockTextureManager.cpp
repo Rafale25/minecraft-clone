@@ -34,7 +34,7 @@ static int32_t getFormat(const char* filepath)
 
 void BlockTextureManager::_loadAllTextures()
 {
-    const std::string textures_path = "./assets/textures/";
+    const std::string textures_path = RESSOURCE_PATH "textures/";
 
     for (int32_t i = 0 ; i < (int32_t)BlockType::INVALID ; ++i) {
         const auto& [transparent, affectsAmbientOcclusion, liquid, lz, hz, lx, hx, ly, hy] = blocks_info[i];
