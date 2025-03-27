@@ -6,3 +6,7 @@
 	path = submodules/glfw
 	url = https://github.com/glfw/glfw
 	shallow = true
+[submodule "submodules/glm"]
+	path = submodules/glm
+	url = https://github.com/g-truc/glm
+	shallow = true

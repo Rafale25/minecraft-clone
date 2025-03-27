@@ -2,7 +2,7 @@ envParams="__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia DRI_PRIM
 ipAddress='162.19.137.231'
 # ipAddress='127.0.0.1'
 renderDistance='16'
-programPath='./build/Minecraft_Clone'
+programPath='./build/Minecraft_Clone.exe'
 
 # bash -c "$envParams valgrind --tool=massif $programPath $ipAddress $renderDistance"
 # bash -c "$envParams gdb $programPath $ipAddress $renderDistance"
