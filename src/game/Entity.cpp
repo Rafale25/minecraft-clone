@@ -1,5 +1,5 @@
 #include "Entity.hpp"
-#include "glad/gl.h"
+#include <glad/gl.h>
 #include "VAO.hpp"
 
 Entity::Entity(int32_t id): id(id) {

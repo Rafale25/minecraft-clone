@@ -3,7 +3,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "glad/gl.h"
+#include <glad/gl.h>
 
 class TextureManager
 {

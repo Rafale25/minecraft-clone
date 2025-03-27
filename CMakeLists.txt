@@ -11,6 +11,8 @@ set(GLFW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/glfw)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
 include_directories("submodules/glfw/include")
 add_subdirectory(${GLFW_DIR})
 
@@ -42,7 +44,7 @@ add_executable(${PROJECT_NAME} ${SRC_CPP} ${SRC_C})
 # target_link_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
 
 # target_compile_definitions(${PROJECT_NAME} PRIVATE RESSOURCE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/assets/")
-target_compile_definitions(${PROJECT_NAME} PRIVATE RESSOURCE_PATH="./assets/")
+target_compile_definitions(${PROJECT_NAME} PRIVATE RESSOURCE_PATH="./assets/" GLFW_INCLUDE_NONE=true)
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE

@@ -5,7 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <glm/detail/type_mat4x4.hpp>
-#include "glad/gl.h"
+#include <glad/gl.h>
 
 class Program
 {
