@@ -191,7 +191,7 @@ void GameView::playerMovements(float dt)
     }
 
     player_velocity.y -= player_gravity * dt;
-    player_velocity.y = glm::clamp(player_velocity.y, -40.0f, 40.0f);
+    player_velocity.y = glm::clamp(player_velocity.y, -400.0f, 400.0f);
 
     if (is_grounded) {
         player_velocity += move_vector * 1.0f;
