@@ -103,7 +103,7 @@ constexpr BlockInfo blocks_info[] = {
     { true, false, false, T::Glass, T::Glass, T::Glass, T::Glass, T::Glass, T::Glass },
 
     // Water = 7
-    { false, true, false, T::Water, T::Water, T::Water, T::Water, T::Water, T::Water },
+    { false, false, true, T::Water, T::Water, T::Water, T::Water, T::Water, T::Water },
 
     // Sand = 8
     { false, true, false, T::Sand, T::Sand, T::Sand, T::Sand, T::Sand, T::Sand },

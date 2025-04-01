@@ -201,11 +201,13 @@ inline void makeFace(
 
     const int32_t* info = infos[orientation];
 
-    BlockType nb = chunkextra.getBlock(local_pos + dir);
+    BlockType self_block = chunkextra.getBlock(local_pos);
+    BlockType neighbor_block = chunkextra.getBlock(local_pos + dir);
 
-    BlockInfo binfo = blocks_info[(int32_t)nb];
-    if (binfo.transparent) {
+    BlockInfo self_block_info = blocks_info[(int32_t)self_block];
+    BlockInfo neighbor_block_info = blocks_info[(int32_t)neighbor_block];
 
+    if (neighbor_block_info.transparent || (!self_block_info.liquid && neighbor_block_info.liquid)) {
         auto nb_lx = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[26], info[27], info[28]))].affectsAmbiantOcclusion;
         auto nb_hx = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[29], info[30], info[31]))].affectsAmbiantOcclusion;
         auto nb_ly = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[32], info[33], info[34]))].affectsAmbiantOcclusion;

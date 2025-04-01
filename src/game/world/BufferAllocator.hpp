@@ -24,6 +24,13 @@ struct DrawElementsIndirectCommand {
     uint32_t baseInstance;
 };
 
+struct DrawArraysIndirectCommand {
+    uint32_t count;
+    uint32_t instanceCount;
+    uint32_t first;
+    uint32_t baseInstance;
+};
+
 // NOTE: Crash when max size exceed int32_t max
 static constexpr uint64_t MAX_BUFFER_SIZE = 2'147'483'647; // 2^31-1 ~2.1Go
 
