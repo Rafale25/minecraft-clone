@@ -62,10 +62,7 @@ void GameView::gui(float dt)
 
     ImGui::Text("RAM: %.4f / %.4f Go", ((double)getCurrentRSS()) / (1024*1024*1024), ((double)getPeakRSS()) / (1024*1024*1024));
 
-    // ImGui::Text("BufferVertices: %d / %d", world_renderer.buffer_allocator_vertices.getFreeSlotsCount(), world_renderer.buffer_allocator_vertices.getMaxSlotsCount());
-    // ImGui::Text("BufferIndices: %d / %d", world_renderer.buffer_allocator_indices.getFreeSlotsCount(), world_renderer.buffer_allocator_indices.getMaxSlotsCount());
     ImGui::Text("BufferVertices: %d / %d - %d", world_renderer.buffer_allocator_vertices.getAvailableMemory(), world_renderer.buffer_allocator_vertices.getMaxMemory(), world_renderer.buffer_allocator_vertices.getSlotCount());
-    ImGui::Text("BufferIndices: %d / %d - %d", world_renderer.buffer_allocator_indices.getAvailableMemory(), world_renderer.buffer_allocator_indices.getMaxMemory(), world_renderer.buffer_allocator_indices.getSlotCount());
 
 
     ImGui::Text("New chunks: %d", (int32_t)Client::instance().new_chunks.size());

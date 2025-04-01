@@ -121,7 +121,7 @@ void WorldRenderer::onDeletedChunk(const glm::ivec3 &chunk_pos) {
     if (it == meshes.end()) return;
 
     buffer_allocator_vertices.deallocate(it->second.slot_vertices);
-    buffer_allocator_indices.deallocate(it->second.slot_indices);
+    buffer_allocator_vertices.deallocate(it->second.slot_indices);
     meshes.erase(it);
 }
 
@@ -181,11 +181,11 @@ void WorldRenderer::allocateVAOforWaitingChunks() {
         const auto& it = meshes.find(chunk_pos);
         if (it != meshes.end()) {
             buffer_allocator_vertices.deallocate(it->second.slot_vertices);
-            buffer_allocator_indices.deallocate(it->second.slot_indices);
+            buffer_allocator_vertices.deallocate(it->second.slot_indices);
         }
 
         ChunkMesh new_mesh;
-        new_mesh.updateVAO(buffer_allocator_vertices, buffer_allocator_indices, chunk_raw_mesh);
+        new_mesh.updateVAO(buffer_allocator_vertices, chunk_raw_mesh);
         meshes[chunk_pos] = new_mesh;
     }
 
@@ -224,7 +224,7 @@ void WorldRenderer::renderTerrain(const glm::mat4 &view_projection, bool use_fru
     }
     glBindVertexArray(chunk_vao);
     glVertexArrayVertexBuffer(chunk_vao, 0, buffer_allocator_vertices.getBufferObject(), 0, 1 * sizeof(GLuint));
-    glVertexArrayElementBuffer(chunk_vao, buffer_allocator_indices.getBufferObject());
+    glVertexArrayElementBuffer(chunk_vao, buffer_allocator_vertices.getBufferObject());
 
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, draw_command_buffer);
     glNamedBufferSubData(draw_command_buffer, 0, sizeof(DrawElementsIndirectCommand) * commands.size(), (const void *)commands.data());

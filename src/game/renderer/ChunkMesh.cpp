@@ -2,6 +2,17 @@
 #include "BlockTextureManager.hpp"
 #include "ChunkExtra.hpp"
 
+/*
+    position: 3x5
+    uv: 2x1
+    orientation: 3
+    texture_id: 8
+    ao: 3
+    // 4 bytes, 32 bits
+    // 00000000000000000000000000000000
+    //  aaattttttttooouvzzzzzyyyyyxxxxx
+*/
+
 GLuint packVertex(int32_t x, int32_t y, int32_t z, int32_t u, int32_t v, int32_t o, int32_t t, int32_t ao=3) {
     // 4 bytes, 32 bits
     // 00000000000000000000000000000000
@@ -244,16 +255,6 @@ inline void makeFace(
 // ChunkRawMesh computeVertexBuffer(const Chunk* chunk)
 ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos)
 {
-    /*
-        position: 3x5
-        uv: 2x1
-        orientation: 3
-        texture_id: 8
-        // 4 bytes, 32 bits
-        // 00000000000000000000000000000000
-        //     ttttttttooouvzzzzzyyyyyxxxxx
-    */
-
     ChunkExtra chunkextra = ChunkExtra::get(chunk_pos);
     ChunkRawMesh chunk_raw_mesh;
 
@@ -289,7 +290,6 @@ ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos)
 
 void ChunkMesh::updateVAO(
     BufferAllocator& buffer_allocator_vertices,
-    BufferAllocator& buffer_allocator_indices,
     const ChunkRawMesh& raw_mesh
 ){
     if (raw_mesh.vertices.size() == 0 || raw_mesh.indices.size() == 0) {
@@ -300,5 +300,5 @@ void ChunkMesh::updateVAO(
     const int32_t indices_size = raw_mesh.indices.size() * sizeof(GLuint);
 
     slot_vertices = buffer_allocator_vertices.allocate(vertices_size, &raw_mesh.vertices[0]);
-    slot_indices = buffer_allocator_indices.allocate(indices_size, &raw_mesh.indices[0]);
+    slot_indices = buffer_allocator_vertices.allocate(indices_size, &raw_mesh.indices[0]);
 }
