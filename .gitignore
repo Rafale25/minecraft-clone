@@ -21,3 +21,6 @@ perf.data.old
 .cache
 
 /blueprints/
+
+*.sh
+*.bat
