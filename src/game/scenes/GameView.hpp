@@ -65,6 +65,7 @@ private:
         const float player_radius = 0.3f;
         const float player_gravity = 45.0f;
         glm::vec3 player_velocity = {0.0f, 0.0f, 0.0f};
+        float last_jump_press = 0;
     // --
 
     // -- World editor -- //

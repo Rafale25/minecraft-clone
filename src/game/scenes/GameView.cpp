@@ -139,7 +139,6 @@ void GameView::playerMovements(float dt)
         return;
     }
 
-
     glm::vec3 forward_xz = glm::normalize(glm::vec3(camera.forward().x, 0.0f, camera.forward().z));
     glm::vec3 move_vector = -delta.x * camera.right() + delta.z * forward_xz;
 
@@ -186,7 +185,7 @@ void GameView::playerMovements(float dt)
         player_velocity.x *= 0.8f;
         player_velocity.z *= 0.8f;
     }
-    if (is_grounded && ctx.keystate[GLFW_KEY_SPACE]) {
+    if (is_grounded && ctx.keystate[GLFW_KEY_SPACE]) { // JUMP
         player_velocity.y += 12.0f;
     }
 
@@ -357,6 +356,15 @@ void GameView::onKeyPress(int key)
             glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         else
             glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+
+    // toggle flight when double pressing space
+    if (key == GLFW_KEY_SPACE) {
+        double t = glfwGetTime();
+        if (t - last_jump_press < 0.25f) {
+            free_cam = !free_cam;
+        }
+        last_jump_press = t;
     }
 
     if (key == GLFW_KEY_F11) {
