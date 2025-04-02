@@ -11,9 +11,11 @@
     // 4 bytes, 32 bits
     // 00000000000000000000000000000000
     //  aaattttttttooouvzzzzzyyyyyxxxxx
+
+    //  aaaaaaaatttttooozzzzzyyyyyxxxxx
 */
 
-GLuint packVertex(int32_t x, int32_t y, int32_t z, int32_t u, int32_t v, int32_t o, int32_t t, int32_t ao=3) {
+GLuint packVertex(int32_t x, int32_t y, int32_t z, int32_t o, int32_t t, int32_t ao00, int32_t ao10, int32_t ao11, int32_t ao01) {
     // 4 bytes, 32 bits
     // 00000000000000000000000000000000
     //  aaattttttttooouvzzzzzyyyyyxxxxx
@@ -21,11 +23,9 @@ GLuint packVertex(int32_t x, int32_t y, int32_t z, int32_t u, int32_t v, int32_t
         ((x & 31)   << 0)   |
         ((y & 31)   << 5)   |
         ((z & 31)   << 10)  |
-        ((u & 1)    << 15)  |
-        ((v & 1)    << 16)  |
-        ((o & 7)    << 17)  |
-        ((t & 255)  << 20)  |
-        ((ao & 7)   << 28);
+        ((o & 7)    << 15)  |
+        ((t & 127)   << 18);
+        // ((ao & 7)   << 28);
 
     return p;
 }
@@ -48,9 +48,6 @@ static inline glm::ivec3 orientationToDir(Orientation orientation) {
             abort();
     }
 }
-
-// #pragma GCC diagnostic push
-// #pragma GCC diagnostic ignored "-Wc99-designator"
 
 const int32_t infos[][50] = {
     // [Orientation::Top] 0
@@ -185,11 +182,8 @@ const int32_t infos[][50] = {
     },
 };
 
-// #pragma GCC diagnostic pop
-
 inline void makeFace(
     std::vector<GLuint>& vertices,
-    std::vector<GLuint>& indices,
     int32_t x, int32_t y, int32_t z,
     const ChunkExtra &chunkextra,
     GLuint& ebo_offset,
@@ -207,6 +201,7 @@ inline void makeFace(
     BlockInfo self_block_info = blocks_info[(int32_t)self_block];
     BlockInfo neighbor_block_info = blocks_info[(int32_t)neighbor_block];
 
+    // If neighbor is transparent or a liquid block
     if (neighbor_block_info.transparent || (!self_block_info.liquid && neighbor_block_info.liquid)) {
         auto nb_lx = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[26], info[27], info[28]))].affectsAmbiantOcclusion;
         auto nb_hx = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[29], info[30], info[31]))].affectsAmbiantOcclusion;
@@ -223,34 +218,37 @@ inline void makeFace(
         int32_t a11 = vertexAO(nb_hx, nb_hy, nb_hxhy);
         int32_t a01 = vertexAO(nb_lx, nb_hy, nb_lxhy);
 
-        if(a00 + a11 > a01 + a10) {
-            // generate normal quad
-            vertices.insert(vertices.end(), {
-                packVertex(x+info[0],  y+info[1],  z+info[2],  info[3],  info[4],  orientation, texture_id, a00),
-                packVertex(x+info[5],  y+info[6],  z+info[7],  info[8],  info[9],  orientation, texture_id, a10),
-                packVertex(x+info[10], y+info[11], z+info[12], info[13], info[14], orientation, texture_id, a11),
-                packVertex(x+info[15], y+info[16], z+info[17], info[18], info[19], orientation, texture_id, a01),
-            });
+        uint32_t facedata = packVertex(x, y, z, orientation, texture_id, a00, a10, a11, a01);
+        vertices.push_back(facedata);
 
-            indices.insert(indices.end(), {
-                ebo_offset+info[20], ebo_offset+info[21], ebo_offset+info[22],
-                ebo_offset+info[23], ebo_offset+info[24], ebo_offset+info[25]
-            });
-        } else {
-            // generate flipped quad
-            vertices.insert(vertices.end(), {
-                packVertex(x+info[15], y+info[16], z+info[17], info[18], info[19], orientation, texture_id, a01),
-                packVertex(x+info[10], y+info[11], z+info[12], info[13], info[14], orientation, texture_id, a11),
-                packVertex(x+info[5],  y+info[6],  z+info[7],  info[8],  info[9],  orientation, texture_id, a10),
-                packVertex(x+info[0],  y+info[1],  z+info[2],  info[3],  info[4],  orientation, texture_id, a00),
-            });
+        // if(a00 + a11 > a01 + a10) {
+        //     // generate normal quad
+        //     vertices.insert(vertices.end(), {
+        //         packVertex(x+info[0],  y+info[1],  z+info[2],  info[3],  info[4],  orientation, texture_id, a00),
+        //         packVertex(x+info[5],  y+info[6],  z+info[7],  info[8],  info[9],  orientation, texture_id, a10),
+        //         packVertex(x+info[10], y+info[11], z+info[12], info[13], info[14], orientation, texture_id, a11),
+        //         packVertex(x+info[15], y+info[16], z+info[17], info[18], info[19], orientation, texture_id, a01),
+        //     });
 
-            indices.insert(indices.end(), {
-                ebo_offset+info[20], ebo_offset+info[22], ebo_offset+info[21],
-                ebo_offset+info[23], ebo_offset+info[25], ebo_offset+info[24]
-            });
-        }
-        ebo_offset += 4;
+        //     indices.insert(indices.end(), {
+        //         ebo_offset+info[20], ebo_offset+info[21], ebo_offset+info[22],
+        //         ebo_offset+info[23], ebo_offset+info[24], ebo_offset+info[25]
+        //     });
+        // } else {
+        //     // generate flipped quad
+        //     vertices.insert(vertices.end(), {
+        //         packVertex(x+info[15], y+info[16], z+info[17], info[18], info[19], orientation, texture_id, a01),
+        //         packVertex(x+info[10], y+info[11], z+info[12], info[13], info[14], orientation, texture_id, a11),
+        //         packVertex(x+info[5],  y+info[6],  z+info[7],  info[8],  info[9],  orientation, texture_id, a10),
+        //         packVertex(x+info[0],  y+info[1],  z+info[2],  info[3],  info[4],  orientation, texture_id, a00),
+        //     });
+
+        //     indices.insert(indices.end(), {
+        //         ebo_offset+info[20], ebo_offset+info[22], ebo_offset+info[21],
+        //         ebo_offset+info[23], ebo_offset+info[25], ebo_offset+info[24]
+        //     });
+        // }
+        // ebo_offset += 4;
     }
 }
 
@@ -277,12 +275,12 @@ ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos)
         const glm::ivec3 local_pos = glm::ivec3(x, y, z);
         auto [texture_handle_lz, texture_handle_hz, texture_handle_lx, texture_handle_hx, texture_handle_ly, texture_handle_hy] = BlockTextureManager::Get().block_textures_ids[block];
 
-        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Front, texture_handle_lz);
-        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Back, texture_handle_hz);
-        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Bottom, texture_handle_ly);
-        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Top, texture_handle_hy);
-        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Left, texture_handle_lx);
-        makeFace(chunk_raw_mesh.vertices, chunk_raw_mesh.indices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Right, texture_handle_hx);
+        makeFace(chunk_raw_mesh.vertices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Front, texture_handle_lz);
+        makeFace(chunk_raw_mesh.vertices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Back, texture_handle_hz);
+        makeFace(chunk_raw_mesh.vertices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Bottom, texture_handle_ly);
+        makeFace(chunk_raw_mesh.vertices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Top, texture_handle_hy);
+        makeFace(chunk_raw_mesh.vertices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Left, texture_handle_lx);
+        makeFace(chunk_raw_mesh.vertices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Right, texture_handle_hx);
     }
     }
     }
@@ -294,13 +292,11 @@ void ChunkMesh::updateVAO(
     BufferAllocator& buffer_allocator_vertices,
     const ChunkRawMesh& raw_mesh
 ){
-    if (raw_mesh.vertices.size() == 0 || raw_mesh.indices.size() == 0) {
+    if (raw_mesh.vertices.size() == 0) {
         return;
     }
 
     const int32_t vertices_size = raw_mesh.vertices.size() * sizeof(GLuint);
-    const int32_t indices_size = raw_mesh.indices.size() * sizeof(GLuint);
 
-    slot_vertices = buffer_allocator_vertices.allocate(vertices_size, &raw_mesh.vertices[0]);
-    slot_indices = buffer_allocator_vertices.allocate(indices_size, &raw_mesh.indices[0]);
+    slot_vertices = buffer_allocator_vertices.allocate(vertices_size, raw_mesh.vertices.data());
 }

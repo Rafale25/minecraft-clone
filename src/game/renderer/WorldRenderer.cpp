@@ -121,7 +121,6 @@ void WorldRenderer::onDeletedChunk(const glm::ivec3 &chunk_pos) {
     if (it == meshes.end()) return;
 
     buffer_allocator_vertices.deallocate(it->second.slot_vertices);
-    buffer_allocator_vertices.deallocate(it->second.slot_indices);
     meshes.erase(it);
 }
 
@@ -181,7 +180,6 @@ void WorldRenderer::allocateVAOforWaitingChunks() {
         const auto& it = meshes.find(chunk_pos);
         if (it != meshes.end()) {
             buffer_allocator_vertices.deallocate(it->second.slot_vertices);
-            buffer_allocator_vertices.deallocate(it->second.slot_indices);
         }
 
         ChunkMesh new_mesh;
@@ -198,12 +196,12 @@ void WorldRenderer::renderTerrain(const glm::mat4 &view_projection, bool use_fru
 
     chunks_drawn = 0;
 
-    std::vector<DrawElementsIndirectCommand> commands;
+    std::vector<DrawArraysIndirectCommand> commands;
     std::vector<glm::vec4> chunk_positions;
 
     for (const auto& [chunk_pos, mesh] : meshes)
     {
-        if (mesh.slot_vertices.start == -1 || mesh.slot_indices.start == -1) continue;
+        if (mesh.slot_vertices.start == -1) continue;
 
         if (use_frustum_culling) {
             AABB chunk_aabb = {(chunk_pos * CHUNK_SIZE), (chunk_pos * CHUNK_SIZE) + CHUNK_SIZE};
@@ -213,32 +211,33 @@ void WorldRenderer::renderTerrain(const glm::mat4 &view_projection, bool use_fru
         chunk_positions.push_back(glm::vec4(chunk_pos * CHUNK_SIZE, 1.0f));
 
         commands.push_back({
-            (uint32_t)(mesh.slot_indices.size / sizeof(GLuint)),
+            (uint32_t)(mesh.slot_vertices.size / sizeof(GLuint)) * 6, // one face if 2 triangles, 6 vertices
             (uint32_t)1,
-            (uint32_t)(mesh.slot_indices.start / sizeof(GLuint)),
-            (int32_t)(mesh.slot_vertices.start / sizeof(GLuint)),
-            (uint32_t)0
+            0u, // don't need it first vertex so set it at 0 to avoid crash/bug
+            (uint32_t)(mesh.slot_vertices.start / sizeof(GLuint)) // pass first vertex information by using this field that get sent to gl_BaseInstance
         });
 
         ++chunks_drawn;
     }
+
     glBindVertexArray(chunk_vao);
-    glVertexArrayVertexBuffer(chunk_vao, 0, buffer_allocator_vertices.getBufferObject(), 0, 1 * sizeof(GLuint));
-    glVertexArrayElementBuffer(chunk_vao, buffer_allocator_vertices.getBufferObject());
+    glVertexArrayVertexBuffer(chunk_vao, 0, buffer_allocator_vertices.getBufferObject(), 0, 1 * sizeof(GLuint)); // Not needed anymore but crashes without
 
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, draw_command_buffer);
-    glNamedBufferSubData(draw_command_buffer, 0, sizeof(DrawElementsIndirectCommand) * commands.size(), (const void *)commands.data());
+    glNamedBufferSubData(draw_command_buffer, 0, sizeof(DrawArraysIndirectCommand) * commands.size(), (const void *)commands.data());
+
 
     glNamedBufferSubData(ssbo_chunk_positions, 0, sizeof(GLfloat) * 4 * chunk_positions.size(), (const void *)chunk_positions.data());
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_texture_handles);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo_chunk_positions);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, buffer_allocator_vertices.getBufferObject());
 
     // printf("commands %d\n", commands.size());
     // for (DrawElementsIndirectCommand &cmd : commands) {
     //     printf("Cmd: %d %d %d %d %d\n", cmd.count, cmd.instanceCount, cmd.firstIndex, cmd.baseVertex, cmd.baseInstance);
     // }
 
-    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (const void *)0, commands.size(), 0);
+    glMultiDrawArraysIndirect(GL_TRIANGLES, (const void *)0, commands.size(), 0);
 }
 
 void WorldRenderer::renderShadowmap(const Camera &camera)

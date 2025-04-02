@@ -1,9 +1,14 @@
 #version 460 core
 
-layout (location = 0) in uint a_packedVertex;
+// layout (location = 0) in uint a_packedVertex;
 
 layout(binding = 1, std430) readonly buffer ssbo_chunk_positions {
     vec4 chunk_positions[];
+};
+
+layout(binding = 2, std430) readonly buffer ssbo_blocks_faces
+{
+    uint blocks_faces[];
 };
 
 out VS_OUT {
@@ -18,21 +23,113 @@ out VS_OUT {
 uniform mat4 u_projection_view;
 uniform mat4 u_lightSpaceMatrix;
 
+
+const vec3 model_vertex[] = {
+    // +Y
+    vec3(0.0, 1.0, 0.0),
+    vec3(1.0, 1.0, 0.0),
+    vec3(1.0, 1.0, 1.0),
+
+    vec3(0.0, 1.0, 0.0),
+    vec3(1.0, 1.0, 1.0),
+    vec3(0.0, 1.0, 1.0),
+
+    // -Y
+    vec3(0.0, 0.0, 0.0),
+    vec3(1.0, 0.0, 1.0),
+    vec3(1.0, 0.0, 0.0),
+
+    vec3(0.0, 0.0, 0.0),
+    vec3(0.0, 0.0, 1.0),
+    vec3(1.0, 0.0, 1.0),
+
+
+    // -Z
+    vec3(0.0, 0.0, 0.0),
+    vec3(1.0, 0.0, 0.0),
+    vec3(1.0, 1.0, 0.0),
+
+    vec3(0.0, 0.0, 0.0),
+    vec3(1.0, 1.0, 0.0),
+    vec3(0.0, 1.0, 0.0),
+
+
+    // +Z
+    vec3(0.0, 0.0, 1.0),
+    vec3(1.0, 1.0, 1.0),
+    vec3(1.0, 0.0, 1.0),
+
+    vec3(0.0, 0.0, 1.0),
+    vec3(0.0, 1.0, 1.0),
+    vec3(1.0, 1.0, 1.0),
+
+
+
+    // -X
+    vec3(0.0, 0.0, 0.0),
+    vec3(0.0, 1.0, 1.0),
+    vec3(0.0, 0.0, 1.0),
+
+    vec3(0.0, 0.0, 0.0),
+    vec3(0.0, 1.0, 0.0),
+    vec3(0.0, 1.0, 1.0),
+
+
+    // +X
+    vec3(1.0, 0.0, 0.0),
+    vec3(1.0, 0.0, 1.0),
+    vec3(1.0, 1.0, 1.0),
+
+    vec3(1.0, 0.0, 0.0),
+    vec3(1.0, 1.0, 1.0),
+    vec3(1.0, 1.0, 0.0),
+};
+
+const ivec2 model_uv[] = {
+    // +Y
+    ivec2(0, 0), ivec2(1, 0), ivec2(1, 1),
+    ivec2(0, 0), ivec2(1, 1), ivec2(0, 1),
+
+    // -Y
+    ivec2(0, 0), ivec2(1, 1), ivec2(1, 0),
+    ivec2(0, 0), ivec2(0, 1), ivec2(1, 1),
+
+    // -Z
+    ivec2(0, 0), ivec2(1, 0), ivec2(1, 1),
+    ivec2(0, 0), ivec2(1, 1), ivec2(0, 1),
+
+    // +Z
+    ivec2(0, 0), ivec2(1, 1), ivec2(1, 0),
+    ivec2(0, 0), ivec2(0, 1), ivec2(1, 1),
+
+    // -X
+    ivec2(0, 0), ivec2(1, 1), ivec2(1, 0),
+    ivec2(0, 0), ivec2(0, 1), ivec2(1, 1),
+
+    // +X
+    ivec2(0, 0), ivec2(1, 0), ivec2(1, 1),
+    ivec2(0, 0), ivec2(1, 1), ivec2(0, 1),
+};
+
+
 void main()
 {
-    int a_x =                   int((a_packedVertex >> 0)  & 31);
-    int a_y =                   int((a_packedVertex >> 5)  & 31);
-    int a_z =                   int((a_packedVertex >> 10) & 31);
-    int a_u =                   int((a_packedVertex >> 15) & 1);
-    int a_v =                   int((a_packedVertex >> 16) & 1);
-    uint a_orientation =           ((a_packedVertex >> 17) & 7);
-    uint a_texture_id =            ((a_packedVertex >> 20) & 255);
-    uint a_ambient_occlusion =     ((a_packedVertex >> 28) & 7);
+    const uint data = blocks_faces[gl_BaseInstance + gl_VertexID / 6];
+
+    int a_x =                   int((data >> 0)  & 31);
+    int a_y =                   int((data >> 5)  & 31);
+    int a_z =                   int((data >> 10) & 31);
+    uint a_orientation =           ((data >> 15) & 7);
+    uint a_texture_id =            ((data >> 18) & 127);
+    // uint a_ambient_occlusion =     ((a_packedVertex >> 28) & 7);
 
     ivec3 a_position = ivec3(a_x, a_y, a_z);
-    ivec2 a_uv = ivec2(a_u, a_v);
 
-    vec3 world_pos = chunk_positions[gl_DrawID].xyz + a_position;
+    ivec2 a_uv = model_uv[a_orientation*6 + gl_VertexID % 6];
+    vec3 model_offset = model_vertex[a_orientation*6 + gl_VertexID % 6];
+
+
+    vec3 world_pos = chunk_positions[gl_DrawID].xyz + a_position + model_offset;
     vec4 position = u_projection_view * vec4(world_pos, 1.0);
 
     vs_out.FragPosLightSpace = u_lightSpaceMatrix * vec4(world_pos, 1.0);
@@ -40,6 +137,7 @@ void main()
     vs_out.uv = a_uv;
     vs_out.orientation = (a_orientation);
     vs_out.texture_id = a_texture_id;
-    vs_out.ambient_occlusion = float(a_ambient_occlusion) / 3.0;
+    // vs_out.ambient_occlusion = float(a_ambient_occlusion) / 3.0;
+    vs_out.ambient_occlusion = 1.0;
     gl_Position = position;
 }
