@@ -201,7 +201,7 @@ void WorldRenderer::renderTerrain(const glm::mat4 &view_projection, bool use_fru
 
     for (const auto& [chunk_pos, mesh] : meshes)
     {
-        if (mesh.slot_vertices.start == -1) continue;
+        if (mesh.slot_vertices.start == -1 || !mesh.slot_vertices.used) continue;
 
         if (use_frustum_culling) {
             AABB chunk_aabb = {(chunk_pos * CHUNK_SIZE), (chunk_pos * CHUNK_SIZE) + CHUNK_SIZE};
