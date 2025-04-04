@@ -109,12 +109,12 @@ public:
             glDeleteShader(geometry);
 
         if (compilation_status == 0) {
+            if (ID != 0) glDeleteProgram(ID);
             ID = id;
         }
     }
 
     void reload() {
-        if (ID != 0) glDeleteProgram(ID);
         load(_vertexPath, _fragmentPath, _geometryPath);
     }
 
