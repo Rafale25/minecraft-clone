@@ -45,27 +45,6 @@ const ivec2 model_face_flipped[6] = {
     ivec2(1, 1),
 };
 
-const vec2 model_face_test[6] = {
-    vec2(1, 0),
-    vec2(1, 1),
-    vec2(0, 1),
-
-    vec2(1, 0),
-    vec2(0, 1),
-    vec2(0, 0),
-};
-
-const vec2 model_face_flipped_test[6] = {
-    vec2(1, 0),
-    vec2(1, 1),
-    vec2(0, 0),
-
-    vec2(0, 0),
-    vec2(1, 1),
-    vec2(0, 1),
-};
-
-
 const int ao_order[] = {
     0, 1, 2,
     0, 2, 3
@@ -75,6 +54,15 @@ const int ao_order_flipped[] = {
     0, 1, 3,
     3, 1, 2
 };
+
+ivec2 rotate_uv(ivec2 uv, int rot) {
+    if (rot == 0) return uv;
+    if (rot == 1) return ivec2(uv.y, 1.0 - uv.x); // 90°
+    if (rot == 2) return ivec2(1.0 - uv.x, 1.0 - uv.y); // 180°
+    if (rot == 3) return ivec2(1.0 - uv.y, uv.x); // 270°
+    return uv;
+}
+
 
 void main()
 {
@@ -134,16 +122,16 @@ void main()
 
     a_ambient_occlusion = a_ambient_occlusion_4[ao_order[vertex_index]];
 
+    if (a_orientation == 3) {
+        a_uv.x = 1 - a_uv.x;
+    }
+    if (a_orientation == 4) {
+        a_uv = rotate_uv(a_uv, 3);
+    }
+
     if (shouldFlipFace) {
-        if (a_orientation == 4) {
-            a_uv = ivec2(model_face_test[vertex_index]);
-        }
     } else {
         a_ambient_occlusion = a_ambient_occlusion_4[ao_order_flipped[vertex_index]];
-
-        if (a_orientation == 4) {
-            a_uv = ivec2(model_face_flipped_test[vertex_index]);
-        }
     }
 
     vec3 world_pos = chunk_positions[gl_DrawID].xyz + a_position + model_offset;

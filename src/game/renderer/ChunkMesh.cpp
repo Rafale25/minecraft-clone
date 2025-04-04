@@ -54,19 +54,9 @@ static inline glm::ivec3 orientationToDir(Orientation orientation) {
     }
 }
 
-const int32_t infos[][50] = {
+const int32_t infos[][26] = {
     // [Orientation::Top] 0
     {
-     // x, y, z,    u, v
-        0, 1, 0,    0, 0,
-        1, 1, 0,    1, 0,
-        1, 1, 1,    1, 1,
-        0, 1, 1,    0, 1,
-
-     // indices
-        0, 1, 2,
-        0, 2, 3,
-
      // nb_lx
         -1, 1, 0,
      // nb_hx
@@ -87,14 +77,6 @@ const int32_t infos[][50] = {
     },
     // [Orientation::Bottom] = 1
     {
-        0, 0, 0,    0, 0,
-        1, 0, 0,    1, 0,
-        1, 0, 1,    1, 1,
-        0, 0, 1,    0, 1,
-
-        0, 2, 1,
-        0, 3, 2,
-
         -1, -1, 0,
         1, -1, 0,
         0, -1, -1,
@@ -107,14 +89,6 @@ const int32_t infos[][50] = {
     },
     // [Orientation::Front] = 2
     {
-        0, 0, 0,  0, 0,
-        1, 0, 0,  1, 0,
-        1, 1, 0,  1, 1,
-        0, 1, 0,  0, 1,
-
-        0, 1, 2,
-        0, 2, 3,
-
         -1, 0, -1,
         1, 0, -1,
         0, -1, -1,
@@ -127,14 +101,6 @@ const int32_t infos[][50] = {
     },
     // [Orientation::Back] = 3
     {
-        0, 0, 1,     0, 0,
-        1, 0, 1,     1, 0,
-        1, 1, 1,     1, 1,
-        0, 1, 1,     0, 1,
-
-        0, 2, 1,
-        0, 3, 2,
-
         -1, 0, 1,
         1, 0, 1,
         0, -1, 1,
@@ -147,14 +113,6 @@ const int32_t infos[][50] = {
     },
     // [Orientation::Left] = 4
     {
-        0, 0, 0,    0, 0,
-        0, 1, 0,    0, 1,
-        0, 1, 1,    1, 1,
-        0, 0, 1,    1, 0,
-
-        0, 2, 3,
-        0, 1, 2,
-
         -1, -1, 0,
         -1, 1, 0,
         -1, 0, -1,
@@ -167,14 +125,6 @@ const int32_t infos[][50] = {
     },
     // [Orientation::Right] = 5
     {
-        1, 0, 0,    0, 0,
-        1, 0, 1,    1, 0,
-        1, 1, 1,    1, 1,
-        1, 1, 0,    0, 1,
-
-        0, 1, 2,
-        0, 2, 3,
-
         1, 0, -1,
         1, 0, 1,
         1, -1, 0,
@@ -207,15 +157,15 @@ inline void makeFace(
 
     // If neighbor is transparent or a liquid block
     if (neighbor_block_info.transparent || (!self_block_info.liquid && neighbor_block_info.liquid)) {
-        auto nb_lx = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[26], info[27], info[28]))].affectsAmbiantOcclusion;
-        auto nb_hx = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[29], info[30], info[31]))].affectsAmbiantOcclusion;
-        auto nb_ly = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[32], info[33], info[34]))].affectsAmbiantOcclusion;
-        auto nb_hy = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[35], info[36], info[37]))].affectsAmbiantOcclusion;
+        auto nb_lx = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[0], info[1], info[2]))].affectsAmbiantOcclusion;
+        auto nb_hx = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[3], info[4], info[5]))].affectsAmbiantOcclusion;
+        auto nb_ly = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[6], info[7], info[8]))].affectsAmbiantOcclusion;
+        auto nb_hy = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[9], info[10], info[11]))].affectsAmbiantOcclusion;
 
-        auto nb_lxly = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[38], info[39], info[40]))].affectsAmbiantOcclusion;
-        auto nb_hxly = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[41], info[42], info[43]))].affectsAmbiantOcclusion;
-        auto nb_lxhy = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[44], info[45], info[46]))].affectsAmbiantOcclusion;
-        auto nb_hxhy = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[47], info[48], info[49]))].affectsAmbiantOcclusion;
+        auto nb_lxly = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[12], info[13], info[14]))].affectsAmbiantOcclusion;
+        auto nb_hxly = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[15], info[16], info[17]))].affectsAmbiantOcclusion;
+        auto nb_lxhy = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[18], info[19], info[20]))].affectsAmbiantOcclusion;
+        auto nb_hxhy = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[21], info[22], info[23]))].affectsAmbiantOcclusion;
 
         int32_t a00 = vertexAO(nb_lx, nb_ly, nb_lxly);
         int32_t a10 = vertexAO(nb_hx, nb_ly, nb_hxly);
