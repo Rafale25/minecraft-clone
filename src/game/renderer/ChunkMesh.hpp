@@ -3,9 +3,10 @@
 #include <glm/ext/vector_int3.hpp>
 #include "BufferAllocator.hpp"
 
-struct ChunkRawMesh {
-    std::vector<GLuint> vertices;
+#include <glad/gl.h>
 
+struct ChunkRawMesh {
+    std::vector<GLuint64> vertices;
     // std::vector<GLuint> vertices_translucent;
 };
 

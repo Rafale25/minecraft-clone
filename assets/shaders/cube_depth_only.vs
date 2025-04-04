@@ -1,6 +1,7 @@
 #version 460 core
 
-layout (location = 0) in uint a_packedVertex;
+#extension GL_ARB_gpu_shader5 : enable
+#extension GL_ARB_gpu_shader_int64 : enable
 
 layout(binding = 1, std430) readonly buffer ssbo_chunk_positions {
     vec4 chunk_positions[];
@@ -8,7 +9,7 @@ layout(binding = 1, std430) readonly buffer ssbo_chunk_positions {
 
 layout(binding = 2, std430) readonly buffer ssbo_blocks_faces
 {
-    uint blocks_faces[];
+    uint64_t blocks_faces[];
 };
 
 out VS_OUT {
@@ -108,13 +109,13 @@ uniform mat4 u_lightSpaceMatrix;
 
 void main()
 {
-    const uint data = blocks_faces[gl_BaseInstance + gl_VertexID / 6];
+    const uint64_t data = blocks_faces[gl_BaseInstance + gl_VertexID / 6];
 
     int a_x =                   int((data >> 0)  & 31);
     int a_y =                   int((data >> 5)  & 31);
     int a_z =                   int((data >> 10) & 31);
-    uint a_orientation =           ((data >> 15) & 7);
-    uint a_texture_id =            ((data >> 18) & 63);
+    uint a_orientation =        uint((data >> 15) & 7);
+    uint a_texture_id =         uint((data >> 18) & 255);
 
     ivec3 a_position = ivec3(a_x, a_y, a_z);
     ivec2 a_uv = model_uv[a_orientation*6 + gl_VertexID % 6];

@@ -211,10 +211,10 @@ void WorldRenderer::renderTerrain(const glm::mat4 &view_projection, bool use_fru
         chunk_positions.push_back(glm::vec4(chunk_pos * CHUNK_SIZE, 1.0f));
 
         commands.push_back({
-            (uint32_t)(mesh.slot_vertices.size / sizeof(GLuint)) * 6, // one face if 2 triangles, 6 vertices
+            (uint32_t)(mesh.slot_vertices.size / sizeof(GLuint64)) * 6, // one face if 2 triangles, 6 vertices
             (uint32_t)1,
             0u, // don't need it first vertex so set it at 0 to avoid crash/bug
-            (uint32_t)(mesh.slot_vertices.start / sizeof(GLuint)) // pass first vertex information by using this field that get sent to gl_BaseInstance
+            (uint32_t)(mesh.slot_vertices.start / sizeof(GLuint64)) // pass first vertex information by using this field that get sent to gl_BaseInstance
         });
 
         ++chunks_drawn;

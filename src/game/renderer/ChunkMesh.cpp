@@ -15,17 +15,22 @@
     //  aaaaaaaatttttooozzzzzyyyyyxxxxx
 */
 
-GLuint packVertex(int32_t x, int32_t y, int32_t z, int32_t o, int32_t t, int32_t ao00, int32_t ao10, int32_t ao11, int32_t ao01) {
-    // 4 bytes, 32 bits
-    // 00000000000000000000000000000000
-    //  aaattttttttooouvzzzzzyyyyyxxxxx
-    GLuint p =
-        ((x & 31)   << 0)   |
-        ((y & 31)   << 5)   |
-        ((z & 31)   << 10)  |
-        ((o & 7)    << 15)  |
-        ((t & 127)   << 18);
-        // ((ao & 7)   << 28);
+GLuint64 packVertex(int32_t x, int32_t y, int32_t z, int32_t o, int32_t t, int32_t ao00, int32_t ao10, int32_t ao11, int32_t ao01) {
+    // 8 bytes, 64 bits
+
+    // ------------------------aaaaaaaa
+    // ----ttttttttooouvzzzzzyyyyyxxxxx
+    GLuint64 p = (GLuint64)
+        ((GLuint64)(x & 31)   << 0)   |
+        ((GLuint64)(y & 31)   << 5)   |
+        ((GLuint64)(z & 31)   << 10)  |
+        ((GLuint64)(o & 7)    << 15)  |
+        ((GLuint64)(t & 255)  << 18) |
+
+        (((GLuint64)(ao00 & 7)) << 32) |
+        (((GLuint64)(ao10 & 7)) << 35) |
+        (((GLuint64)(ao11 & 7)) << 38) |
+        (((GLuint64)(ao01 & 7)) << 41);
 
     return p;
 }
@@ -183,10 +188,9 @@ const int32_t infos[][50] = {
 };
 
 inline void makeFace(
-    std::vector<GLuint>& vertices,
+    std::vector<GLuint64>& vertices,
     int32_t x, int32_t y, int32_t z,
     const ChunkExtra &chunkextra,
-    GLuint& ebo_offset,
     const glm::ivec3& local_pos,
     Orientation orientation,
     GLuint texture_id
@@ -218,7 +222,7 @@ inline void makeFace(
         int32_t a11 = vertexAO(nb_hx, nb_hy, nb_hxhy);
         int32_t a01 = vertexAO(nb_lx, nb_hy, nb_lxhy);
 
-        uint32_t facedata = packVertex(x, y, z, orientation, texture_id, a00, a10, a11, a01);
+        GLuint64 facedata = packVertex(x, y, z, orientation, texture_id, a00, a10, a11, a01);
         vertices.push_back(facedata);
 
         // if(a00 + a11 > a01 + a10) {
@@ -252,13 +256,10 @@ inline void makeFace(
     }
 }
 
-// ChunkRawMesh computeVertexBuffer(const Chunk* chunk)
 ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos)
 {
     ChunkExtra chunkextra = ChunkExtra::get(chunk_pos);
     ChunkRawMesh chunk_raw_mesh;
-
-    GLuint ebo_offset = 0;
 
     for (int32_t z = 0 ; z < CHUNK_SIZE ; ++z) {
     for (int32_t y = 0 ; y < CHUNK_SIZE ; ++y) {
@@ -275,12 +276,12 @@ ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos)
         const glm::ivec3 local_pos = glm::ivec3(x, y, z);
         auto [texture_handle_lz, texture_handle_hz, texture_handle_lx, texture_handle_hx, texture_handle_ly, texture_handle_hy] = BlockTextureManager::Get().block_textures_ids[block];
 
-        makeFace(chunk_raw_mesh.vertices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Front, texture_handle_lz);
-        makeFace(chunk_raw_mesh.vertices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Back, texture_handle_hz);
-        makeFace(chunk_raw_mesh.vertices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Bottom, texture_handle_ly);
-        makeFace(chunk_raw_mesh.vertices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Top, texture_handle_hy);
-        makeFace(chunk_raw_mesh.vertices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Left, texture_handle_lx);
-        makeFace(chunk_raw_mesh.vertices, x, y, z, chunkextra, ebo_offset, local_pos, Orientation::Right, texture_handle_hx);
+        makeFace(chunk_raw_mesh.vertices, x, y, z, chunkextra, local_pos, Orientation::Front, texture_handle_lz);
+        makeFace(chunk_raw_mesh.vertices, x, y, z, chunkextra, local_pos, Orientation::Back, texture_handle_hz);
+        makeFace(chunk_raw_mesh.vertices, x, y, z, chunkextra, local_pos, Orientation::Bottom, texture_handle_ly);
+        makeFace(chunk_raw_mesh.vertices, x, y, z, chunkextra, local_pos, Orientation::Top, texture_handle_hy);
+        makeFace(chunk_raw_mesh.vertices, x, y, z, chunkextra, local_pos, Orientation::Left, texture_handle_lx);
+        makeFace(chunk_raw_mesh.vertices, x, y, z, chunkextra, local_pos, Orientation::Right, texture_handle_hx);
     }
     }
     }
@@ -296,7 +297,7 @@ void ChunkMesh::updateVAO(
         return;
     }
 
-    const int32_t vertices_size = raw_mesh.vertices.size() * sizeof(GLuint);
+    const int32_t vertices_size = raw_mesh.vertices.size() * sizeof(GLuint64);
 
     slot_vertices = buffer_allocator_vertices.allocate(vertices_size, raw_mesh.vertices.data());
 }
