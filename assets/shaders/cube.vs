@@ -27,192 +27,25 @@ uniform mat4 u_projection_view;
 uniform mat4 u_lightSpaceMatrix;
 
 
-const vec3 model_vertex[] = {
-    // +Y
-    vec3(0, 1, 0),
-    vec3(1, 1, 0),
-    vec3(1, 1, 1),
+const vec2 model_face[] = {
+    vec2(0, 0),
+    vec2(1, 0),
+    vec2(1, 1),
 
-    vec3(0, 1, 0),
-    vec3(1, 1, 1),
-    vec3(0, 1, 1),
-
-    // -Y
-    vec3(0, 0, 0),
-    vec3(1, 0, 1),
-    vec3(1, 0, 0),
-
-    vec3(0, 0, 0),
-    vec3(0, 0, 1),
-    vec3(1, 0, 1),
-
-
-    // -Z
-    vec3(0, 0, 0),
-    vec3(1, 0, 0),
-    vec3(1, 1, 0),
-
-    vec3(0, 0, 0),
-    vec3(1, 1, 0),
-    vec3(0, 1, 0),
-
-
-    // +Z
-    vec3(0, 0, 1),
-    vec3(1, 1, 1),
-    vec3(1, 0, 1),
-
-    vec3(0, 0, 1),
-    vec3(0, 1, 1),
-    vec3(1, 1, 1),
-
-
-
-    // -X
-    vec3(0, 0, 0),
-    vec3(0, 1, 1),
-    vec3(0, 0, 1),
-
-    vec3(0, 0, 0),
-    vec3(0, 1, 0),
-    vec3(0, 1, 1),
-
-
-    // +X
-    vec3(1, 0, 0),
-    vec3(1, 0, 1),
-    vec3(1, 1, 1),
-
-    vec3(1, 0, 0),
-    vec3(1, 1, 1),
-    vec3(1, 1, 0),
+    vec2(0, 0),
+    vec2(1, 1),
+    vec2(0, 1)
 };
 
-const ivec2 model_uv[] = {
-    // +Y
-    ivec2(0, 0), ivec2(1, 0), ivec2(1, 1),
-    ivec2(0, 0), ivec2(1, 1), ivec2(0, 1),
+const vec2 model_face_flipped[] = {
+    vec2(0, 0),
+    vec2(1, 0),
+    vec2(0, 1),
 
-    // -Y
-    ivec2(0, 0), ivec2(1, 1), ivec2(1, 0),
-    ivec2(0, 0), ivec2(0, 1), ivec2(1, 1),
-
-    // -Z
-    ivec2(0, 0), ivec2(1, 0), ivec2(1, 1),
-    ivec2(0, 0), ivec2(1, 1), ivec2(0, 1),
-
-    // +Z
-    ivec2(0, 0), ivec2(1, 1), ivec2(1, 0),
-    ivec2(0, 0), ivec2(0, 1), ivec2(1, 1),
-
-    // -X
-    ivec2(0, 0), ivec2(1, 1), ivec2(1, 0),
-    ivec2(0, 0), ivec2(0, 1), ivec2(1, 1),
-
-    // +X
-    ivec2(0, 0), ivec2(1, 0), ivec2(1, 1),
-    ivec2(0, 0), ivec2(1, 1), ivec2(0, 1),
+    vec2(0, 1),
+    vec2(1, 0),
+    vec2(1, 1),
 };
-
-const vec3 model_vertex_flipped[] = {
-    // +Y
-    vec3(0, 1, 0),
-    vec3(1, 1, 0),
-    vec3(0, 1, 1),
-
-    vec3(0, 1, 1),
-    vec3(1, 1, 0),
-    vec3(1, 1, 1),
-
-    // -Y
-    vec3(0, 0, 0),
-    vec3(0, 0, 1),
-    vec3(1, 0, 0),
-
-    vec3(0, 0, 1),
-    vec3(1, 0, 1),
-    vec3(1, 0, 0),
-
-
-    // -Z
-    vec3(0, 0, 0),
-    vec3(1, 0, 0),
-    vec3(1, 1, 0),
-
-    vec3(0, 0, 0),
-    vec3(1, 1, 0),
-    vec3(0, 1, 0),
-
-
-    // +Z
-    vec3(0, 0, 1),
-    vec3(1, 1, 1),
-    vec3(1, 0, 1),
-
-    vec3(0, 0, 1),
-    vec3(0, 1, 1),
-    vec3(1, 1, 1),
-
-
-    // -X
-    vec3(0, 0, 0),
-    vec3(0, 1, 1),
-    vec3(0, 0, 1),
-
-    vec3(0, 0, 0),
-    vec3(0, 1, 0),
-    vec3(0, 1, 1),
-
-
-    // +X
-    vec3(1, 0, 0),
-    vec3(1, 0, 1),
-    vec3(1, 1, 1),
-
-    vec3(1, 0, 0),
-    vec3(1, 1, 1),
-    vec3(1, 1, 0),
-};
-
-const ivec2 model_uv_flipped[] = {
-    // +Y
-    ivec2(0, 0), ivec2(1, 0), ivec2(0, 1),
-    ivec2(0, 1), ivec2(1, 0), ivec2(1, 1),
-
-    // -Y
-    ivec2(0, 0), ivec2(0, 1), ivec2(1, 0),
-    ivec2(0, 1), ivec2(1, 1), ivec2(1, 0),
-
-    // -Z
-    ivec2(0, 0), ivec2(1, 0), ivec2(1, 1),
-    ivec2(0, 0), ivec2(1, 1), ivec2(0, 1),
-
-    // +Z
-    ivec2(0, 0), ivec2(1, 1), ivec2(1, 0),
-    ivec2(0, 0), ivec2(0, 1), ivec2(1, 1),
-
-    // -X
-    ivec2(0, 0), ivec2(1, 1), ivec2(1, 0),
-    ivec2(0, 0), ivec2(0, 1), ivec2(1, 1),
-
-    // +X
-    ivec2(0, 0), ivec2(1, 0), ivec2(1, 1),
-    ivec2(0, 0), ivec2(1, 1), ivec2(0, 1),
-};
-
-// if (face_vertex == 0)
-//     a_ambient_occlusion = a_ambient_occlusion00;
-// if (face_vertex == 1)
-//     a_ambient_occlusion = a_ambient_occlusion11;
-// if (face_vertex == 2)
-//     a_ambient_occlusion = a_ambient_occlusion10;
-
-// if (face_vertex == 3)
-//     a_ambient_occlusion = a_ambient_occlusion00;
-// if (face_vertex == 4)
-//     a_ambient_occlusion = a_ambient_occlusion01;
-// if (face_vertex == 5)
-//     a_ambient_occlusion = a_ambient_occlusion11;
 
 const int ao_order[] = {
     0, 1, 2,
@@ -247,60 +80,48 @@ void main()
 
     int a_ambient_occlusion = 3;
 
-    int face_vertex = gl_VertexID % 6;
+    int vertex_index = gl_VertexID % 6;
 
-    if (a_orientation == 1 || a_orientation == 2 || a_orientation == 4) {
-        if (face_vertex == 1) face_vertex = 2;
-        else if (face_vertex == 2) face_vertex = 1;
-        else if (face_vertex == 4) face_vertex = 5;
-        else if (face_vertex == 5) face_vertex = 4;
+    if (a_orientation == 1 || a_orientation == 3 || a_orientation == 5) { // flipped if pointed negative direction
+        if      (vertex_index == 1) vertex_index = 2;
+        else if (vertex_index == 2) vertex_index = 1;
+        else if (vertex_index == 4) vertex_index = 5;
+        else if (vertex_index == 5) vertex_index = 4;
     }
 
-    if (a_orientation < 2) { // TOP
-        a_ambient_occlusion = a_ambient_occlusion_4[ao_order[face_vertex]];
-        // if (face_vertex == 0)
-        //     a_ambient_occlusion = a_ambient_occlusion00;
-        // if (face_vertex == 1)
-        //     a_ambient_occlusion = a_ambient_occlusion10;
-        // if (face_vertex == 2)
-        //     a_ambient_occlusion = a_ambient_occlusion11;
-
-        // if (face_vertex == 3)
-        //     a_ambient_occlusion = a_ambient_occlusion00;
-        // if (face_vertex == 4)
-        //     a_ambient_occlusion = a_ambient_occlusion11;
-        // if (face_vertex == 5)
-        //     a_ambient_occlusion = a_ambient_occlusion01;
-    }
-
-    const int vertex_index = a_orientation*6 + gl_VertexID % 6;
+    const int face_index = a_orientation*6 + vertex_index;
 
     ivec3 a_position = ivec3(a_x, a_y, a_z);
-    ivec2 a_uv = model_uv[vertex_index];
-    vec3 model_offset = model_vertex[vertex_index];
+    ivec2 a_uv = ivec2(model_face[vertex_index]);
+    vec3 model_offset;// = model_vertex[face_index];
 
-    if (a_orientation < 2) // TOP
-    if (a_ambient_occlusion00 + a_ambient_occlusion11 > a_ambient_occlusion01 + a_ambient_occlusion10) {
-        // model_offset = model_vertex[vertex_index];
+    bool shouldFlipFace = a_ambient_occlusion00 + a_ambient_occlusion11 > a_ambient_occlusion01 + a_ambient_occlusion10;
+    vec2 model[] = shouldFlipFace ? model_face : model_face_flipped;
+
+    if (a_orientation == 0) // TOP
+        model_offset = vec3(model[vertex_index].x, 1, model[vertex_index].y);
+    else if (a_orientation == 1) // BOTTOM
+        model_offset = vec3(model[vertex_index].x, 0, model[vertex_index].y);
+    else if (a_orientation == 2) // FRONT
+        model_offset = vec3(model[vertex_index].x, model[vertex_index].y, 0);
+    else if (a_orientation == 3) // BACK
+        model_offset = vec3(model[vertex_index].x, model[vertex_index].y, 1);
+    else if (a_orientation == 4) // LEFT
+        model_offset = vec3(0, model[vertex_index].x, model[vertex_index].y);
+    else if (a_orientation == 5) // RIGHT
+        model_offset = vec3(1, model[vertex_index].x, model[vertex_index].y);
+
+
+    // if (a_orientation <= 4) { // TOP
+        a_ambient_occlusion = a_ambient_occlusion_4[ao_order[vertex_index]];
+    // }
+
+    // if (a_orientation <= 4) // TOP
+    if (shouldFlipFace) {
+
     } else {
-        model_offset = model_vertex_flipped[vertex_index];
-        a_uv = model_uv_flipped[vertex_index];
-
-        a_ambient_occlusion = a_ambient_occlusion_4[ao_order_flipped[face_vertex]];
-
-        // if (face_vertex == 0)
-        //     a_ambient_occlusion = a_ambient_occlusion00;
-        // if (face_vertex == 1)
-        //     a_ambient_occlusion = a_ambient_occlusion10;
-        // if (face_vertex == 2)
-        //     a_ambient_occlusion = a_ambient_occlusion01;
-
-        // if (face_vertex == 3)
-        //     a_ambient_occlusion = a_ambient_occlusion01;
-        // if (face_vertex == 4)
-        //     a_ambient_occlusion = a_ambient_occlusion10;
-        // if (face_vertex == 5)
-        //     a_ambient_occlusion = a_ambient_occlusion11;
+        a_uv = ivec2(model_face_flipped[vertex_index]);
+        a_ambient_occlusion = a_ambient_occlusion_4[ao_order_flipped[vertex_index]];
     }
 
     vec3 world_pos = chunk_positions[gl_DrawID].xyz + a_position + model_offset;
