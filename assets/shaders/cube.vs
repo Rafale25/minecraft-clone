@@ -3,8 +3,6 @@
 #extension GL_ARB_gpu_shader5 : enable
 #extension GL_ARB_gpu_shader_int64 : enable
 
-// layout (location = 0) in uint a_packedVertex;
-
 layout(binding = 1, std430) readonly buffer ssbo_chunk_positions {
     vec4 chunk_positions[];
 };
@@ -27,25 +25,46 @@ uniform mat4 u_projection_view;
 uniform mat4 u_lightSpaceMatrix;
 
 
-const vec2 model_face[] = {
-    vec2(0, 0),
-    vec2(1, 0),
-    vec2(1, 1),
+const ivec2 model_face[6] = {
+    ivec2(0, 0),
+    ivec2(1, 0),
+    ivec2(1, 1),
 
-    vec2(0, 0),
-    vec2(1, 1),
-    vec2(0, 1)
+    ivec2(0, 0),
+    ivec2(1, 1),
+    ivec2(0, 1),
 };
 
-const vec2 model_face_flipped[] = {
-    vec2(0, 0),
-    vec2(1, 0),
-    vec2(0, 1),
+const ivec2 model_face_flipped[6] = {
+    ivec2(0, 0),
+    ivec2(1, 0),
+    ivec2(0, 1),
 
-    vec2(0, 1),
+    ivec2(0, 1),
+    ivec2(1, 0),
+    ivec2(1, 1),
+};
+
+const vec2 model_face_test[6] = {
     vec2(1, 0),
     vec2(1, 1),
+    vec2(0, 1),
+
+    vec2(1, 0),
+    vec2(0, 1),
+    vec2(0, 0),
 };
+
+const vec2 model_face_flipped_test[6] = {
+    vec2(1, 0),
+    vec2(1, 1),
+    vec2(0, 0),
+
+    vec2(0, 0),
+    vec2(1, 1),
+    vec2(0, 1),
+};
+
 
 const int ao_order[] = {
     0, 1, 2,
@@ -71,6 +90,8 @@ void main()
     int a_ambient_occlusion11 = int((data >> 38) & 7);
     int a_ambient_occlusion01 = int((data >> 41) & 7);
 
+    ivec3 a_position = ivec3(a_x, a_y, a_z);
+
     int a_ambient_occlusion_4[4] = {
         a_ambient_occlusion00,
         a_ambient_occlusion10,
@@ -82,7 +103,7 @@ void main()
 
     int vertex_index = gl_VertexID % 6;
 
-    if (a_orientation == 1 || a_orientation == 3 || a_orientation == 5) { // flipped if pointed negative direction
+    if (a_orientation == 1 || a_orientation == 3) { // flipped if pointed negative direction
         if      (vertex_index == 1) vertex_index = 2;
         else if (vertex_index == 2) vertex_index = 1;
         else if (vertex_index == 4) vertex_index = 5;
@@ -91,13 +112,12 @@ void main()
 
     const int face_index = a_orientation*6 + vertex_index;
 
-    ivec3 a_position = ivec3(a_x, a_y, a_z);
-    ivec2 a_uv = ivec2(model_face[vertex_index]);
-    vec3 model_offset;// = model_vertex[face_index];
-
     bool shouldFlipFace = a_ambient_occlusion00 + a_ambient_occlusion11 > a_ambient_occlusion01 + a_ambient_occlusion10;
-    vec2 model[] = shouldFlipFace ? model_face : model_face_flipped;
+    const ivec2 model[] = shouldFlipFace ? model_face : model_face_flipped;
 
+    ivec2 a_uv = model[vertex_index];
+
+    vec3 model_offset;
     if (a_orientation == 0) // TOP
         model_offset = vec3(model[vertex_index].x, 1, model[vertex_index].y);
     else if (a_orientation == 1) // BOTTOM
@@ -109,19 +129,21 @@ void main()
     else if (a_orientation == 4) // LEFT
         model_offset = vec3(0, model[vertex_index].x, model[vertex_index].y);
     else if (a_orientation == 5) // RIGHT
-        model_offset = vec3(1, model[vertex_index].x, model[vertex_index].y);
+        model_offset = vec3(1, model[vertex_index].y, model[vertex_index].x);
 
 
-    // if (a_orientation <= 4) { // TOP
-        a_ambient_occlusion = a_ambient_occlusion_4[ao_order[vertex_index]];
-    // }
+    a_ambient_occlusion = a_ambient_occlusion_4[ao_order[vertex_index]];
 
-    // if (a_orientation <= 4) // TOP
     if (shouldFlipFace) {
-
+        if (a_orientation == 4) {
+            a_uv = ivec2(model_face_test[vertex_index]);
+        }
     } else {
-        a_uv = ivec2(model_face_flipped[vertex_index]);
         a_ambient_occlusion = a_ambient_occlusion_4[ao_order_flipped[vertex_index]];
+
+        if (a_orientation == 4) {
+            a_uv = ivec2(model_face_flipped_test[vertex_index]);
+        }
     }
 
     vec3 world_pos = chunk_positions[gl_DrawID].xyz + a_position + model_offset;

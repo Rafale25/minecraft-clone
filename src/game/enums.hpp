@@ -130,10 +130,10 @@ constexpr BlockInfo blocks_info[] = {
     { false, true, false, T::Lava, T::Lava, T::Lava, T::Lava, T::Lava, T::Lava },
 
     // Barrel = 16
-    { false, false, false, T::BarrelSide, T::BarrelSide, T::BarrelSide, T::BarrelSide, T::BarrelBottom, T::BarrelTop },
+    { false, true, false, T::BarrelSide, T::BarrelSide, T::BarrelSide, T::BarrelSide, T::BarrelBottom, T::BarrelTop },
 
     // Bookshelf = 17
-    { false, false, false, T::BookshelfSide, T::BookshelfSide, T::BookshelfSide, T::BookshelfSide, T::BookshelfBottom, T::BookshelfTop },
+    { false, true, false, T::BookshelfSide, T::BookshelfSide, T::BookshelfSide, T::BookshelfSide, T::BookshelfBottom, T::BookshelfTop },
 
     // INVALID
     { false, false, false, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID },

@@ -224,35 +224,6 @@ inline void makeFace(
 
         GLuint64 facedata = packVertex(x, y, z, orientation, texture_id, a00, a10, a11, a01);
         vertices.push_back(facedata);
-
-        // if(a00 + a11 > a01 + a10) {
-        //     // generate normal quad
-        //     vertices.insert(vertices.end(), {
-        //         packVertex(x+info[0],  y+info[1],  z+info[2],  info[3],  info[4],  orientation, texture_id, a00),
-        //         packVertex(x+info[5],  y+info[6],  z+info[7],  info[8],  info[9],  orientation, texture_id, a10),
-        //         packVertex(x+info[10], y+info[11], z+info[12], info[13], info[14], orientation, texture_id, a11),
-        //         packVertex(x+info[15], y+info[16], z+info[17], info[18], info[19], orientation, texture_id, a01),
-        //     });
-
-        //     indices.insert(indices.end(), {
-        //         ebo_offset+info[20], ebo_offset+info[21], ebo_offset+info[22],
-        //         ebo_offset+info[23], ebo_offset+info[24], ebo_offset+info[25]
-        //     });
-        // } else {
-        //     // generate flipped quad
-        //     vertices.insert(vertices.end(), {
-        //         packVertex(x+info[15], y+info[16], z+info[17], info[18], info[19], orientation, texture_id, a01),
-        //         packVertex(x+info[10], y+info[11], z+info[12], info[13], info[14], orientation, texture_id, a11),
-        //         packVertex(x+info[5],  y+info[6],  z+info[7],  info[8],  info[9],  orientation, texture_id, a10),
-        //         packVertex(x+info[0],  y+info[1],  z+info[2],  info[3],  info[4],  orientation, texture_id, a00),
-        //     });
-
-        //     indices.insert(indices.end(), {
-        //         ebo_offset+info[20], ebo_offset+info[22], ebo_offset+info[21],
-        //         ebo_offset+info[23], ebo_offset+info[25], ebo_offset+info[24]
-        //     });
-        // }
-        // ebo_offset += 4;
     }
 }
 
