@@ -36,7 +36,6 @@ private:
     void setDefaultRenderState();
 
     void renderTerrain(const glm::mat4 &view_projection, bool use_frustum_culling);
-    // void renderTerrain(const Program& program, const Camera& camera, bool use_frustum_culling=true);
     void renderEntities(const Camera &camera, const Program& program);
 
     void renderShadowmap(const Camera &camera);
