@@ -37,7 +37,7 @@ void BlockTextureManager::_loadAllTextures()
     const std::string textures_path = RESSOURCE_PATH "textures/";
 
     for (int32_t i = 0 ; i < (int32_t)BlockType::INVALID ; ++i) {
-        const auto& [transparent, affectsAmbientOcclusion, liquid, lz, hz, lx, hx, ly, hy] = blocks_info[i];
+        const auto& [lz, hz, lx, hx, ly, hy] = blocks_info[i].textures;
 
         std::string filepath_lz = (textures_path + textures_name[lz]);
         std::string filepath_hz = (textures_path + textures_name[hz]);
