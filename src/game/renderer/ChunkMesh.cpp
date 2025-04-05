@@ -54,7 +54,7 @@ static inline glm::ivec3 orientationToDir(Orientation orientation) {
     }
 }
 
-const int32_t infos[][26] = {
+constexpr int32_t infos[][26] = {
     // [Orientation::Top] 0
     {
      // nb_lx
