@@ -71,7 +71,6 @@ public:
     const int32_t CHUNK_DELETE_DISTANCE_OFFSET = 2;
 
     const uint32_t MAX_COMMANDS = 500'000;
-    // const uint32_t MAX_MEMORY = 500'000'000;
     const uint32_t MAX_MEMORY = 2'147'483'647;
 
     BufferAllocator buffer_allocator_vertices {"BufferAllocatorVertice", MAX_MEMORY};

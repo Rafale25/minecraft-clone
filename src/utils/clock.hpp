@@ -53,6 +53,7 @@ public:
     void start(const std::string& name) {
         // TODO: use below code to make Profile works in multithreaded environment
         // std::thread::id this_id = std::this_thread::get_id();
+        // or thread_local
 
         _timings[name].t = std::chrono::high_resolution_clock::now();
     }
