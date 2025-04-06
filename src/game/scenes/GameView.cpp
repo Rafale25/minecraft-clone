@@ -251,7 +251,7 @@ void GameView::playerMovements(float dt)
     camera.setPosition(next_pos + glm::vec3(0.0f, player_height, 0.0f));
 }
 
-void GameView::deleteFarChunks()
+void GameView::deleteFarChunks() // TODO: only do this when moving between chunks
 {
     const std::lock_guard<std::shared_mutex> lock(World::instance().chunks_mutex);
 
