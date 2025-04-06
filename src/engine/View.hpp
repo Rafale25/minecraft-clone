@@ -56,37 +56,30 @@ class DefaultView: public View {
 
         void onKeyPress(int key)
         {
-            // std::cout << key << std::endl;
         }
 
         void onKeyRelease(int key)
         {
-            // std::cout << key << std::endl;
         }
 
         void onMouseMotion(int x, int y, int dx, int dy)
         {
-            // printf("%d %d %d %d\n", x, y, dx, dy);
         }
 
         void onMouseDrag(int x, int y, int dx, int dy)
         {
-            // printf("%d %d %d %d\n", x, y, dx, dy);
         }
 
         void onMousePress(int x, int y, int button)
         {
-            // printf("%d %d %d\n", x, y, button);
         }
 
         void onMouseRelease(int x, int y, int button)
         {
-            // printf("%d %d %d\n", x, y, button);
         }
 
         void onMouseScroll(int scroll_x, int scroll_y)
         {
-            // printf("%d %d\n", scroll_x, scroll_y);
         }
 
         void onResize(int width, int height)

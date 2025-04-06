@@ -1,8 +1,8 @@
-#include <iostream>
 #include "ThreadPool.hpp"
+#include "Logger.hpp"
 
 ThreadPool::ThreadPool(size_t num_threads) {
-    std::cout << "num_threads: " << num_threads << std::endl;
+    logI("[ThreadPool] thread count: {}", num_threads);
     for (size_t i = 0; i < num_threads; ++i) {
         _workers.emplace_back([this] {
             while (true) {

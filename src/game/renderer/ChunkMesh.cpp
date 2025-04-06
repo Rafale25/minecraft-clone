@@ -1,6 +1,7 @@
 #include "ChunkMesh.hpp"
 #include "BlockTextureManager.hpp"
 #include "ChunkExtra.hpp"
+#include "Logger.hpp"
 
 /*
     position: 3x5
@@ -49,7 +50,7 @@ static inline glm::ivec3 orientationToDir(Orientation orientation) {
         case Orientation::Left:     return glm::ivec3(-1, 0, 0);
         case Orientation::Right:    return glm::ivec3(1, 0, 0);
         default:
-            printf("Error: Invalid orientation");
+            logE("Invalid orientation");
             abort();
     }
 }

@@ -1,12 +1,11 @@
-#include "Client.hpp"
-
-#include <iostream>
 #include <string>
 #include <cstring>
 
+#include "Client.hpp"
 #include "GameState.hpp"
 #include "ByteBuffer.hpp"
 #include "endianess.h"
+#include "Logger.hpp"
 
 void Client::decode(PacketId id, ByteBuffer buffer) {
     packets.at(id).decode(buffer);
@@ -16,8 +15,13 @@ void Client::init(std::vector<std::string>& tchat, const char* ip, int32_t port)
 {
     _tchat = &tchat;
 
-    _client.init();
-    _client.connectToServer(ip, port);
+    if (_client.init() == 0) { // success
+        logI("Connection initialized successfully");
+    }
+
+    if (_client.connectToServer(ip, port) == 0) {
+        logI("Connected to server {}:{}", ip, port);
+    }
 
     sendClientMetadataPacket(GameState::getRenderDistance(), "Rafale25");
 }
@@ -46,21 +50,21 @@ void Client::clientThreadFunc()
 
         recv_size = _client.receiveAll(buffer, 1);
         if (recv_size == -1) {
-            std::cout << "recv failed: return -1" << std::endl;
+            logE("Failed to receive from server (packet id)");
             break;
         }
 
         const PacketId id = (PacketId)buffer[0];
 
         if (packets.find(id) == packets.end()) {
-            printf("Invalid Packet id %d\n", id);
+            logE("Invalid Packet id {}", (int)id);
             return;
         }
 
         const size_t packet_size = packets.at(id).size;
         recv_size = _client.receiveAll(buffer, packet_size);
         if (recv_size == -1) {
-            std::cout << "recv failed: return -1" << std::endl;
+            logE("Failed to receive from server (packet data)");
             break;
         }
 

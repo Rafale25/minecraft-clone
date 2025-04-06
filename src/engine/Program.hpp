@@ -6,6 +6,7 @@
 #include <iostream>
 #include <glm/detail/type_mat4x4.hpp>
 #include <glad/gl.h>
+#include "Logger.hpp"
 
 class Program
 {
@@ -62,7 +63,7 @@ public:
         }
         catch (std::ifstream::failure& e)
         {
-            std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ: " << e.what() << std::endl;
+            logE("[Shader] FILE_NOT_SUCCESFULLY_READ: {}", e.what());
         }
         const char* vShaderCode = vertexCode.c_str();
         const char* fShaderCode = fragmentCode.c_str();
@@ -182,8 +183,8 @@ private:
             if (!success)
             {
                 glGetShaderInfoLog(shader, 4096, NULL, infoLog);
-                std::cout << "ERROR in file: " << path << std::endl;
-                std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+                logE("Error in file: {}", path);
+                logE("SHADER_COMPILATION_ERROR of type: {}\n{}--------------", type, infoLog);
                 return 1;
             }
         }
@@ -193,7 +194,10 @@ private:
             if (!success)
             {
                 glGetProgramInfoLog(shader, 4096, NULL, infoLog);
-                std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+
+                logE("PROGRAM_LINKING_ERROR of type: {}", type);
+                logE("Files concerned: {} {} {}", _vertexPath, _fragmentPath, _geometryPath == nullptr ? "" : _geometryPath);
+                logE("\n{}--------------", infoLog);
                 return 1;
             }
         }

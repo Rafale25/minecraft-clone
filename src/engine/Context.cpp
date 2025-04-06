@@ -2,12 +2,12 @@
 #include <cstdio>
 
 #include <GLFW/glfw3.h>
-
 #include <glad/gl.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
 #include "Context.hpp"
+#include "Logger.hpp"
 
 static void GLFW_error(int error, const char* description)
 {
@@ -58,12 +58,12 @@ Context::Context(int width, int height, const char *title, int maximized, int sa
     else if(glfwPlatformSupported(GLFW_PLATFORM_WAYLAND)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND);
     else {
         fprintf(stderr, "Error: could not find acceptable platform for GLFW\n");
-        abort();
+        exit(-1);
     }
 
     if (!glfwInit()) {
-        std::cout << "Failed to initialize GLFW!" << std::endl;
-        return;
+        logF("Failed to initialize GLFW");
+        exit(-1);
     }
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -76,9 +76,9 @@ Context::Context(int width, int height, const char *title, int maximized, int sa
     window = glfwCreateWindow(width, height, title, NULL, NULL);
     if (window == NULL)
     {
-        std::cout << "Failed to create GLFW window" << std::endl;
+        logF("Failed to create GLFW window");
         glfwTerminate();
-        abort();
+        exit(-1);
     }
 
     glfwMakeContextCurrent(window);
@@ -97,8 +97,8 @@ Context::Context(int width, int height, const char *title, int maximized, int sa
 
     int version = gladLoadGL(glfwGetProcAddress);
     if (version == 0) {
-        std::cout << "Failed to initialize OpenGL context" << std::endl;
-        return;
+        logF("Failed to initialized OpenGL context");
+        exit(-1);
     }
 
     // During init, enable debug output

@@ -2,6 +2,7 @@
 #include "GameState.hpp"
 #include "Context.hpp"
 #include "GameView.hpp"
+#include "Logger.hpp"
 
 const int SCR_WIDTH = 1280;
 const int SCR_HEIGHT = 720;
@@ -13,8 +14,8 @@ int main(int argc, char** argv)
     global_argc = argc;
     global_argv = argv;
 
-    if (global_argc < 2) {
-        printf("Error: Please enter server address in command line argument.\n");
+    if (global_argc < 4) {
+        logE("Please enter ip, port and render distance in command line argument");
         return -1;
     }
 

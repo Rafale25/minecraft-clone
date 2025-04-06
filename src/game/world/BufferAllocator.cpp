@@ -1,9 +1,9 @@
-#include <glad/gl.h>
-#include <stdio.h>
+// #include <stdio.h>
 #include <cassert>
-#include <clock.hpp>
 #include <algorithm>
+#include <glad/gl.h>
 #include "BufferAllocator.hpp"
+#include "Logger.hpp"
 
 #define PRINT_ERRORS
 
@@ -19,7 +19,7 @@ BufferAllocator::BufferAllocator(const char* name, uint32_t max_memory):
         abort();
     }
 
-    printf("Buffer size: %u\n", max_memory);
+    logI("[BufferAllocator] Allocated size: {}", max_memory);
 
     glNamedBufferStorage(_buffer, max_memory, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
@@ -36,15 +36,14 @@ BufferSlot BufferAllocator::allocate(int32_t size, const void * data) {
     const auto it = _free_slot_of_size.equal_range(size).first;
 
     if (it == _free_slot_of_size.end()) {
-        printf("ERROR: No slot of size bigger or equal to %d available\n", size);
+        logE("No slot of size bigger or equal to {} available", size);
         return invalid_buffer_slot;
     } else {
         auto& free_slots = it->second; // vector of iterator
         const int32_t slots_size = it->first;
 
         if (free_slots.size() <= 0) {
-            printf("ERROR: THIS SHOULD NOT HAPPEN - Found size %d for requested size of %d - NO SLOTS INSIDE\n", it->first, size);
-            printf("ABORT\n");
+            logF("THIS SHOULD NOT HAPPEN - Found size {} for requested size of {} - NO SLOTS INSIDE", it->first, size);
             abort();
             return invalid_buffer_slot;
         }

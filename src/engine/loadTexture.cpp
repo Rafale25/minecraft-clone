@@ -1,5 +1,5 @@
-#include <iostream>
 #include "loadTexture.hpp"
+#include "Logger.hpp"
 
 GLuint createTextureFromPath(const char *path, int32_t format, int32_t min_filter, int32_t max_filter, int32_t wrap)
 {
@@ -29,7 +29,7 @@ GLuint createTextureFromPath(const char *path, int32_t format, int32_t min_filte
     }
     else
     {
-        std::cout << "Failed to load texture: " << path << std::endl;
+        logE("Failed to load texture: {}", path);
         return -1;
     }
     stbi_image_free(data);

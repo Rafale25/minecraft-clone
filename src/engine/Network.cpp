@@ -1,6 +1,5 @@
 #include "Network.hpp"
-
-#include <iostream>
+#include "Logger.hpp"
 
 #if defined(_WIN32)
 #include <winsock2.h>
@@ -55,22 +54,22 @@ int NetworkConnection::init() {
 
     // Check for initialization success
     if (wsaerr != 0) {
-        std::cout << "The Winsock dll not found!" << std::endl;
+        logF("Winsock dll not found");
         return -1;
     } else {
-        std::cout << "The Winsock dll found" << std::endl;
-        std::cout << "The status: " << wsaData.szSystemStatus << std::endl;
+        // std::cout << "The Winsock dll found" << std::endl;
+        // std::cout << "The status: " << wsaData.szSystemStatus << std::endl;
     }
 
     _socket = INVALID_SOCKET;
     _socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
     if (_socket == INVALID_SOCKET) {
-        std::cout << "Error at socket(): " << WSAGetLastError() << std::endl;
+        logF("Error at socket(): {}", WSAGetLastError());
         WSACleanup();
         return -1;
     }
-    std::cout << "Socket is OK!" << std::endl;
+    // std::cout << "Socket is OK!" << std::endl;
     return 0;
 #else
     _socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -87,12 +86,12 @@ int NetworkConnection::connectToServer(const char *ip, int port) {
     service.sin_port = htons(port);  // Choose a port number
 
     if (connect(_socket, (SOCKADDR*)&service, sizeof(service)) == SOCKET_ERROR) {
-        std::cout << "Client: connect() - Failed to connect: " << WSAGetLastError() << std::endl;
+        // std::cout << "Client: connect() - Failed to connect: " << WSAGetLastError() << std::endl;
         WSACleanup();
         return -1;
     } else {
-        std::cout << "Client: Connect() is OK!" << std::endl;
-        std::cout << "Client: Can start sending and receiving data..." << std::endl;
+        // std::cout << "Client: Connect() is OK!" << std::endl;
+        // std::cout << "Client: Can start sending and receiving data..." << std::endl;
     }
 
     return 0;
@@ -171,7 +170,8 @@ int NetworkConnection::waitForData(const bool& should_stop)
         int res = select(_socket + 1, &set, NULL, NULL, &tv);
 
         if (res == SOCKET_ERROR) {
-            std::cout << "Socket Error" << std::endl;
+            // std::cout << "Socket Error" << std::endl;
+            logF("Socket Error"); // TODO: make better log error message
             abort();
             return -1;
         }
@@ -218,7 +218,7 @@ void NetworkConnection::sendD(const void *data, uint32_t size) {
 #endif
 
     if (r != (int)size) {
-        printf("Error: The data couldn't be send in one go - %d/%d bytes\n", r, (int)size);
+        logE("The data couldn't be send all at once - {}/{} bytes sent", r, size);
     }
 }
 

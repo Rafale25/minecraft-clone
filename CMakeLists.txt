@@ -59,6 +59,7 @@ add_executable(${PROJECT_NAME} ${SRC_CPP} ${SRC_C})
 # target_compile_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
 # target_link_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
 
+
 # target_compile_definitions(${PROJECT_NAME} PRIVATE RESSOURCE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/assets/")
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     RESSOURCE_PATH="./assets/"
@@ -91,7 +92,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
 IF (WIN32)
     target_compile_definitions(${PROJECT_NAME} PUBLIC NOMINMAX WIN32_LEAN_AND_MEAN) # Removes a lot of includes from windows.h and less namespace pollution
-    target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        ws2_32 # networking
+        -lstdc++exp # std::print, std::format
+    )
 ENDIF()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

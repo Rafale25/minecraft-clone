@@ -8,6 +8,8 @@
 #include "World.hpp"
 #include "Client.hpp"
 
+#include "Logger.hpp"
+
 static const std::string BLUEPRINT_FOLDER_PATH = "./blueprints/";
 
 Blueprint createBlueprintFromSelection(const glm::ivec3 min, const glm::ivec3 max) {
@@ -30,7 +32,7 @@ Blueprint createBlueprintFromSelection(const glm::ivec3 min, const glm::ivec3 ma
 void deleteBlueprint(const char* name) {
     int32_t r = std::remove((BLUEPRINT_FOLDER_PATH + name).c_str());
     if (r != 0) {
-        printf("Error: Couldn't remove file \"%s\"\n", name);
+        logE("Couldn't remove file \"{}\"", name);
     }
 }
 

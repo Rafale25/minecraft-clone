@@ -16,6 +16,7 @@ WorldRenderer::WorldRenderer(Context &context): _ctx(context)
 {
     chunk_vao = createVAO(0, "i");
 
+
     draw_command_buffer = createBufferStorage(nullptr, sizeof(DrawElementsIndirectCommand) * MAX_COMMANDS, GL_DYNAMIC_STORAGE_BIT);
     ssbo_chunk_positions = createBufferStorage(nullptr, sizeof(GLfloat)*4 * MAX_COMMANDS, GL_DYNAMIC_STORAGE_BIT);
 
@@ -231,11 +232,6 @@ void WorldRenderer::renderTerrain(const glm::mat4 &view_projection, bool use_fru
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_texture_handles);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo_chunk_positions);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, buffer_allocator_vertices.getBufferObject());
-
-    // printf("commands %d\n", commands.size());
-    // for (DrawElementsIndirectCommand &cmd : commands) {
-    //     printf("Cmd: %d %d %d %d %d\n", cmd.count, cmd.instanceCount, cmd.firstIndex, cmd.baseVertex, cmd.baseInstance);
-    // }
 
     glMultiDrawArraysIndirect(GL_TRIANGLES, (const void *)0, commands.size(), 0);
 }
