@@ -24,8 +24,6 @@ public:
     }
 
     void load(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr) {
-        int compilation_status = 0;
-
         std::string vertexCode;
         std::string fragmentCode;
         std::string geometryCode;
@@ -73,12 +71,12 @@ public:
         vertex = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertex, 1, &vShaderCode, NULL);
         glCompileShader(vertex);
-        compilation_status |= checkCompileErrors(vertex, "VERTEX", vertexPath);
+        if (!checkCompileErrors(vertex, "VERTEX", vertexPath)) return;
         // fragment Shader
         fragment = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fragment, 1, &fShaderCode, NULL);
         glCompileShader(fragment);
-        compilation_status |= checkCompileErrors(fragment, "FRAGMENT", fragmentPath);
+        if (!checkCompileErrors(fragment, "FRAGMENT", fragmentPath)) return;
         // if geometry shader is given, compile geometry shader
         GLuint geometry = -1;
         if (geometryPath != nullptr)
@@ -87,7 +85,7 @@ public:
             geometry = glCreateShader(GL_GEOMETRY_SHADER);
             glShaderSource(geometry, 1, &gShaderCode, NULL);
             glCompileShader(geometry);
-            compilation_status |= checkCompileErrors(geometry, "GEOMETRY", geometryPath);
+            if (!checkCompileErrors(geometry, "GEOMETRY", geometryPath)) return;
         }
 
         // shader Program
@@ -102,17 +100,17 @@ public:
         glEnableVertexAttribArray(0);
 
         glLinkProgram(id);
-        compilation_status |= checkCompileErrors(id, "PROGRAM");
+        if (!checkCompileErrors(id, "PROGRAM")) return;
         // delete the shaders as they're linked into our program now and no longer necessery
         glDeleteShader(vertex);
         glDeleteShader(fragment);
         if (geometryPath != nullptr)
             glDeleteShader(geometry);
 
-        if (compilation_status == 0) {
-            if (ID != 0) glDeleteProgram(ID);
-            ID = id;
-        }
+        if (ID != 0) glDeleteProgram(ID);
+        ID = id;
+
+        logI("[Shader] Compiled shader program: {}, {} {} {}", ID, _vertexPath, _fragmentPath, geometryPath ? geometryPath : "");
     }
 
     void reload() {
@@ -185,7 +183,7 @@ private:
                 glGetShaderInfoLog(shader, 4096, NULL, infoLog);
                 logE("Error in file: {}", path);
                 logE("SHADER_COMPILATION_ERROR of type: {}\n{}--------------", type, infoLog);
-                return 1;
+                return 0;
             }
         }
         else
@@ -196,11 +194,11 @@ private:
                 glGetProgramInfoLog(shader, 4096, NULL, infoLog);
 
                 logE("PROGRAM_LINKING_ERROR of type: {}", type);
-                logE("Files concerned: {} {} {}", _vertexPath, _fragmentPath, _geometryPath == nullptr ? "" : _geometryPath);
+                logE("Files concerned: {} {} {}", _vertexPath, _fragmentPath, _geometryPath ? _geometryPath : "");
                 logE("\n{}--------------", infoLog);
-                return 1;
+                return 0;
             }
         }
-        return 0;
+        return 1;
     }
 };
