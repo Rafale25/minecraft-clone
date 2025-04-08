@@ -17,95 +17,27 @@ out VS_OUT {
     flat uint texture_id;
 } vs_out;
 
-const vec3 model_vertex[] = {
-    // +Y
-    vec3(0.0, 1.0, 0.0),
-    vec3(1.0, 1.0, 0.0),
-    vec3(1.0, 1.0, 1.0),
+const ivec2 model[] = {
+    ivec2(0, 0),
+    ivec2(1, 0),
+    ivec2(1, 1),
+    ivec2(0, 1),
 
-    vec3(0.0, 1.0, 0.0),
-    vec3(1.0, 1.0, 1.0),
-    vec3(0.0, 1.0, 1.0),
-
-    // -Y
-    vec3(0.0, 0.0, 0.0),
-    vec3(1.0, 0.0, 1.0),
-    vec3(1.0, 0.0, 0.0),
-
-    vec3(0.0, 0.0, 0.0),
-    vec3(0.0, 0.0, 1.0),
-    vec3(1.0, 0.0, 1.0),
-
-
-    // -Z
-    vec3(0.0, 0.0, 0.0),
-    vec3(1.0, 0.0, 0.0),
-    vec3(1.0, 1.0, 0.0),
-
-    vec3(0.0, 0.0, 0.0),
-    vec3(1.0, 1.0, 0.0),
-    vec3(0.0, 1.0, 0.0),
-
-
-    // +Z
-    vec3(0.0, 0.0, 1.0),
-    vec3(1.0, 1.0, 1.0),
-    vec3(1.0, 0.0, 1.0),
-
-    vec3(0.0, 0.0, 1.0),
-    vec3(0.0, 1.0, 1.0),
-    vec3(1.0, 1.0, 1.0),
-
-
-
-    // -X
-    vec3(0.0, 0.0, 0.0),
-    vec3(0.0, 1.0, 1.0),
-    vec3(0.0, 0.0, 1.0),
-
-    vec3(0.0, 0.0, 0.0),
-    vec3(0.0, 1.0, 0.0),
-    vec3(0.0, 1.0, 1.0),
-
-
-    // +X
-    vec3(1.0, 0.0, 0.0),
-    vec3(1.0, 0.0, 1.0),
-    vec3(1.0, 1.0, 1.0),
-
-    vec3(1.0, 0.0, 0.0),
-    vec3(1.0, 1.0, 1.0),
-    vec3(1.0, 1.0, 0.0),
+    ivec2(0, 0),
+    ivec2(0, 1),
+    ivec2(1, 1),
+    ivec2(1, 0),
 };
-
-const ivec2 model_uv[] = {
-    // +Y
-    ivec2(0, 0), ivec2(1, 0), ivec2(1, 1),
-    ivec2(0, 0), ivec2(1, 1), ivec2(0, 1),
-
-    // -Y
-    ivec2(0, 0), ivec2(1, 1), ivec2(1, 0),
-    ivec2(0, 0), ivec2(0, 1), ivec2(1, 1),
-
-    // -Z
-    ivec2(0, 0), ivec2(1, 0), ivec2(1, 1),
-    ivec2(0, 0), ivec2(1, 1), ivec2(0, 1),
-
-    // +Z
-    ivec2(0, 0), ivec2(1, 1), ivec2(1, 0),
-    ivec2(0, 0), ivec2(0, 1), ivec2(1, 1),
-
-    // -X
-    ivec2(0, 0), ivec2(1, 1), ivec2(1, 0),
-    ivec2(0, 0), ivec2(0, 1), ivec2(1, 1),
-
-    // +X
-    ivec2(0, 0), ivec2(1, 0), ivec2(1, 1),
-    ivec2(0, 0), ivec2(1, 1), ivec2(0, 1),
-};
-
 
 uniform mat4 u_lightSpaceMatrix;
+
+ivec2 rotate_uv(ivec2 uv, int rot) {
+    if (rot == 0) return uv;
+    if (rot == 1) return ivec2(uv.y, 1.0 - uv.x); // 90°
+    if (rot == 2) return ivec2(1.0 - uv.x, 1.0 - uv.y); // 180°
+    if (rot == 3) return ivec2(1.0 - uv.y, uv.x); // 270°
+    return uv;
+}
 
 void main()
 {
@@ -117,10 +49,32 @@ void main()
     uint a_orientation =        uint((data >> 15) & 7);
     uint a_texture_id =         uint((data >> 18) & 255);
 
-    ivec3 a_position = ivec3(a_x, a_y, a_z);
-    ivec2 a_uv = model_uv[a_orientation*6 + gl_VertexID % 6];
-    vec3 model_offset = model_vertex[a_orientation*6 + gl_VertexID % 6];
+    int vertex_index = gl_VertexID % 4;// + offset;
+    ivec2 a_uv = model[vertex_index];
 
+    if (a_orientation == 3) {
+        a_uv.x = 1 - a_uv.x;
+    }
+    if (a_orientation == 4) {
+        a_uv = rotate_uv(a_uv, 3);
+    }
+
+    vec3 model_offset;
+    if (a_orientation == 0) // TOP
+        model_offset = vec3(model[vertex_index].x, 1, model[vertex_index].y);
+    else if (a_orientation == 1) // BOTTOM
+        model_offset = vec3(model[vertex_index].x, 0, model[vertex_index].y);
+    else if (a_orientation == 2) // FRONT
+        model_offset = vec3(model[vertex_index].x, model[vertex_index].y, 0);
+    else if (a_orientation == 3) // BACK
+        model_offset = vec3(model[vertex_index].x, model[vertex_index].y, 1);
+    else if (a_orientation == 4) // LEFT
+        model_offset = vec3(0, model[vertex_index].x, model[vertex_index].y);
+    else if (a_orientation == 5) // RIGHT
+        model_offset = vec3(1, model[vertex_index].y, model[vertex_index].x);
+
+
+    ivec3 a_position = ivec3(a_x, a_y, a_z);
     vec3 world_pos = chunk_positions[gl_DrawID].xyz + a_position + model_offset;
     vec4 position = u_lightSpaceMatrix * vec4(world_pos, 1.0);
 

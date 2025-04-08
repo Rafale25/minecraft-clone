@@ -24,7 +24,6 @@ out VS_OUT {
 uniform mat4 u_projection_view;
 uniform mat4 u_lightSpaceMatrix;
 
-
 const ivec2 model_face[] = {
     ivec2(0, 0),
     ivec2(1, 0),

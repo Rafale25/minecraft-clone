@@ -62,7 +62,7 @@ void WorldRenderer::render(const Camera &camera)
 {
     setDefaultRenderState();
 
-    // renderShadowmap(camera);
+    renderShadowmap(camera);
 
     _framebuffer.bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
