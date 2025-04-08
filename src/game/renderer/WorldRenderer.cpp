@@ -20,6 +20,19 @@ WorldRenderer::WorldRenderer(Context &context): _ctx(context)
     draw_command_buffer = createBufferStorage(nullptr, sizeof(DrawElementsIndirectCommand) * MAX_COMMANDS, GL_DYNAMIC_STORAGE_BIT);
     ssbo_chunk_positions = createBufferStorage(nullptr, sizeof(GLfloat)*4 * MAX_COMMANDS, GL_DYNAMIC_STORAGE_BIT);
 
+    ssbo_chunk_element_buffer = createBufferStorage(nullptr, sizeof(uint32_t) * CHUNK_BLOCK_COUNT * 6 * 6, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
+
+    uint32_t* buf = (uint32_t*)glMapNamedBuffer(ssbo_chunk_element_buffer, GL_WRITE_ONLY);
+    for (int i = 0 ; i < CHUNK_BLOCK_COUNT * 6 * 6 ; i += 6) {
+        buf[i + 0] = i + 0;
+        buf[i + 1] = i + 1;
+        buf[i + 2] = i + 2;
+        buf[i + 3] = i + 0;
+        buf[i + 4] = i + 2;
+        buf[i + 5] = i + 3;
+    }
+    glUnmapNamedBuffer(ssbo_chunk_element_buffer);
+
     cube_shader.use();
     cube_shader.setInt("shadowMap", 0);
 
@@ -49,7 +62,7 @@ void WorldRenderer::render(const Camera &camera)
 {
     setDefaultRenderState();
 
-    renderShadowmap(camera);
+    // renderShadowmap(camera);
 
     _framebuffer.bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -197,7 +210,8 @@ void WorldRenderer::renderTerrain(const glm::mat4 &view_projection, bool use_fru
 
     chunks_drawn = 0;
 
-    std::vector<DrawArraysIndirectCommand> commands;
+    using vertexTypename = GLuint64;
+    std::vector<DrawElementsIndirectCommand> commands;
     std::vector<glm::vec4> chunk_positions;
 
     for (const auto& [chunk_pos, mesh] : meshes)
@@ -212,20 +226,22 @@ void WorldRenderer::renderTerrain(const glm::mat4 &view_projection, bool use_fru
         chunk_positions.push_back(glm::vec4(chunk_pos * CHUNK_SIZE, 1.0f));
 
         commands.push_back({
-            (uint32_t)(mesh.slot_vertices.size / sizeof(GLuint64)) * 6, // one face if 2 triangles, 6 vertices
+            (uint32_t)(mesh.slot_vertices.size / sizeof(vertexTypename)) * 6, // one face if 2 triangles, 6 vertices
             (uint32_t)1,
-            0u, // don't need it first vertex so set it at 0 to avoid crash/bug
-            (uint32_t)(mesh.slot_vertices.start / sizeof(GLuint64)) // pass first vertex information by using this field that get sent to gl_BaseInstance
+            0u,
+            0, // don't need it first vertex so set it at 0 to avoid crash/bug
+            (uint32_t)(mesh.slot_vertices.start / sizeof(vertexTypename)), // pass first vertex information by using this field that get sent to gl_BaseInstance
         });
 
         ++chunks_drawn;
     }
 
     glBindVertexArray(chunk_vao);
-    glVertexArrayVertexBuffer(chunk_vao, 0, buffer_allocator_vertices.getBufferObject(), 0, 1 * sizeof(GLuint)); // Not needed anymore but crashes without
+    glVertexArrayVertexBuffer(chunk_vao, 0, buffer_allocator_vertices.getBufferObject(), 0, 1 * sizeof(vertexTypename)); // Not needed anymore but crashes without
+    glVertexArrayElementBuffer(chunk_vao, ssbo_chunk_element_buffer);
 
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, draw_command_buffer);
-    glNamedBufferSubData(draw_command_buffer, 0, sizeof(DrawArraysIndirectCommand) * commands.size(), (const void *)commands.data());
+    glNamedBufferSubData(draw_command_buffer, 0, sizeof(commands[0]) * commands.size(), (const void *)commands.data());
 
 
     glNamedBufferSubData(ssbo_chunk_positions, 0, sizeof(GLfloat) * 4 * chunk_positions.size(), (const void *)chunk_positions.data());
@@ -233,7 +249,7 @@ void WorldRenderer::renderTerrain(const glm::mat4 &view_projection, bool use_fru
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo_chunk_positions);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, buffer_allocator_vertices.getBufferObject());
 
-    glMultiDrawArraysIndirect(GL_TRIANGLES, (const void *)0, commands.size(), 0);
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (const void *)0, commands.size(), 0);
 }
 
 void WorldRenderer::renderShadowmap(const Camera &camera)

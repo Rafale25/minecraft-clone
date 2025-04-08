@@ -52,7 +52,7 @@ public:
     bool _wireframe = false;
     bool _ambient_occlusion = true;
     float _ambient_occlusion_strength = 0.67;
-    float _fog_density = 0.0007f;
+    float _fog_density = 0.00096f;
 
     Framebuffer _framebuffer;
     Texture _color_texture;
@@ -78,6 +78,7 @@ public:
     GLuint chunk_vao;
     GLuint draw_command_buffer;
     GLuint ssbo_chunk_positions;
+    GLuint ssbo_chunk_element_buffer;
 
     ThreadPool thread_pool;
 

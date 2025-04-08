@@ -41,6 +41,10 @@ vec3 skyray(vec2 uv, float fieldOfView, float aspectRatio)
 }
 
 vec3 getSkyColor(vec3 ray) {
+    // Dynamic horizon height based on camera.y
+    // const float horizon_height = -u_viewPosition.y * 0.001; //-0.15;
+    // ray = normalize(ray - vec3(0.0, horizon_height, 0.0));
+
     vec3 tint = vec3(1);
     vec3 skyColorMorning = SkyColourMorning(ray.xyz);
     vec3 skyColorZenit = SkyColour(ray.xyz);
@@ -56,9 +60,9 @@ vec3 getSkyColor(vec3 ray) {
     return color;
 }
 
-const float fog_start = 150.0;
-const float fog_end = 350.0;
-const vec3 fog_color = vec3(0.8);
+// const float fog_start = 150.0;
+// const float fog_end = 350.0;
+// const vec3 fog_color = vec3(0.8);
 
 // float calcLinearFogFactor()
 // {
