@@ -7,8 +7,7 @@ layout(binding = 1, std430) readonly buffer ssbo_chunk_positions {
     vec4 chunk_positions[];
 };
 
-layout(binding = 2, std430) readonly buffer ssbo_blocks_faces
-{
+layout(binding = 2, std430) readonly buffer ssbo_blocks_faces {
     uint64_t blocks_faces[];
 };
 
@@ -24,115 +23,84 @@ out VS_OUT {
 uniform mat4 u_projection_view;
 uniform mat4 u_lightSpaceMatrix;
 
-const ivec2 model_face[] = {
-    ivec2(0, 0),
-    ivec2(1, 0),
-    ivec2(1, 1),
-    ivec2(0, 1),
-
-    ivec2(0, 0),
-    ivec2(0, 1),
-    ivec2(1, 1),
-    ivec2(1, 0),
+const ivec2 model_face[8] = {
+    ivec2(0, 0), ivec2(1, 0), ivec2(1, 1), ivec2(0, 1),
+    ivec2(0, 0), ivec2(0, 1), ivec2(1, 1), ivec2(1, 0)
 };
 
-const ivec2 model_face_flipped[] = {
-    ivec2(1, 0),
-    ivec2(1, 1),
-    ivec2(0, 1),
-    ivec2(0, 0),
-
-    ivec2(0, 1),
-    ivec2(1, 1),
-    ivec2(1, 0),
-    ivec2(0, 0),
+const ivec2 model_face_flipped[8] = {
+    ivec2(1, 0), ivec2(1, 1), ivec2(0, 1), ivec2(0, 0),
+    ivec2(0, 1), ivec2(1, 1), ivec2(1, 0), ivec2(0, 0)
 };
 
-const int ao_order[] = {
+const int ao_order[8] = {
     1, 2, 3, 0,
     3, 2, 1, 0
 };
 
-const int ao_order_flipped[] = {
+const int ao_order_flipped[8] = {
     0, 1, 2, 3,
     0, 3, 2, 1
 };
 
 ivec2 rotate_uv(ivec2 uv, int rot) {
-    if (rot == 0) return uv;
-    if (rot == 1) return ivec2(uv.y, 1.0 - uv.x); // 90°
-    if (rot == 2) return ivec2(1.0 - uv.x, 1.0 - uv.y); // 180°
-    if (rot == 3) return ivec2(1.0 - uv.y, uv.x); // 270°
+    switch (rot) {
+        case 0: return uv;
+        case 1: return ivec2(uv.y, 1 - uv.x);     // 90°
+        case 2: return ivec2(1 - uv.x, 1 - uv.y); // 180°
+        case 3: return ivec2(1 - uv.y, uv.x);     // 270°
+    }
     return uv;
 }
 
-void main()
-{
-    const uint64_t data = blocks_faces[gl_BaseInstance + gl_VertexID / 6];
+void main() {
+    uint64_t data = blocks_faces[gl_BaseInstance + gl_VertexID / 6];
 
-    int a_x =                   int((data >> 0)  & 31);
-    int a_y =                   int((data >> 5)  & 31);
-    int a_z =                   int((data >> 10) & 31);
-    int a_orientation =         int((data >> 15) & 7);
-    int a_texture_id =          int((data >> 18) & 255);
-    int a_ambient_occlusion00 = int((data >> 32) & 7);
-    int a_ambient_occlusion10 = int((data >> 35) & 7);
-    int a_ambient_occlusion11 = int((data >> 38) & 7);
-    int a_ambient_occlusion01 = int((data >> 41) & 7);
+    ivec3 block_pos = ivec3(
+        int((data >> 0)  & 31),
+        int((data >> 5)  & 31),
+        int((data >> 10) & 31)
+    );
 
-    ivec3 a_position = ivec3(a_x, a_y, a_z);
+    int orientation = int((data >> 15) & 7);
+    int texture_id  = int((data >> 18) & 255);
 
-    const int a_ambient_occlusion_4[4] = {
-        a_ambient_occlusion00,
-        a_ambient_occlusion10,
-        a_ambient_occlusion11,
-        a_ambient_occlusion01,
+    int ao[4] = {
+        int((data >> 32) & 7),
+        int((data >> 35) & 7),
+        int((data >> 38) & 7),
+        int((data >> 41) & 7)
     };
 
-    int a_ambient_occlusion = 3;
+    int offset = (orientation == 1 || orientation == 3) ? 4 : 0;
+    int vertex_index = (gl_VertexID % 4) + offset;
 
-    int offset = a_orientation == 1 || a_orientation == 3 ? 4 : 0;
+    bool flip = (ao[0] + ao[2]) > (ao[1] + ao[3]);
+    const ivec2[] model = flip ? model_face : model_face_flipped;
+    const int[] ao_index = flip ? ao_order_flipped : ao_order;
 
-    int vertex_index = gl_VertexID % 4 + offset;
-
-    bool shouldFlipFace = a_ambient_occlusion00 + a_ambient_occlusion11 > a_ambient_occlusion01 + a_ambient_occlusion10;
-    const ivec2 model[] = shouldFlipFace ? model_face : model_face_flipped;
-
-    ivec2 a_uv = model[vertex_index];
-
+    ivec2 uv = model[vertex_index];
     vec3 model_offset;
-    if (a_orientation == 0) // TOP
-        model_offset = vec3(model[vertex_index].x, 1, model[vertex_index].y);
-    else if (a_orientation == 1) // BOTTOM
-        model_offset = vec3(model[vertex_index].x, 0, model[vertex_index].y);
-    else if (a_orientation == 2) // FRONT
-        model_offset = vec3(model[vertex_index].x, model[vertex_index].y, 0);
-    else if (a_orientation == 3) // BACK
-        model_offset = vec3(model[vertex_index].x, model[vertex_index].y, 1);
-    else if (a_orientation == 4) // LEFT
-        model_offset = vec3(0, model[vertex_index].x, model[vertex_index].y);
-    else if (a_orientation == 5) // RIGHT
-        model_offset = vec3(1, model[vertex_index].y, model[vertex_index].x);
 
-
-    a_ambient_occlusion = shouldFlipFace ? a_ambient_occlusion_4[ao_order_flipped[vertex_index]]
-                                         : a_ambient_occlusion_4[ao_order[vertex_index]];
-
-    if (a_orientation == 3) {
-        a_uv.x = 1 - a_uv.x;
-    }
-    if (a_orientation == 4) {
-        a_uv = rotate_uv(a_uv, 3);
+    switch (orientation) {
+        case 0: model_offset = vec3(uv.x, 1, uv.y); break; // TOP
+        case 1: model_offset = vec3(uv.x, 0, uv.y); break; // BOTTOM
+        case 2: model_offset = vec3(uv.x, uv.y, 0); break; // FRONT
+        case 3: model_offset = vec3(uv.x, uv.y, 1); uv.x = 1 - uv.x; break; // BACK
+        case 4: model_offset = vec3(0, uv.x, uv.y); uv = rotate_uv(uv, 3); break; // LEFT
+        case 5: model_offset = vec3(1, uv.y, uv.x); break; // RIGHT
     }
 
-    vec3 world_pos = chunk_positions[gl_DrawID].xyz + a_position + model_offset;
-    vec4 position = u_projection_view * vec4(world_pos, 1.0);
+    float ao_factor = float(ao[ao_index[vertex_index]]) / 3.0;
+
+    vec3 world_pos = chunk_positions[gl_DrawID].xyz + block_pos + model_offset;
 
     vs_out.FragPosLightSpace = u_lightSpaceMatrix * vec4(world_pos, 1.0);
     vs_out.frag_pos = world_pos;
-    vs_out.uv = a_uv;
-    vs_out.orientation = (a_orientation);
-    vs_out.texture_id = a_texture_id;
-    vs_out.ambient_occlusion = float(a_ambient_occlusion) / 3.0;
-    gl_Position = position;
+    vs_out.uv = uv;
+    vs_out.orientation = orientation;
+    vs_out.texture_id = texture_id;
+    vs_out.ambient_occlusion = ao_factor;
+
+    gl_Position = u_projection_view * vec4(world_pos, 1.0);
 }
