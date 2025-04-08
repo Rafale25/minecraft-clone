@@ -156,26 +156,26 @@ inline void makeFace(
     BlockInfo self_block_info = blocks_info[(int32_t)self_block];
     BlockInfo neighbor_block_info = blocks_info[(int32_t)neighbor_block];
 
-    // If neighbor is transparent or a liquid block
-    if (neighbor_block_info.transparent || (!self_block_info.liquid && neighbor_block_info.liquid)) {
-        auto nb_lx = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[0], info[1], info[2]))].affectsAmbiantOcclusion;
-        auto nb_hx = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[3], info[4], info[5]))].affectsAmbiantOcclusion;
-        auto nb_ly = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[6], info[7], info[8]))].affectsAmbiantOcclusion;
-        auto nb_hy = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[9], info[10], info[11]))].affectsAmbiantOcclusion;
+    // Only mesh if neighbor is transparent or a if is a solid block next to a liquid
+    if (!neighbor_block_info.transparent && !(!self_block_info.liquid && neighbor_block_info.liquid)) return;
 
-        auto nb_lxly = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[12], info[13], info[14]))].affectsAmbiantOcclusion;
-        auto nb_hxly = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[15], info[16], info[17]))].affectsAmbiantOcclusion;
-        auto nb_lxhy = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[18], info[19], info[20]))].affectsAmbiantOcclusion;
-        auto nb_hxhy = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[21], info[22], info[23]))].affectsAmbiantOcclusion;
+    auto nb_lx = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[0], info[1], info[2]))].affectsAmbiantOcclusion;
+    auto nb_hx = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[3], info[4], info[5]))].affectsAmbiantOcclusion;
+    auto nb_ly = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[6], info[7], info[8]))].affectsAmbiantOcclusion;
+    auto nb_hy = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[9], info[10], info[11]))].affectsAmbiantOcclusion;
 
-        int32_t a00 = vertexAO(nb_lx, nb_ly, nb_lxly);
-        int32_t a10 = vertexAO(nb_hx, nb_ly, nb_hxly);
-        int32_t a11 = vertexAO(nb_hx, nb_hy, nb_hxhy);
-        int32_t a01 = vertexAO(nb_lx, nb_hy, nb_lxhy);
+    auto nb_lxly = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[12], info[13], info[14]))].affectsAmbiantOcclusion;
+    auto nb_hxly = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[15], info[16], info[17]))].affectsAmbiantOcclusion;
+    auto nb_lxhy = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[18], info[19], info[20]))].affectsAmbiantOcclusion;
+    auto nb_hxhy = blocks_info[(int32_t)chunkextra.getBlock(local_pos + glm::ivec3(info[21], info[22], info[23]))].affectsAmbiantOcclusion;
 
-        GLuint64 facedata = packVertex(x, y, z, orientation, texture_id, a00, a10, a11, a01);
-        vertices.push_back(facedata);
-    }
+    int32_t a00 = vertexAO(nb_lx, nb_ly, nb_lxly);
+    int32_t a10 = vertexAO(nb_hx, nb_ly, nb_hxly);
+    int32_t a11 = vertexAO(nb_hx, nb_hy, nb_hxhy);
+    int32_t a01 = vertexAO(nb_lx, nb_hy, nb_lxhy);
+
+    GLuint64 facedata = packVertex(x, y, z, orientation, texture_id, a00, a10, a11, a01);
+    vertices.push_back(facedata);
 }
 
 ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos)
