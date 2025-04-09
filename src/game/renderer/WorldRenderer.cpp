@@ -227,7 +227,7 @@ void WorldRenderer::renderTerrain(const glm::mat4 &view_projection, bool use_fru
 
         commands.push_back({
             (uint32_t)(mesh.slot_vertices.size / sizeof(vertexTypename)) * 6, // one face if 2 triangles, 6 vertices
-            (uint32_t)1,
+            1u,
             0u,
             0, // don't need it first vertex so set it at 0 to avoid crash/bug
             (uint32_t)(mesh.slot_vertices.start / sizeof(vertexTypename)), // pass first vertex information by using this field that get sent to gl_BaseInstance
