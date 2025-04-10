@@ -3,7 +3,7 @@
 #include "ChunkExtra.hpp"
 #include "Logger.hpp"
 
-GLuint64 packVertex(int32_t x, int32_t y, int32_t z, int32_t o, int32_t t, int32_t ao00, int32_t ao10, int32_t ao11, int32_t ao01) {
+static inline GLuint64 packVertex(int32_t x, int32_t y, int32_t z, int32_t o, int32_t t, int32_t ao00, int32_t ao10, int32_t ao11, int32_t ao01) {
     // 8 bytes, 64 bits
 
     // ------------------------aaaaaaaa
@@ -23,7 +23,7 @@ GLuint64 packVertex(int32_t x, int32_t y, int32_t z, int32_t o, int32_t t, int32
     return p;
 }
 
-int32_t vertexAO(int32_t side1, int32_t side2, int32_t corner) {
+static inline int32_t vertexAO(int32_t side1, int32_t side2, int32_t corner) {
     if (side1 && side2) return 0;
     return 3 - (side1 + side2 + corner);
 }
@@ -125,7 +125,7 @@ constexpr int32_t infos[][26] = {
     },
 };
 
-inline void makeFace(
+static inline void makeFace(
     std::vector<GLuint64>& vertices,
     int32_t x, int32_t y, int32_t z,
     const ChunkExtra &chunkextra,
