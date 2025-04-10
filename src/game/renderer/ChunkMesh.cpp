@@ -3,35 +3,22 @@
 #include "ChunkExtra.hpp"
 #include "Logger.hpp"
 
-/*
-    position: 3x5
-    uv: 2x1
-    orientation: 3
-    texture_id: 8
-    ao: 3
-    // 4 bytes, 32 bits
-    // 00000000000000000000000000000000
-    //  aaattttttttooouvzzzzzyyyyyxxxxx
-
-    //  aaaaaaaatttttooozzzzzyyyyyxxxxx
-*/
-
 GLuint64 packVertex(int32_t x, int32_t y, int32_t z, int32_t o, int32_t t, int32_t ao00, int32_t ao10, int32_t ao11, int32_t ao01) {
     // 8 bytes, 64 bits
 
     // ------------------------aaaaaaaa
-    // ----ttttttttooouvzzzzzyyyyyxxxxx
+    // --tttttttttooozzzzzzyyyyyyxxxxxx
     GLuint64 p = (GLuint64)
-        ((GLuint64)(x & 31)   << 0)   |
-        ((GLuint64)(y & 31)   << 5)   |
-        ((GLuint64)(z & 31)   << 10)  |
-        ((GLuint64)(o & 7)    << 15)  |
-        ((GLuint64)(t & 255)  << 18) |
+        ((GLuint64)(x & 63)   << 0)   |
+        ((GLuint64)(y & 63)   << 6)   |
+        ((GLuint64)(z & 63)   << 12)  |
+        ((GLuint64)(o & 7)    << 18)  |
+        ((GLuint64)(t & 511)  << 21) |
 
-        (((GLuint64)(ao00 & 7)) << 32) |
-        (((GLuint64)(ao10 & 7)) << 35) |
-        (((GLuint64)(ao11 & 7)) << 38) |
-        (((GLuint64)(ao01 & 7)) << 41);
+        (((GLuint64)(ao00 & 3)) << 32) |
+        (((GLuint64)(ao10 & 3)) << 34) |
+        (((GLuint64)(ao11 & 3)) << 36) |
+        (((GLuint64)(ao01 & 3)) << 38);
 
     return p;
 }

@@ -57,19 +57,19 @@ void main() {
     uint64_t data = blocks_faces[gl_BaseInstance + gl_VertexID / 6];
 
     ivec3 block_pos = ivec3(
-        int((data >> 0)  & 31),
-        int((data >> 5)  & 31),
-        int((data >> 10) & 31)
+        int((data >> 0)  & 63),
+        int((data >> 6)  & 63),
+        int((data >> 12) & 63)
     );
 
-    int orientation = int((data >> 15) & 7);
-    int texture_id  = int((data >> 18) & 255);
+    int orientation = int((data >> 18) & 7);
+    int texture_id  = int((data >> 21) & 511);
 
     int ao[4] = {
-        int((data >> 32) & 7),
-        int((data >> 35) & 7),
-        int((data >> 38) & 7),
-        int((data >> 41) & 7)
+        int((data >> 32) & 3),
+        int((data >> 34) & 3),
+        int((data >> 36) & 3),
+        int((data >> 38) & 3)
     };
 
     int offset = (orientation == 1 || orientation == 3) ? 4 : 0;
