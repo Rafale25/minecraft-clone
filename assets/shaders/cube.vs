@@ -93,6 +93,7 @@ void main() {
 
     float ao_factor = float(ao[ao_index[vertex_index]]) / 3.0;
 
+    // vec3 world_pos = chunk_positions[gl_DrawID].xyz + block_pos + model_offset;
     vec3 world_pos = chunk_positions[gl_DrawID].xyz + block_pos + model_offset;
 
     vs_out.FragPosLightSpace = u_lightSpaceMatrix * vec4(world_pos, 1.0);

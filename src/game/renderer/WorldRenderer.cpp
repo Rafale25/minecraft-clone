@@ -96,7 +96,14 @@ void WorldRenderer::render(const Camera &camera)
     glDrawBuffers(2, attachments);
 
     // glDepthFunc(GL_EQUAL);
-    renderTerrain(view_projection, true);
+
+    std::vector<DrawElementsIndirectCommand> commands_opaque;
+    std::vector<DrawElementsIndirectCommand> commands_translucent;
+    std::vector<glm::vec4> chunk_positions_opaque;
+    std::vector<glm::vec4> chunk_positions_translucent;
+
+    generateDrawCommands(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent, view_projection, true);
+    renderTerrain(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent);
     // glDepthFunc(GL_LESS);
 
     renderEntities(camera, mesh_shader);
@@ -204,52 +211,82 @@ void WorldRenderer::allocateVAOforWaitingChunks() {
     chunks_waiting_bufferslot.clear();
 }
 
-void WorldRenderer::renderTerrain(const glm::mat4 &view_projection, bool use_frustum_culling)
-{
+void WorldRenderer::generateDrawCommands(
+    std::vector<DrawElementsIndirectCommand>& commands_opaque,
+    std::vector<DrawElementsIndirectCommand>& commands_translucent,
+    std::vector<glm::vec4>& chunk_positions_opaque,
+    std::vector<glm::vec4>& chunk_positions_translucent,
+    const glm::mat4 &view_projection,
+    bool use_frustum_culling
+) {
     Frustum camera_frustum = createFrustumFromViewProjection(view_projection);
 
     chunks_drawn = 0;
 
-    using vertexTypename = GLuint64;
-    std::vector<DrawElementsIndirectCommand> commands;
-    std::vector<glm::vec4> chunk_positions;
-
     for (const auto& [chunk_pos, mesh] : meshes)
     {
-        if (mesh.slot_vertices.start == -1 || !mesh.slot_vertices.used) continue;
+        if (mesh.slot_vertices.start == -1 && mesh.slot_vertices_translucent.start == -1) continue;
 
         if (use_frustum_culling) {
             AABB chunk_aabb = {(chunk_pos * CHUNK_SIZE), (chunk_pos * CHUNK_SIZE) + CHUNK_SIZE};
             if (!isAABBOnFrustum(chunk_aabb, camera_frustum)) continue;
         }
 
-        chunk_positions.push_back(glm::vec4(chunk_pos * CHUNK_SIZE, 1.0f));
 
-        commands.push_back({
-            (uint32_t)(mesh.slot_vertices.size / sizeof(vertexTypename)) * 6, // one face if 2 triangles, 6 vertices
-            1u,
-            0u,
-            0, // don't need it first vertex so set it at 0 to avoid crash/bug
-            (uint32_t)(mesh.slot_vertices.start / sizeof(vertexTypename)), // pass first vertex information by using this field that get sent to gl_BaseInstance
-        });
+        if (mesh.slot_vertices.start != -1) {
+            chunk_positions_opaque.push_back(glm::vec4(chunk_pos * CHUNK_SIZE, 1.0f));
+            commands_opaque.push_back({
+                (uint32_t)(mesh.slot_vertices.size / sizeof(VERTEX_TYPE)) * 6, // one face if 2 triangles, 6 vertices
+                1u,
+                0u,
+                0, // don't need it first vertex so set it at 0 to avoid crash/bug
+                (uint32_t)(mesh.slot_vertices.start / sizeof(VERTEX_TYPE)), // pass first vertex information by using this field that get sent to gl_BaseInstance
+            });
+        }
+
+        if (mesh.slot_vertices_translucent.start != -1) {
+            chunk_positions_translucent.push_back(glm::vec4(chunk_pos * CHUNK_SIZE, 1.0f));
+            commands_translucent.push_back({
+                (uint32_t)(mesh.slot_vertices_translucent.size / sizeof(VERTEX_TYPE)) * 6, // one face if 2 triangles, 6 vertices
+                1u,
+                0u,
+                0, // don't need it first vertex so set it at 0 to avoid crash/bug
+                (uint32_t)(mesh.slot_vertices_translucent.start / sizeof(VERTEX_TYPE)), // pass first vertex information by using this field that get sent to gl_BaseInstance
+            });
+        }
 
         ++chunks_drawn;
     }
+}
 
+void WorldRenderer::renderTerrain(
+    const std::vector<DrawElementsIndirectCommand>& commands_opaque,
+    const std::vector<DrawElementsIndirectCommand>& commands_translucent,
+    const std::vector<glm::vec4>& chunk_positions_opaque,
+    const std::vector<glm::vec4>& chunk_positions_translucent
+) {
     glBindVertexArray(chunk_vao);
-    glVertexArrayVertexBuffer(chunk_vao, 0, buffer_allocator_vertices.getBufferObject(), 0, 1 * sizeof(vertexTypename)); // Not needed anymore but crashes without
+    glVertexArrayVertexBuffer(chunk_vao, 0, buffer_allocator_vertices.getBufferObject(), 0, 1 * sizeof(VERTEX_TYPE)); // Not needed anymore but crashes without
     glVertexArrayElementBuffer(chunk_vao, ssbo_chunk_element_buffer);
 
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, draw_command_buffer);
-    glNamedBufferSubData(draw_command_buffer, 0, sizeof(commands[0]) * commands.size(), (const void *)commands.data());
-
-
-    glNamedBufferSubData(ssbo_chunk_positions, 0, sizeof(GLfloat) * 4 * chunk_positions.size(), (const void *)chunk_positions.data());
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_texture_handles);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo_chunk_positions);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, buffer_allocator_vertices.getBufferObject());
 
-    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (const void *)0, commands.size(), 0);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, draw_command_buffer);
+
+    glNamedBufferSubData(ssbo_chunk_positions, 0, sizeof(GLfloat) * 4 * chunk_positions_opaque.size(), (const void *)chunk_positions_opaque.data());
+    glNamedBufferSubData(draw_command_buffer, 0, sizeof(commands_opaque[0]) * commands_opaque.size(), (const void *)commands_opaque.data());
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (const void *)0, commands_opaque.size(), 0);
+
+    glNamedBufferSubData(ssbo_chunk_positions, 0, sizeof(GLfloat) * 4 * chunk_positions_translucent.size(), (const void *)chunk_positions_translucent.data());
+    glNamedBufferSubData(draw_command_buffer, 0, sizeof(commands_translucent[0]) * commands_translucent.size(), (const void *)commands_translucent.data());
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (const void *)0, commands_translucent.size(), 0);
+    glDisable(GL_BLEND);
 }
 
 void WorldRenderer::renderShadowmap(const Camera &camera)
@@ -262,7 +299,7 @@ void WorldRenderer::renderShadowmap(const Camera &camera)
     // DebugDraw::instance().drawFrustum(light_view_projection);
 
     glDisable(GL_CULL_FACE);
-    renderTerrain(light_view_projection, true);
+    // renderTerrain(light_view_projection, true);
     glEnable(GL_CULL_FACE);
 
     shadowmap.end();

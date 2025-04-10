@@ -19,6 +19,8 @@ class Camera;
 
 class WorldRenderer
 {
+    using VERTEX_TYPE = GLuint64;
+
 public:
     WorldRenderer(Context &context);
 
@@ -35,7 +37,21 @@ private:
 
     void setDefaultRenderState();
 
-    void renderTerrain(const glm::mat4 &view_projection, bool use_frustum_culling);
+    void generateDrawCommands(
+        std::vector<DrawElementsIndirectCommand>& commands_opaque,
+        std::vector<DrawElementsIndirectCommand>& commands_translucent,
+        std::vector<glm::vec4>& chunk_positions_opaque,
+        std::vector<glm::vec4>& chunk_positions_translucent,
+        const glm::mat4 &view_projection,
+        bool use_frustum_culling);
+
+    void renderTerrain(
+        const std::vector<DrawElementsIndirectCommand>& commands_opaque,
+        const std::vector<DrawElementsIndirectCommand>& commands_translucent,
+        const std::vector<glm::vec4>& chunk_positions_opaque,
+        const std::vector<glm::vec4>& chunk_positions_translucent
+    );
+
     void renderEntities(const Camera &camera, const Program& program);
 
     void renderShadowmap(const Camera &camera);

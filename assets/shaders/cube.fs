@@ -114,7 +114,7 @@ void main()
         lighting = mix(lighting * (1.0 - u_ambient_occlusion_strength), lighting, fs_in.ambient_occlusion);
     }
 
-    FragColor = vec4(lighting, 1.0);
+    FragColor = vec4(lighting, color.a);
     gPosition = fs_in.frag_pos;
     // FragColor = vec4(fs_in.frag_pos, 1.0);
 

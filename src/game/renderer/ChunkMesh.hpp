@@ -7,12 +7,12 @@
 
 struct ChunkRawMesh {
     std::vector<GLuint64> vertices;
-    // std::vector<GLuint> vertices_translucent;
+    std::vector<GLuint64> vertices_translucent;
 };
 
 struct ChunkMesh {
     BufferSlot slot_vertices = invalid_buffer_slot;
-    // BufferSlot slot_vertices_translucent = invalid_buffer_slot;
+    BufferSlot slot_vertices_translucent = invalid_buffer_slot;
 
     void updateVAO(
         BufferAllocator& buffer_allocator_vertices,
