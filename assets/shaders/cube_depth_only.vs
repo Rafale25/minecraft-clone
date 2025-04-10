@@ -17,16 +17,9 @@ out VS_OUT {
     flat uint texture_id;
 } vs_out;
 
-const ivec2 model[] = {
-    ivec2(0, 0),
-    ivec2(1, 0),
-    ivec2(1, 1),
-    ivec2(0, 1),
-
-    ivec2(0, 0),
-    ivec2(0, 1),
-    ivec2(1, 1),
-    ivec2(1, 0),
+const ivec2 model_face[8] = {
+    ivec2(0, 0), ivec2(1, 0), ivec2(1, 1), ivec2(0, 1),
+    ivec2(0, 0), ivec2(0, 1), ivec2(1, 1), ivec2(1, 0)
 };
 
 uniform mat4 u_lightSpaceMatrix;
@@ -51,36 +44,25 @@ void main()
     int orientation = int((data >> 18) & 7);
     int texture_id  = int((data >> 21) & 511);
 
+    int offset = (orientation == 1 || orientation == 3) ? 4 : 0;
+    int vertex_index = (gl_VertexID % 4) + offset;
 
-    int vertex_index = gl_VertexID % 4;// + offset;
-    ivec2 a_uv = model[vertex_index];
-
-    if (orientation == 3) {
-        a_uv.x = 1 - a_uv.x;
-    }
-    if (orientation == 4) {
-        a_uv = rotate_uv(a_uv, 3);
-    }
-
+    ivec2 uv = model_face[vertex_index];
     vec3 model_offset;
-    if (orientation == 0) // TOP
-        model_offset = vec3(model[vertex_index].x, 1, model[vertex_index].y);
-    else if (orientation == 1) // BOTTOM
-        model_offset = vec3(model[vertex_index].x, 0, model[vertex_index].y);
-    else if (orientation == 2) // FRONT
-        model_offset = vec3(model[vertex_index].x, model[vertex_index].y, 0);
-    else if (orientation == 3) // BACK
-        model_offset = vec3(model[vertex_index].x, model[vertex_index].y, 1);
-    else if (orientation == 4) // LEFT
-        model_offset = vec3(0, model[vertex_index].x, model[vertex_index].y);
-    else if (orientation == 5) // RIGHT
-        model_offset = vec3(1, model[vertex_index].y, model[vertex_index].x);
 
+    switch (orientation) {
+        case 0: model_offset = vec3(uv.x, 1, uv.y); break; // TOP
+        case 1: model_offset = vec3(uv.x, 0, uv.y); break; // BOTTOM
+        case 2: model_offset = vec3(uv.x, uv.y, 0); break; // FRONT
+        case 3: model_offset = vec3(uv.x, uv.y, 1); uv.x = 1 - uv.x; break; // BACK
+        case 4: model_offset = vec3(0, uv.x, uv.y); uv = rotate_uv(uv, 3); break; // LEFT
+        case 5: model_offset = vec3(1, uv.y, uv.x); break; // RIGHT
+    }
 
     vec3 world_pos = chunk_positions[gl_DrawID].xyz + block_pos + model_offset;
     vec4 position = u_lightSpaceMatrix * vec4(world_pos, 1.0);
 
-    vs_out.uv = a_uv;
+    vs_out.uv = uv;
     vs_out.texture_id = texture_id;
     gl_Position = position;
 }
