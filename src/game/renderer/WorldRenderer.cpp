@@ -60,15 +60,39 @@ void WorldRenderer::setDefaultRenderState()
 
 void WorldRenderer::render(const Camera &camera)
 {
+    const glm::mat4 view_projection = camera.getProjection() * camera.getView();
+
+    std::vector<DrawElementsIndirectCommand> commands_opaque;
+    std::vector<DrawElementsIndirectCommand> commands_translucent;
+    std::vector<glm::vec4> chunk_positions_opaque;
+    std::vector<glm::vec4> chunk_positions_translucent;
+
     setDefaultRenderState();
 
-    renderShadowmap(camera);
+    { // SHADOWMAP //
+        const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, _max_shadow_distance);
+
+        shadowmap.setSunDir(sunDir);
+        glm::mat4 light_view_projection = shadowmap.begin(camera_projection_shorter, camera.getView(), cube_shader_depth_only);
+        // DebugDraw::instance().drawFrustum(light_view_projection);
+
+        glDisable(GL_CULL_FACE);
+        generateDrawCommands(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent, light_view_projection, true);
+        renderTerrain(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent);
+        glEnable(GL_CULL_FACE);
+
+        commands_opaque.clear();
+        commands_translucent.clear();
+        chunk_positions_opaque.clear();
+        chunk_positions_translucent.clear();
+
+        shadowmap.end();
+    }
+
 
     _framebuffer.bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glPolygonMode(GL_FRONT_AND_BACK, _wireframe ? GL_LINE : GL_FILL);
-
-    const glm::mat4 view_projection = camera.getProjection() * camera.getView();
 
     // ZPrePass
     // TODO: should use a framebuffer with glDrawBuffer(GL_NONE) to completely disable fragment stage
@@ -82,7 +106,6 @@ void WorldRenderer::render(const Camera &camera)
     cube_shader.setFloat("u_shadow_bias", shadowmap._shadow_bias);
     cube_shader.setFloat("u_ambient_occlusion_enabled", _ambient_occlusion);
     cube_shader.setFloat("u_ambient_occlusion_strength", _ambient_occlusion_strength);
-
     cube_shader.setVec2("u_resolution", glm::vec2(_ctx.width, _ctx.height));
     cube_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
     cube_shader.setFloat("u_FOV", glm::radians(camera.fov));
@@ -97,10 +120,6 @@ void WorldRenderer::render(const Camera &camera)
 
     // glDepthFunc(GL_EQUAL);
 
-    std::vector<DrawElementsIndirectCommand> commands_opaque;
-    std::vector<DrawElementsIndirectCommand> commands_translucent;
-    std::vector<glm::vec4> chunk_positions_opaque;
-    std::vector<glm::vec4> chunk_positions_translucent;
 
     generateDrawCommands(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent, view_projection, true);
     renderTerrain(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent);
@@ -110,7 +129,7 @@ void WorldRenderer::render(const Camera &camera)
 
     DebugDraw::instance().drawAndFlush(view_projection);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // disable wires mode
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 
@@ -135,6 +154,9 @@ void WorldRenderer::render(const Camera &camera)
     glBindTextureUnit(2, _depth_texture._texture);
 
     _quad_fs.draw();
+
+    // CONTINUE HERE
+    // Postprocess shader becomes deferred shader for fog and shadows
 }
 
 void WorldRenderer::onDeletedChunk(const glm::ivec3 &chunk_pos) {
@@ -289,21 +311,21 @@ void WorldRenderer::renderTerrain(
     glDisable(GL_BLEND);
 }
 
-void WorldRenderer::renderShadowmap(const Camera &camera)
-{
-    const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, _max_shadow_distance);
-    glm::mat4 light_view_projection;
+// void WorldRenderer::renderShadowmap(const Camera &camera)
+// {
+//     const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, _max_shadow_distance);
+//     glm::mat4 light_view_projection;
 
-    shadowmap.setSunDir(sunDir);
-    light_view_projection = shadowmap.begin(camera_projection_shorter, camera.getView(), cube_shader_depth_only);
-    // DebugDraw::instance().drawFrustum(light_view_projection);
+//     shadowmap.setSunDir(sunDir);
+//     light_view_projection = shadowmap.begin(camera_projection_shorter, camera.getView(), cube_shader_depth_only);
+//     // DebugDraw::instance().drawFrustum(light_view_projection);
 
-    glDisable(GL_CULL_FACE);
-    // renderTerrain(light_view_projection, true);
-    glEnable(GL_CULL_FACE);
+//     glDisable(GL_CULL_FACE);
+//     // renderTerrain(light_view_projection, true);
+//     glEnable(GL_CULL_FACE);
 
-    shadowmap.end();
-}
+//     shadowmap.end();
+// }
 
 void WorldRenderer::renderEntities(const Camera &camera, const Program& program)
 {
