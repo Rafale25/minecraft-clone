@@ -1,14 +1,28 @@
 # Minecraft-clone
 
+## Installing
+    git clone https://github.com/filipdutescu/modern-cpp-template/
+    git submodule update --init --recursive
 
-## How to build
+# How to build
 
-cmake --preset gcc-debug
+## External dependencies
+* C++ Compiler - C++23 standard (MSVC, GCC, Clang)
+* CMake v3.25+ - https://cmake.org/
+* Ninja generator - https://ninja-build.org/
 
-"gcc-debug"     - GCC Debug
-"gcc-release"   - GCC Release
-"clang-debug"   - Clang Debug
-"clang-release" - Clang Release
-"windows"       - MSVC
+#### Linux - Debian/Ubuntu - Install required tools & libraries
+    sudo apt install build-essential git ninja-build cmake
+    sudo apt install libxrandr-dev libx11-dev libxkbcommon-dev libwayland-dev libxinerama-dev libxcursor-dev libxi-dev mesa-common-dev
 
-cmake --build build -j
+### Building the project (Windows & Linux)
+    mkdir -p build
+    cmake --preset <preset-of-your-choice>
+    cmake --build build -j
+
+### Presets
+    gcc-debug     - GCC Debug
+    gcc-release   - GCC Release
+    clang-debug   - Clang Debug
+    clang-release - Clang Release
+    windows"      - MSVC
