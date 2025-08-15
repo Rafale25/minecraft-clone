@@ -4,7 +4,7 @@
 ![minecraft_03](https://github.com/user-attachments/assets/9169c142-90ef-4fbe-8b11-d8829edd5dfe)
 
 ## Installing
-    git clone https://github.com/filipdutescu/modern-cpp-template/
+    git clone https://github.com/Rafale25/minecraft-clone
     git submodule update --init --recursive
 
 # How to build
