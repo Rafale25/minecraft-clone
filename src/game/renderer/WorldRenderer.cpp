@@ -5,7 +5,7 @@
 #include "Frustum.hpp"
 #include "World.hpp"
 #include "Chunk.hpp"
-#include "Camera.hpp"
+#include "camera/Camera.hpp"
 #include "AABB.hpp"
 #include "BlockTextureManager.hpp"
 #include "DebugDraw.hpp"

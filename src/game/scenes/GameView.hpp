@@ -2,7 +2,7 @@
 
 #include "Context.hpp"
 #include "View.hpp"
-#include "FpsCamera.hpp"
+#include "camera/FpsCamera.hpp"
 #include "WorldRenderer.hpp"
 #include "BlockRaycastHit.hpp"
 
