@@ -22,9 +22,6 @@ add_executable(${PROJECT_NAME} ${SRC_CPP} ${SRC_C})
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
-        ./engine/
-        ./include/
-        ./src/
         ./src/game/
         ./src/game/renderer
         ./src/game/world/

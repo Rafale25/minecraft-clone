@@ -20,7 +20,6 @@ set(GLFW_DIR ${THIRD_PARTY_DIR}/glfw)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-
 include_directories(${GLFW_DIR}/include)
 add_subdirectory(${GLFW_DIR} ${CMAKE_CURRENT_BINARY_DIR}/glfw)
 # -- #
@@ -29,7 +28,6 @@ add_subdirectory(${GLFW_DIR} ${CMAKE_CURRENT_BINARY_DIR}/glfw)
 set(GLM_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLM_BUILD_LIBRARY ON CACHE BOOL "" FORCE)
 set(DGLM_BUILD_INSTALL ON CACHE BOOL "" FORCE)
-
 add_definitions(-D GLM_ENABLE_EXPERIMENTAL) ## for GLM
 add_subdirectory(${THIRD_PARTY_DIR}/glm ${CMAKE_CURRENT_BINARY_DIR}/glm)
 # include_directories("submodules/glm/glm")
@@ -52,7 +50,6 @@ target_sources(imgui
 target_include_directories(imgui PUBLIC ${IMGUI_DIR})
 # -- #
 
-
 add_library(${PROJECT_NAME} STATIC ${SRC_C} ${SRC_CPP})
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC
@@ -66,7 +63,7 @@ target_include_directories(${PROJECT_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/
         ${CMAKE_CURRENT_SOURCE_DIR}/camera/
         ${CMAKE_CURRENT_SOURCE_DIR}/utils/
-        ${CMAKE_CURRENT_SOURCE_DIR}/../include/
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/
         ${IMGUI_DIR}
         ${IMGUI_DIR}/backends
 )
