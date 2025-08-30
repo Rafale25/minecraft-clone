@@ -13,8 +13,10 @@
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
-                "CMAKE_CXX_FLAGS": "-W -Wall -Wextra -Wpedantic -Werror -Wno-unused-variable -Wno-unused-parameter -Wno-strict-aliasing",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": true
+            },
+            "environment": {
+                "BASE_CMAKE_CXX_FLAGS": "-W -Wall -Wextra -Wpedantic -Wshadow=local -Wno-unused-variable -Wno-unused-parameter -Wno-strict-aliasing"
             }
         },
         {
@@ -51,7 +53,7 @@
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_C_COMPILER": "gcc",
                 "CMAKE_CXX_COMPILER": "g++",
-                "CMAKE_CXX_FLAGS": "-g3 -fno-omit-frame-pointer"
+                "CMAKE_CXX_FLAGS": "$env{BASE_CMAKE_CXX_FLAGS} -g3 -fno-omit-frame-pointer"
             }
         },
         {
@@ -59,10 +61,10 @@
             "displayName": "GCC Release",
             "inherits": "conf-common",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_C_COMPILER": "gcc",
                 "CMAKE_CXX_COMPILER": "g++",
-                "CMAKE_CXX_FLAGS": "-O3"
+                "CMAKE_CXX_FLAGS": "$env{BASE_CMAKE_CXX_FLAGS} -O3"
             }
         },
         {
@@ -73,7 +75,7 @@
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
-                "CMAKE_CXX_FLAGS": "-g3 -fno-omit-frame-pointer"
+                "CMAKE_CXX_FLAGS": "$env{BASE_CMAKE_CXX_FLAGS} -g3 -fno-omit-frame-pointer"
             }
         },
         {
@@ -81,10 +83,10 @@
             "displayName": "Clang Release",
             "inherits": "conf-common",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
-                "CMAKE_CXX_FLAGS": "-O3"
+                "CMAKE_CXX_FLAGS": "$env{BASE_CMAKE_CXX_FLAGS} -O3"
             }
         },
         {
