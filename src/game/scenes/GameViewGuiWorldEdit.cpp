@@ -94,10 +94,10 @@ void GameView::guiWorldEdit()
             if (selected_index == -1) {
                 ImGui::OpenPopup("##NoBlueprintSelected");
             } else {
-                const Blueprint& bp = createBlueprintFromFile(blueprint_infos[selected_index].entry.path().string());
+                const Blueprint& temp_bp = createBlueprintFromFile(blueprint_infos[selected_index].entry.path().string());
                 // printf("%d %d %d\n", bp.dimensions.x, bp.dimensions.y, bp.dimensions.z);
                 // printf("%d\n", (int32_t)bp.blocks.size());
-                pasteBlueprintIntoWorld(bp, player_blockraycasthit.block_pos);
+                pasteBlueprintIntoWorld(temp_bp, player_blockraycasthit.block_pos);
             }
         }
         ImGui::SameLine();
