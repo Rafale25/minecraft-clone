@@ -205,6 +205,7 @@ void WorldRenderer::onDeletedChunk(const glm::ivec3 &chunk_pos) {
     if (it == meshes.end()) return;
 
     buffer_allocator_vertices.deallocate(it->second.slot_vertices);
+    buffer_allocator_vertices.deallocate(it->second.slot_vertices_translucent);
     meshes.erase(it);
 }
 
@@ -264,6 +265,7 @@ void WorldRenderer::allocateVAOforWaitingChunks() {
         const auto& it = meshes.find(chunk_pos);
         if (it != meshes.end()) {
             buffer_allocator_vertices.deallocate(it->second.slot_vertices);
+            buffer_allocator_vertices.deallocate(it->second.slot_vertices_translucent);
         }
 
         ChunkMesh new_mesh;
