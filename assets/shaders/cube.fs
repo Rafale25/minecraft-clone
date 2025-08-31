@@ -25,17 +25,35 @@ in VS_OUT {
     in vec4 FragPosLightSpace;
 } fs_in;
 
+layout(std140, binding = 0) uniform uniformBuffer {
+    mat4 projection;
+    mat4 view;
+    mat4 projection_view;
+    mat4 lightSpaceMatrix;
+    vec4 sunDirection;
+    vec4 viewPosition;
+    vec2 resolution;
+    float sunDotAngle;
+    float FOV;
+    float fogDensity;
+    float shadow_bias;
+    float ambient_occlusion_strength;
+    float time;
+    float exposure;
+    int ambient_occlusion_enabled;
+    int tonemapping_enabled;
+} uniforms;
 
 layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec3 gPosition;
 
-uniform vec3 u_sun_direction;
-uniform float u_shadow_bias;
-uniform bool u_ambient_occlusion_enabled = true;
-uniform float u_ambient_occlusion_strength = 0.9;
-uniform vec2 u_resolution;
-uniform bool u_tonemapping_enabled = true;
-uniform float u_exposure = 1.0;
+// uniform vec3 u_sun_direction;
+// uniform float u_shadow_bias;
+// uniform bool u_ambient_occlusion_enabled = true;
+// uniform float u_ambient_occlusion_strength = 0.9;
+// uniform vec2 u_resolution;
+// uniform bool u_tonemapping_enabled = true;
+// uniform float u_exposure = 1.0;
 
 
 uniform sampler2D shadowMap;
@@ -58,8 +76,8 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
     }
 
     // calculate bias (based on depth map resolution and slope)
-    float cosTheta = dot(normal, normalize(u_sun_direction));
-    float magic_bias_constant = u_shadow_bias;// 0.00035;
+    float cosTheta = dot(normal, normalize(uniforms.sunDirection.xyz));
+    float magic_bias_constant = uniforms.shadow_bias;// 0.00035;
     float bias = magic_bias_constant*tan(acos(cosTheta));
 
     // PCF
@@ -157,7 +175,7 @@ vec3 fromLinearToSRGB(vec3 linearRGB)
 
 void main()
 {
-    vec2 uv = (gl_FragCoord.xy - 0.5*u_resolution.xy) / u_resolution.y;
+    vec2 uv = (gl_FragCoord.xy - 0.5*uniforms.resolution.xy) / uniforms.resolution.y;
 
     // vec4 color = vec4(0.2, 1.0, 0.0, 1.0);
     vec4 color = texture(texture_handles[fs_in.texture_id], fs_in.uv).rgba;
@@ -171,7 +189,7 @@ void main()
     vec3 ambient = ambientStrength * lightColor;
 
     // diffuse
-    float diff = max(dot(normal, normalize(u_sun_direction)), 0.0);
+    float diff = max(dot(normal, normalize(uniforms.sunDirection.xyz)), 0.0);
     vec3 diffuse = diff * lightColor;
 
     if (color.a < 0.65) { // magic value
@@ -182,22 +200,22 @@ void main()
     float shadow = ShadowCalculation(fs_in.FragPosLightSpace, normal);
 
     // if cube face is not facing light, then it's in its own shadow
-    if (dot(normal, u_sun_direction) < 0.0
-    || u_sun_direction.y < 0.0) // if sun is under the ground (points up)
+    if (dot(normal, uniforms.sunDirection.xyz) < 0.0
+    || uniforms.sunDirection.y < 0.0) // if sun is under the ground (points up)
         shadow = 1.0;
 
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse)) * color.rgb;
 
-    if (u_ambient_occlusion_enabled) {
-        lighting = mix(lighting * (1.0 - u_ambient_occlusion_strength), lighting, fs_in.ambient_occlusion);
+    if (uniforms.ambient_occlusion_enabled == 1) {
+        lighting = mix(lighting * (1.0 - uniforms.ambient_occlusion_strength), lighting, fs_in.ambient_occlusion);
     }
 
     // FragColor = vec4(lighting, color.a);
     gPosition = fs_in.frag_pos;
     // FragColor = vec4(fs_in.frag_pos, 1.0);
 
-    if (u_tonemapping_enabled) {
-        lighting = lottes(lighting.rgb * u_exposure);
+    if (uniforms.tonemapping_enabled == 1) {
+        lighting = lottes(lighting.rgb * uniforms.exposure);
     }
 
     vec3 gammaCorrected = fromLinearToSRGB(lighting);// pow(lighting, vec3(1.0/2.2));

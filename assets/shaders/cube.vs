@@ -20,8 +20,25 @@ out VS_OUT {
     out vec4 FragPosLightSpace;
 } vs_out;
 
-uniform mat4 u_projection_view;
-uniform mat4 u_lightSpaceMatrix;
+// TODO implement shader #include to avoid repeating this structure
+layout(std140, binding = 0) uniform uniformBuffer {
+    mat4 projection;
+    mat4 view;
+    mat4 projection_view;
+    mat4 lightSpaceMatrix;
+    vec4 sunDirection;
+    vec4 viewPosition;
+    vec2 resolution;
+    float sunDotAngle;
+    float FOV;
+    float fogDensity;
+    float shadow_bias;
+    float ambient_occlusion_strength;
+    float time;
+    float exposure;
+    int ambient_occlusion_enabled;
+    int tonemapping_enabled;
+} uniforms;
 
 const ivec2 model_face[8] = {
     ivec2(0, 0), ivec2(1, 0), ivec2(1, 1), ivec2(0, 1),
@@ -96,12 +113,12 @@ void main() {
     // vec3 world_pos = chunk_positions[gl_DrawID].xyz + block_pos + model_offset;
     vec3 world_pos = chunk_positions[gl_DrawID].xyz + block_pos + model_offset;
 
-    vs_out.FragPosLightSpace = u_lightSpaceMatrix * vec4(world_pos, 1.0);
+    vs_out.FragPosLightSpace = uniforms.lightSpaceMatrix * vec4(world_pos, 1.0);
     vs_out.frag_pos = world_pos;
     vs_out.uv = uv;
     vs_out.orientation = orientation;
     vs_out.texture_id = texture_id;
     vs_out.ambient_occlusion = ao_factor;
 
-    gl_Position = u_projection_view * vec4(world_pos, 1.0);
+    gl_Position = uniforms.projection_view * vec4(world_pos, 1.0);
 }

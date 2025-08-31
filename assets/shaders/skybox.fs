@@ -4,11 +4,30 @@
 
 out vec4 FragColor;
 
-uniform mat4 u_view;
-uniform mat4 u_projection;
-uniform vec2 u_resolution;
-uniform float u_FOV;
-uniform float u_sunDotAngle;
+layout(std140, binding = 0) uniform uniformBuffer {
+    mat4 projection;
+    mat4 view;
+    mat4 projection_view;
+    mat4 lightSpaceMatrix;
+    vec4 sunDirection;
+    vec4 viewPosition;
+    vec2 resolution;
+    float sunDotAngle;
+    float FOV;
+    float fogDensity;
+    float shadow_bias;
+    float ambient_occlusion_strength;
+    float time;
+    float exposure;
+    int ambient_occlusion_enabled;
+    int tonemapping_enabled;
+} uniforms;
+
+// uniform mat4 u_view;
+// uniform mat4 u_projection;
+// uniform vec2 u_resolution;
+// uniform float u_FOV;
+// uniform float u_sunDotAngle;
 
 // https://www.shadertoy.com/view/4ljBRy
 // quick and pretty sky colour
@@ -44,7 +63,7 @@ vec3 getSkyColor(vec3 ray) {
     vec3 skyColorMorning = SkyColourMorning(ray.xyz);
     vec3 skyColorZenit = SkyColour(ray.xyz);
 
-    vec3 color = mix(skyColorMorning, skyColorZenit, clamp(u_sunDotAngle, 0.0, 1.0));
+    vec3 color = mix(skyColorMorning, skyColorZenit, clamp(uniforms.sunDotAngle, 0.0, 1.0));
     color *= tint;
 
     // corrections
@@ -56,8 +75,8 @@ vec3 getSkyColor(vec3 ray) {
 
 void main()
 {
-    vec2 uv = (gl_FragCoord.xy - 0.5*u_resolution.xy) / u_resolution.y;
-    vec3 ray = mat3(inverse(u_view)) * skyray(uv + 0.5, u_FOV, u_resolution.x / u_resolution.y);
+    vec2 uv = (gl_FragCoord.xy - 0.5*uniforms.resolution.xy) / uniforms.resolution.y;
+    vec3 ray = mat3(inverse(uniforms.view)) * skyray(uv + 0.5, uniforms.FOV, uniforms.resolution.x / uniforms.resolution.y);
 
     vec3 color = getSkyColor(ray);
 

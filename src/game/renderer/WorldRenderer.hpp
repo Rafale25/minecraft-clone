@@ -13,9 +13,12 @@
 #include "BufferAllocator.hpp"
 #include "ThreadPool.hpp"
 
+#include "UniformBuffer.hpp"
+
 struct ChunkMesh;
 struct ChunkRawMesh;
 class Camera;
+// class UniformBuffer;
 
 class WorldRenderer
 {
@@ -76,6 +79,8 @@ public:
     Texture _color_texture;
     Texture _world_position_texture;
     Texture _depth_texture;
+
+    UniformBuffer _ubuffer;
 
     Mesh _quad_fs = Geometry::quad_2d();
 

@@ -4,14 +4,33 @@ in vec2 TexCoords;
 
 out vec4 FragColor;
 
-uniform mat4 u_view;
-uniform mat4 u_projection;
-uniform vec2 u_resolution;
-uniform float u_FOV;
-uniform float u_sunDotAngle;
-uniform vec3 u_sunDirection;
-uniform vec3 u_viewPosition;
-uniform float u_fogDensity;
+layout(std140, binding = 0) uniform uniformBuffer {
+    mat4 projection;
+    mat4 view;
+    mat4 projection_view;
+    mat4 lightSpaceMatrix;
+    vec4 sunDirection;
+    vec4 viewPosition;
+    vec2 resolution;
+    float sunDotAngle;
+    float FOV;
+    float fogDensity;
+    float shadow_bias;
+    float ambient_occlusion_strength;
+    float time;
+    float exposure;
+    int ambient_occlusion_enabled;
+    int tonemapping_enabled;
+} uniforms;
+
+// uniform mat4 u_view;
+// uniform mat4 u_projection;
+// uniform vec2 u_resolution;
+// uniform float u_FOV;
+// uniform float u_sunDotAngle;
+// uniform vec3 u_sunDirection;
+// uniform vec3 u_viewPosition;
+// uniform float u_fogDensity;
 
 layout (location = 0) uniform sampler2D colorTexture;
 layout (location = 1) uniform sampler2D worldPosTexture;
@@ -49,8 +68,8 @@ vec3 getSkyColor(vec3 ray) {
     vec3 skyColorMorning = SkyColourMorning(ray.xyz);
     vec3 skyColorZenit = SkyColour(ray.xyz);
 
-    // vec3 color = mix(skyColorMorni:ng, skyColorZenit, clamp(u_sunDotAngle, 0.0, 1.0));
-    vec3 color = mix(skyColorMorning, skyColorZenit, clamp(u_sunDotAngle, 0.0, 1.0));
+    // vec3 color = mix(skyColorMorni:ng, skyColorZenit, clamp(uniforms.sunDotAngle, 0.0, 1.0));
+    vec3 color = mix(skyColorMorning, skyColorZenit, clamp(uniforms.sunDotAngle, 0.0, 1.0));
     color *= tint;
 
     // corrections
@@ -108,13 +127,13 @@ float linearize_depth(float d, float zNear, float zFar)
 float depthToFragDistance(vec2 uv, float depth)
 {
     vec4 clipSpace = vec4(uv, depth*2.0-1.0, 1.0);
-    vec4 viewSpace = inverse(u_projection) * clipSpace;
+    vec4 viewSpace = inverse(uniforms.projection) * clipSpace;
     return length(viewSpace.xyz / viewSpace.w);
 }
 
 void main()
 {
-    vec2 uv = (gl_FragCoord.xy - 0.5*u_resolution.xy) / u_resolution.y;
+    vec2 uv = (gl_FragCoord.xy - 0.5*uniforms.resolution.xy) / uniforms.resolution.y;
 
     vec3 color = texture(colorTexture, TexCoords).rgb;
     float depth = texture(depthTexture, TexCoords).r;
@@ -122,18 +141,18 @@ void main()
 
     vec2 what_uv = vec2(uv.x * 0.5 + 0.5, uv.y + 0.5);
 
-    vec3 ray = normalize(mat3(inverse(u_view)) * skyray(what_uv, u_FOV, u_resolution.x / u_resolution.y));
+    vec3 ray = normalize(mat3(inverse(uniforms.view)) * skyray(what_uv, uniforms.FOV, uniforms.resolution.x / uniforms.resolution.y));
     vec3 skyColor = getSkyColor(ray);
 
     // float fragDistance = depthToFragDistance(uv, depth);
-    float fragDistance = distance(u_viewPosition, worldPos); //worldPosdepthToFragDistance(uv, depth);
+    float fragDistance = distance(uniforms.viewPosition.xyz, worldPos); //worldPosdepthToFragDistance(uv, depth);
 
-    vec3 rd = normalize(worldPos - u_viewPosition);
+    vec3 rd = normalize(worldPos - uniforms.viewPosition.xyz);
 
     // color = mix(skyColor, color, calcExpFogFactor(fragDistance));
     // color = applyFog(color, fragDistance, rd, u_sunDirection);
     vec3 sunColor = vec3(1.0, 0.9, 0.7);
-    color = applyFog(color, fragDistance, rd, u_sunDirection, skyColor, sunColor, u_fogDensity);
+    color = applyFog(color, fragDistance, rd, uniforms.sunDirection.xyz, skyColor, sunColor, uniforms.fogDensity);
 
     // float b = 0.001;
     // color = color*exp(-fragDistance*b) + skyColor*(1.0-exp(-fragDistance*b));
@@ -143,11 +162,11 @@ void main()
     if (depth == 1.0) // is skybox
     {
         // reusing code from applyFog() function
-        float sunAmount = max( dot(ray, u_sunDirection), 0.0 );
+        float sunAmount = max( dot(ray, uniforms.sunDirection.xyz), 0.0 );
         vec3 finalfogColor  = mix( skyColor, sunColor, pow(sunAmount, 4.0) );
 
         // sun
-        float sun = pow(max(0.0, dot(ray, normalize(u_sunDirection))), 4096.0) * 1.0;
+        float sun = pow(max(0.0, dot(ray, normalize(uniforms.sunDirection.xyz))), 4096.0) * 1.0;
         float groundToSkyT = smoothstep(-0.1, 0.0, ray.y);
         float sunMask = float(groundToSkyT >= 1.0);
         finalfogColor += sun * groundToSkyT;
@@ -159,7 +178,7 @@ void main()
         //
         float night_factor = 2.0;
         float steepness = 8.0;
-        float ambiant_factor = 1.0 - pow(2.0, -steepness*u_sunDotAngle - night_factor);
+        float ambiant_factor = 1.0 - pow(2.0, -steepness*uniforms.sunDotAngle - night_factor);
         ambiant_factor = clamp(ambiant_factor, 0.25, 1.0);
 
         finalColor = vec4(color * ambiant_factor, 1.0);

@@ -12,6 +12,8 @@
 #include "VAO.hpp"
 #include "ChunkMesh.hpp"
 
+#include "UniformBuffer.hpp"
+
 WorldRenderer::WorldRenderer(Context &context): _ctx(context)
 {
     chunk_vao = createVAO(0, "i");
@@ -39,6 +41,38 @@ WorldRenderer::WorldRenderer(Context &context): _ctx(context)
     BlockTextureManager::loadAllTextures();
     ssbo_texture_handles = createBufferStorage(BlockTextureManager::Get().textures_handles.data(), BlockTextureManager::Get().textures_handles.size() * sizeof(GLuint64));
 
+    _ubuffer.makeBufferDef({
+        {"projection",                    sizeof(float)*16},
+        {"view",                          sizeof(float)*16},
+        {"projection_view",               sizeof(float)*16},
+        {"lightSpaceMatrix",              sizeof(float)*16},
+        {"sunDirection",                  sizeof(float)*4},
+        {"viewPosition",                  sizeof(float)*4},
+        {"resolution",                    sizeof(float)*2},
+        {"sunDotAngle",                   sizeof(float)*1},
+        {"FOV",                           sizeof(float)*1},
+        {"fogDensity",                    sizeof(float)*1},
+        {"shadow_bias",                   sizeof(float)*1},
+        {"ambient_occlusion_strength",    sizeof(float)*1},
+        {"time",                          sizeof(float)*1},
+        {"exposure",                      sizeof(float)*1},
+        {"ambient_occlusion_enabled",     sizeof(int)*1},
+        {"tonemapping_enabled",           sizeof(int)*1},
+    });
+    _ubuffer.bind(0);
+
+    // DEBUG strides
+    // for (const auto &[name, info] : _ubuffer._uniforms) {
+    //     auto ix = glGetProgramResourceIndex(cube_shader.ID, GL_UNIFORM, (std::string("uniformBuffer.") + name).c_str());
+    //     GLenum props[] = {GL_ARRAY_STRIDE, GL_OFFSET};
+    //     GLint values[2] = {};
+    //     glGetProgramResourceiv(cube_shader.ID, GL_UNIFORM, ix, 2, props, 2, NULL, values);
+
+    //     logD("{}: {} {}", name, values[0], values[1]);
+    //     auto byteOffset = values[1] + (3 * values[0]);
+    // }
+
+
     onResize(context.width, context.height);
 }
 
@@ -60,12 +94,34 @@ void WorldRenderer::setDefaultRenderState()
 
 void WorldRenderer::render(const Camera &camera)
 {
+
     const glm::mat4 view_projection = camera.getProjection() * camera.getView();
 
     std::vector<DrawElementsIndirectCommand> commands_opaque;
     std::vector<DrawElementsIndirectCommand> commands_translucent;
     std::vector<glm::vec4> chunk_positions_opaque;
     std::vector<glm::vec4> chunk_positions_translucent;
+
+    const float sun_dot_angle = glm::dot(glm::normalize(sunDir), {0.0f, 1.0f, 0.0f});
+
+    _ubuffer.set("projection", camera.getProjection());
+    _ubuffer.set("view", camera.getView());
+    _ubuffer.set("projection_view", view_projection);
+    _ubuffer.set("resolution", glm::vec2(_ctx.width, _ctx.height));
+    _ubuffer.set("sunDotAngle", sun_dot_angle);
+    _ubuffer.set("FOV", glm::radians(camera.fov));
+
+    _ubuffer.set("sunDirection", glm::vec4(glm::normalize(sunDir), 0));
+    _ubuffer.set("viewPosition", glm::vec4(camera.getPosition(), 0));
+    _ubuffer.set("fogDensity", _fog_density);
+
+    _ubuffer.set("lightSpaceMatrix", shadowmap._lightSpaceMatrix);
+    _ubuffer.set("shadow_bias", shadowmap._shadow_bias);
+    _ubuffer.set("ambient_occlusion_enabled", (int)_ambient_occlusion);
+    _ubuffer.set("ambient_occlusion_strength", _ambient_occlusion_strength);
+    _ubuffer.set("tonemapping_enabled", (int)_tonemapping);
+    _ubuffer.set("time", (float)glfwGetTime());
+    _ubuffer.set("exposure", _exposure);
 
     setDefaultRenderState();
 
@@ -90,6 +146,7 @@ void WorldRenderer::render(const Camera &camera)
     }
 
 
+
     _framebuffer.bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glPolygonMode(GL_FRONT_AND_BACK, _wireframe ? GL_LINE : GL_FILL);
@@ -100,20 +157,9 @@ void WorldRenderer::render(const Camera &camera)
     // cube_shader_depth_only.setMat4("u_lightSpaceMatrix", view_projection);
     // renderTerrain(camera.getProjection() * camera.getView(), true);
 
+
     cube_shader.use();
-    cube_shader.setMat4("u_lightSpaceMatrix", shadowmap._lightSpaceMatrix);
-    cube_shader.setVec3("u_sun_direction", sunDir);
-    cube_shader.setFloat("u_shadow_bias", shadowmap._shadow_bias);
-    cube_shader.setFloat("u_ambient_occlusion_enabled", _ambient_occlusion);
-    cube_shader.setFloat("u_ambient_occlusion_strength", _ambient_occlusion_strength);
-    cube_shader.setVec2("u_resolution", glm::vec2(_ctx.width, _ctx.height));
-    cube_shader.setFloat("u_sunDotAngle", glm::dot(sunDir, {0.0f, 1.0f, 0.0f}));
-    cube_shader.setFloat("u_FOV", glm::radians(camera.fov));
-    cube_shader.setMat4("u_projection_view", view_projection);
-    cube_shader.setVec3("u_view_position", camera.getPosition());
-    cube_shader.setBool("u_tonemapping_enabled", _tonemapping);
-    cube_shader.setFloat("u_time", glfwGetTime());
-    cube_shader.setFloat("u_exposure", _exposure);
+
 
     glBindTextureUnit(0, shadowmap._depthTexture._texture);
 
@@ -136,17 +182,9 @@ void WorldRenderer::render(const Camera &camera)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 
-    const float sun_dot_angle = glm::dot(glm::normalize(sunDir), {0.0f, 1.0f, 0.0f});
 
     postprocessing_shader.use();
-    postprocessing_shader.setVec2("u_resolution", glm::vec2(_ctx.width, _ctx.height));
-    postprocessing_shader.setFloat("u_sunDotAngle", sun_dot_angle);
-    postprocessing_shader.setFloat("u_FOV", glm::radians(camera.fov));
-    postprocessing_shader.setMat4("u_view", camera.getView());
-    postprocessing_shader.setMat4("u_projection", camera.getProjection());
-    postprocessing_shader.setVec3("u_sunDirection", glm::normalize(sunDir));
-    postprocessing_shader.setVec3("u_viewPosition", camera.getPosition());
-    postprocessing_shader.setFloat("u_fogDensity", _fog_density);
+
 
     postprocessing_shader.setInt("colorTexture", 0);
     postprocessing_shader.setInt("worldPosTexture", 1);

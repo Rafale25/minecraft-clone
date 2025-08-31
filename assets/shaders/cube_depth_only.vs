@@ -22,7 +22,25 @@ const ivec2 model_face[8] = {
     ivec2(0, 0), ivec2(0, 1), ivec2(1, 1), ivec2(1, 0)
 };
 
-uniform mat4 u_lightSpaceMatrix;
+layout(std140, binding = 0) uniform uniformBuffer {
+    mat4 projection;
+    mat4 view;
+    mat4 projection_view;
+    mat4 lightSpaceMatrix;
+    vec4 sunDirection;
+    vec4 viewPosition;
+    vec2 resolution;
+    float sunDotAngle;
+    float FOV;
+    float fogDensity;
+    float shadow_bias;
+    float ambient_occlusion_strength;
+    float time;
+    float exposure;
+    int ambient_occlusion_enabled;
+    int tonemapping_enabled;
+} uniforms;
+
 
 ivec2 rotate_uv(ivec2 uv, int rot) {
     if (rot == 0) return uv;
@@ -60,7 +78,7 @@ void main()
     }
 
     vec3 world_pos = chunk_positions[gl_DrawID].xyz + block_pos + model_offset;
-    vec4 position = u_lightSpaceMatrix * vec4(world_pos, 1.0);
+    vec4 position = uniforms.lightSpaceMatrix * vec4(world_pos, 1.0);
 
     vs_out.uv = uv;
     vs_out.texture_id = texture_id;
