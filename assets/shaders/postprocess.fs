@@ -138,6 +138,8 @@ void main()
     // float b = 0.001;
     // color = color*exp(-fragDistance*b) + skyColor*(1.0-exp(-fragDistance*b));
 
+    vec4 finalColor;
+
     if (depth == 1.0) // is skybox
     {
         // reusing code from applyFog() function
@@ -150,7 +152,7 @@ void main()
         float sunMask = float(groundToSkyT >= 1.0);
         finalfogColor += sun * groundToSkyT;
 
-        FragColor = vec4(finalfogColor, 1.0);
+        finalColor = vec4(finalfogColor, 1.0);
     }
     else
     {
@@ -160,7 +162,9 @@ void main()
         float ambiant_factor = 1.0 - pow(2.0, -steepness*u_sunDotAngle - night_factor);
         ambiant_factor = clamp(ambiant_factor, 0.25, 1.0);
 
-        FragColor = vec4(color * ambiant_factor, 1.0);
+        finalColor = vec4(color * ambiant_factor, 1.0);
         // FragColor = vec4(worldPos, 1.0);
     }
+
+    FragColor = finalColor;
 }

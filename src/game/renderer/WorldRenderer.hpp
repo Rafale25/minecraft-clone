@@ -69,6 +69,8 @@ public:
     bool _ambient_occlusion = true;
     float _ambient_occlusion_strength = 0.67;
     float _fog_density = 0.00096f;
+    bool _tonemapping = true;
+    float _exposure = 1.0f;
 
     Framebuffer _framebuffer;
     Texture _color_texture;

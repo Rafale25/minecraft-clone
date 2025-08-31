@@ -34,6 +34,9 @@ uniform float u_shadow_bias;
 uniform bool u_ambient_occlusion_enabled = true;
 uniform float u_ambient_occlusion_strength = 0.9;
 uniform vec2 u_resolution;
+uniform bool u_tonemapping_enabled = true;
+uniform float u_exposure = 1.0;
+
 
 uniform sampler2D shadowMap;
 
@@ -79,17 +82,92 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
     return shadow;
 }
 
+vec3 Uncharted2Tonemap(vec3 x) {
+	float Brightness = 0.28;
+	x*= Brightness;
+	float A = 0.28;
+	float B = 0.29;
+	float C = 0.10;
+	float D = 0.2;
+	float E = 0.025;
+	float F = 0.35;
+	return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
+}
+
+vec3 unchartedTonemapping(vec3 color)
+{
+	vec3 curr = Uncharted2Tonemap(color*4.7);
+	color = curr/Uncharted2Tonemap(vec3(15.2));
+	return color;
+}
+
+vec3 PBRNeutralToneMapping( vec3 color ) {
+  const float startCompression = 0.8 - 0.04;
+  const float desaturation = 0.15;
+
+  float x = min(color.r, min(color.g, color.b));
+  float offset = x < 0.08 ? x - 6.25 * x * x : 0.04;
+  color -= offset;
+
+  float peak = max(color.r, max(color.g, color.b));
+  if (peak < startCompression) return color;
+
+  const float d = 1. - startCompression;
+  float newPeak = 1. - d * d / (peak + d - startCompression);
+  color *= newPeak / peak;
+
+  float g = 1. - 1. / (desaturation * (peak - newPeak) + 1.);
+  return mix(color, newPeak * vec3(1, 1, 1), g);
+}
+
+vec3 lottes(vec3 x) {
+  x *= vec3(0.9); //I reduced the light a little
+  const vec3 a = vec3(1.6);
+  const vec3 d = vec3(0.977);
+  const vec3 hdrMax = vec3(8.0);
+  const vec3 midIn = vec3(0.18);
+  const vec3 midOut = vec3(0.267);
+
+  const vec3 b =
+	  (-pow(midIn, a) + pow(hdrMax, a) * midOut) /
+	  ((pow(hdrMax, a * d) - pow(midIn, a * d)) * midOut);
+  const vec3 c =
+	  (pow(hdrMax, a * d) * pow(midIn, a) - pow(hdrMax, a) * pow(midIn, a * d) * midOut) /
+	  ((pow(hdrMax, a * d) - pow(midIn, a * d)) * midOut);
+
+  return pow(x, a) / (pow(x, a * d) * b + c);
+}
+
+vec3 toLinearSRGB(vec3 sRGB)
+{
+	bvec3 cutoff = lessThan(sRGB, vec3(0.04045));
+	vec3 higher = pow((sRGB + vec3(0.055))/vec3(1.055), vec3(2.4));
+	vec3 lower = sRGB/vec3(12.92);
+	return mix(higher, lower, cutoff);
+}
+
+vec3 fromLinearToSRGB(vec3 linearRGB)
+{
+	bvec3 cutoff = lessThan(linearRGB, vec3(0.0031308));
+	vec3 higher = vec3(1.055)*pow(linearRGB, vec3(1.0/2.4)) - vec3(0.055);
+	vec3 lower = linearRGB * vec3(12.92);
+
+	return mix(higher, lower, cutoff);
+}
+
 void main()
 {
     vec2 uv = (gl_FragCoord.xy - 0.5*u_resolution.xy) / u_resolution.y;
 
     // vec4 color = vec4(0.2, 1.0, 0.0, 1.0);
     vec4 color = texture(texture_handles[fs_in.texture_id], fs_in.uv).rgba;
+    color.rgb = toLinearSRGB(color.rgb);// pow(color.rgb, vec3(2.2));
+
     vec3 normal = orientation_normal_table[fs_in.orientation];
     vec3 lightColor = vec3(255.0, 244.0, 196.0) / 255.0;
 
     // ambient
-    float ambientStrength = 0.35;
+    float ambientStrength = 0.15;// 35;
     vec3 ambient = ambientStrength * lightColor;
 
     // diffuse
@@ -114,11 +192,16 @@ void main()
         lighting = mix(lighting * (1.0 - u_ambient_occlusion_strength), lighting, fs_in.ambient_occlusion);
     }
 
-    FragColor = vec4(lighting, color.a);
+    // FragColor = vec4(lighting, color.a);
     gPosition = fs_in.frag_pos;
     // FragColor = vec4(fs_in.frag_pos, 1.0);
 
-    // vec3 gammaCorrected = pow(lighting, vec3(1.0/2.2));
-    // FragColor = vec4(gammaCorrected, 1.0);
+    if (u_tonemapping_enabled) {
+        lighting = lottes(lighting.rgb * u_exposure);
+    }
+
+    vec3 gammaCorrected = fromLinearToSRGB(lighting);// pow(lighting, vec3(1.0/2.2));
+    FragColor = vec4(gammaCorrected, 1.0);
+
     // FragColor = vec4(normal, 1.0);
 }

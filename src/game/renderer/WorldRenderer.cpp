@@ -111,7 +111,10 @@ void WorldRenderer::render(const Camera &camera)
     cube_shader.setFloat("u_FOV", glm::radians(camera.fov));
     cube_shader.setMat4("u_projection_view", view_projection);
     cube_shader.setVec3("u_view_position", camera.getPosition());
+    cube_shader.setBool("u_tonemapping_enabled", _tonemapping);
     cube_shader.setFloat("u_time", glfwGetTime());
+    cube_shader.setFloat("u_exposure", _exposure);
+
     glBindTextureUnit(0, shadowmap._depthTexture._texture);
 
     // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering

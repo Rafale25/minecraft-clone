@@ -108,6 +108,7 @@ void GameView::gui(float dt)
     ImGui::Checkbox("Ambient occlusion", &world_renderer._ambient_occlusion);
     ImGui::SliderFloat("AO strength", &world_renderer._ambient_occlusion_strength, 0.0f, 1.0f, "%.2f");
 
+
     if (ImGui::Checkbox("VSync", &_vsync)) {
         ctx.setVsync(_vsync);
     }
@@ -116,6 +117,8 @@ void GameView::gui(float dt)
     ImGui::SliderFloat("Shadow Bias", &world_renderer.shadowmap._shadow_bias, 0.000001f, 0.001f, "%.6f");
     ImGui::SliderFloat("Shadow Distance", &world_renderer._max_shadow_distance, 0.3f, 2000.0f, "%.2f");
     ImGui::SliderFloat("Fog density", &world_renderer._fog_density, 0.0f, 0.05f, "%.5f");
+    ImGui::Checkbox("Tonemapping", &world_renderer._tonemapping);
+    ImGui::SliderFloat("Exposure", &world_renderer._exposure, 0.0f, 10.0f, "%.3f");
 
     ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 260), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
     for (const auto& msg: tchat) {
