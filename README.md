@@ -19,7 +19,7 @@
     sudo apt install libxrandr-dev libx11-dev libxkbcommon-dev libwayland-dev libxinerama-dev libxcursor-dev libxi-dev mesa-common-dev
 
 ### Building the project (Windows & Linux)
-    mkdir -p build
+    mkdir build
     cmake --preset <preset-of-your-choice>
     cmake --build build -j
 
