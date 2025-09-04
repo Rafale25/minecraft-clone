@@ -22,25 +22,7 @@ const ivec2 model_face[8] = {
     ivec2(0, 0), ivec2(0, 1), ivec2(1, 1), ivec2(1, 0)
 };
 
-layout(std140, binding = 0) uniform uniformBuffer {
-    mat4 projection;
-    mat4 view;
-    mat4 projection_view;
-    mat4 lightSpaceMatrix;
-    vec4 sunDirection;
-    vec4 viewPosition;
-    vec2 resolution;
-    float sunDotAngle;
-    float FOV;
-    float fogDensity;
-    float shadow_bias;
-    float ambient_occlusion_strength;
-    float time;
-    float exposure;
-    int ambient_occlusion_enabled;
-    int tonemapping_enabled;
-} uniforms;
-
+#include "uniforms.glsl"
 
 ivec2 rotate_uv(ivec2 uv, int rot) {
     if (rot == 0) return uv;
