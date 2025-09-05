@@ -48,12 +48,12 @@ public:
                 exit(-1);
             }
             _uniforms.insert({name, {bytes, size}});
-            logD("added {:30} {:-2} -> {:-2} ; {:-3}", name, bytes, getBytesPower(bytes), size);
+            // logD("added {:30} {:-2} -> {:-2} ; {:-3}", name, bytes, getBytesPower(bytes), size);
 
             size += getBytesPower(bytes);
         }
 
-        logD("Buffer created with {} bytes", size);
+        // logD("Buffer created with {} bytes", size);
 
         _buffer = createBufferStorage(nullptr, size);
     }
@@ -63,7 +63,6 @@ public:
         glBindBufferBase(GL_UNIFORM_BUFFER, id, _buffer);
     }
 
-    // void setValue(const char* name, const void *data) {
     template <typename T>
     void set(const char* name, const T& data) {
         const auto& it =_uniforms.find(name);
