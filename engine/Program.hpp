@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 #include <glm/detail/type_mat4x4.hpp>
 #include <glad/gl.h>
 #include "Logger.hpp"
@@ -14,6 +15,8 @@ private:
     const char* _vertexPath;
     const char* _fragmentPath;
     const char* _geometryPath;
+
+    std::unordered_map<std::string, int> _uniformsLocations;
 
 public:
     Program(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr):
@@ -85,6 +88,29 @@ public:
         if (ID != 0) glDeleteProgram(ID);
         ID = id;
 
+        GLint activeUniforms = 0;
+        glGetProgramiv(id, GL_ACTIVE_UNIFORMS, &activeUniforms);
+
+        GLsizei length = 0;
+        GLint size = 0;
+        GLenum type = 0;
+        GLchar name[256] = {};
+        for (int i = 0 ; i < activeUniforms ; ++i) {
+            glGetActiveUniform(id, i, 256, &length, &size, &type, name);
+
+            if (length == 0) {
+                logE("Failed to glGetActiveUniform index {}", i);
+                exit(-1);
+            }
+
+            _uniformsLocations[std::string(name, length)] = glGetUniformLocation(id, name);
+            // logD("Program {} - UNIFORM: {}", id, name);
+        }
+
+        // for(const auto& [key, value] : _uniformsLocations) {
+        //     logD("Program {} - {} - Location {}", id, key, value);
+        // }
+
         logI("[Shader] Compiled shader program: {}, {} {} {}", ID, _vertexPath, _fragmentPath, geometryPath ? geometryPath : "");
     }
 
@@ -97,51 +123,51 @@ public:
     }
 
     void setBool(const std::string &name, bool value) const {
-        glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
+        glUniform1i(_uniformsLocations.at(name), (int)value);
     }
 
     void setInt(const std::string &name, int value) const {
-        glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
+        glUniform1i(_uniformsLocations.at(name), value);
     }
 
     void setFloat(const std::string &name, float value) const {
-        glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+        glUniform1f(_uniformsLocations.at(name), value);
     }
 
     void setVec2(const std::string &name, const glm::vec2 &value) const {
-        glUniform2fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+        glUniform2fv(_uniformsLocations.at(name), 1, &value[0]);
     }
 
     void setVec2(const std::string &name, float x, float y) const {
-        glUniform2f(glGetUniformLocation(ID, name.c_str()), x, y);
+        glUniform2f(_uniformsLocations.at(name), x, y);
     }
 
     void setVec3(const std::string &name, const glm::vec3 &value) const {
-        glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+        glUniform3fv(_uniformsLocations.at(name), 1, &value[0]);
     }
 
     void setVec3(const std::string &name, float x, float y, float z) const {
-        glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
+        glUniform3f(_uniformsLocations.at(name), x, y, z);
     }
 
     void setVec4(const std::string &name, const glm::vec4 &value) const {
-        glUniform4fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+        glUniform4fv(_uniformsLocations.at(name), 1, &value[0]);
     }
 
     void setVec4(const std::string &name, float x, float y, float z, float w) {
-        glUniform4f(glGetUniformLocation(ID, name.c_str()), x, y, z, w);
+        glUniform4f(_uniformsLocations.at(name), x, y, z, w);
     }
 
     void setMat2(const std::string &name, const glm::mat2 &mat) const {
-        glUniformMatrix2fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+        glUniformMatrix2fv(_uniformsLocations.at(name), 1, GL_FALSE, &mat[0][0]);
     }
 
     void setMat3(const std::string &name, const glm::mat3 &mat) const {
-        glUniformMatrix3fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+        glUniformMatrix3fv(_uniformsLocations.at(name), 1, GL_FALSE, &mat[0][0]);
     }
 
     void setMat4(const std::string &name, const glm::mat4 &mat) const {
-        glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+        glUniformMatrix4fv(_uniformsLocations.at(name), 1, GL_FALSE, &mat[0][0]);
     }
 
 private:
