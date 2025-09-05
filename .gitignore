@@ -6,6 +6,7 @@
 
 .vscode
 CMakeCache.txt
+/CMakeFiles
 CMakeUserPresets.json
 *.sln
 *.ini

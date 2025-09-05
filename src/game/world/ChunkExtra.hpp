@@ -1,5 +1,6 @@
 #pragma once
 
+#include "tracy/Tracy.hpp"
 #include "World.hpp"
 #include "Chunk.hpp"
 #include "enums.hpp"
@@ -23,6 +24,7 @@ struct ChunkExtra
     }
 
     static ChunkExtra get(const glm::ivec3& pos) {
+        ZoneScoped;
         ChunkExtra chunkextra = {}; // need to be initialized to 0 (makes it like there's airblock if chunk aren't found)
         // ChunkExtra chunkextra_test = {};
 

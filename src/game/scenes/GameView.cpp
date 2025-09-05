@@ -1,9 +1,11 @@
+
 #include "Client.hpp" // include before GLFW to avoid macro redefinition warning with MSVC
 
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 
+#include "tracy/Tracy.hpp"
 #include "GameView.hpp"
 #include "GameState.hpp"
 #include "World.hpp"
@@ -23,7 +25,8 @@ GameView::GameView(Context& ctx): View(ctx)
 {
     glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    Client::instance().init(tchat, global_argv[1], std::atoi(global_argv[2]));
+    // Client::instance().init(tchat, global_argv[1], std::atoi(global_argv[2]));
+    Client::instance().init(tchat, "162.19.137.231", 20000);
     Client::instance().Start();
 }
 
@@ -35,6 +38,8 @@ void GameView::onHideView()
 
 void GameView::onUpdate(double time_since_start, float dt)
 {
+    ZoneScopedC(tracy::Color::Orange);
+
     playerMovements(dt);
     camera.update(dt);
 
@@ -120,6 +125,8 @@ void GameView::onUpdate(double time_since_start, float dt)
 
 void GameView::playerMovements(float dt)
 {
+    ZoneScoped;
+
     glm::vec3 delta = {
         ctx.keystate[GLFW_KEY_A] - ctx.keystate[GLFW_KEY_D],
         ctx.keystate[GLFW_KEY_LEFT_CONTROL] - ctx.keystate[GLFW_KEY_SPACE],
@@ -253,30 +260,40 @@ void GameView::playerMovements(float dt)
 
 void GameView::deleteFarChunks() // TODO: only do this when moving between chunks
 {
+    ZoneScoped;
+
     const std::lock_guard<std::shared_mutex> lock(World::instance().chunks_mutex);
 
     std::vector<glm::ivec3> pos_to_delete;
 
-    auto& world_chunks = World::instance().chunks;
-    for (const auto& [pos, chunk] : world_chunks) {
+    {
+        ZoneScopedN("Find chunks in view distance");
 
-        bool is_in_view_distance = isInManhattanDistance(
-                                    World::worldToChunkCoord(camera.getPosition()),
-                                    chunk->pos,
-                                    GameState::getRenderDistance() + world_renderer.CHUNK_DELETE_DISTANCE_OFFSET);
-        if (!is_in_view_distance) {
-            pos_to_delete.push_back(pos);
+        auto& world_chunks = World::instance().chunks;
+        for (const auto& [pos, chunk] : world_chunks) {
+
+            bool is_in_view_distance = isInManhattanDistance(
+                                        World::worldToChunkCoord(camera.getPosition()),
+                                        chunk->pos,
+                                        GameState::getRenderDistance() + world_renderer.CHUNK_DELETE_DISTANCE_OFFSET);
+            if (!is_in_view_distance) {
+                pos_to_delete.push_back(pos);
+            }
         }
     }
 
-    for (const auto &pos : pos_to_delete) {
-        World::instance().deleteChunk(pos);
-        world_renderer.onDeletedChunk(pos);
+    {
+        ZoneScopedN("Deleted chunks outside view distance");
+        for (const auto &pos : pos_to_delete) {
+            World::instance().deleteChunk(pos);
+            world_renderer.onDeletedChunk(pos);
+        }
     }
 }
 
 void GameView::processNewChunks()
 {
+    ZoneScoped;
     const std::lock_guard<std::mutex> lock(Client::instance().new_chunks_mutex);
 
     while (Client::instance().new_chunks.size() > 0) {
@@ -306,11 +323,14 @@ void GameView::processNewChunks()
 
 void GameView::networkUpdate()
 {
+    ZoneScoped;
     Client::instance().sendUpdateEntityPacket(camera.getPosition(), camera.getYaw() + glm::pi<float>(), - camera.getPitch());
 }
 
 void GameView::onDraw(double time_since_start, float dt)
 {
+    ZoneScopedC(tracy::Color::SkyBlue);
+
     world_renderer.render(camera);
 
     ctx.imguiNewFrame();
@@ -328,6 +348,7 @@ void GameView::sendTextMessage() {
 
 void GameView::placeSphere(const glm::ivec3& center, float radius, BlockType blocktype)
 {
+    ZoneScoped;
     std::vector<glm::ivec3> positions;
 
     int32_t iradius = int32_t(radius);

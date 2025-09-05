@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.25.0)
+include(FetchContent)
 
 set(PROJECT_NAME "myEngine")
 project(${PROJECT_NAME})
@@ -50,6 +51,21 @@ target_sources(imgui
 target_include_directories(imgui PUBLIC ${IMGUI_DIR})
 # -- #
 
+# Tracy #
+FetchContent_Declare(
+    tracy
+    GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+    GIT_TAG c556831ddc6fe26d2fce01c14c97205a9dad46d5 # 0.12.2
+    GIT_SHALLOW TRUE
+    GIT_PROGRESS TRUE
+)
+
+option(TRACY_ENABLE "" ON)
+option(TRACY_ON_DEMAND "" ON)
+
+FetchContent_MakeAvailable(tracy)
+# -- #
+
 add_library(${PROJECT_NAME} STATIC ${SRC_C} ${SRC_CPP})
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC
@@ -73,3 +89,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     glm
     imgui
 )
+
+target_link_libraries(${PROJECT_NAME} PUBLIC
+    TracyClient
+)
+
+# add_definitions(TRACY_ENABLE)

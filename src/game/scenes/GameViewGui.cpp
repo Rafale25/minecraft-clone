@@ -1,4 +1,5 @@
 #include <imgui.h>
+#include "tracy/Tracy.hpp"
 #include "GameView.hpp"
 #include "Client.hpp"
 #include "World.hpp"
@@ -9,6 +10,8 @@
 
 void GameView::drawPlayersNames()
 {
+    ZoneScoped;
+
     ImGuiWindowFlags window_flags = 0;
     window_flags |= ImGuiWindowFlags_NoTitleBar;
     window_flags |= ImGuiWindowFlags_NoScrollbar;
@@ -45,6 +48,7 @@ void GameView::drawPlayersNames()
 
 void GameView::gui(float dt)
 {
+    ZoneScoped;
     // ImGui::ShowDemoWindow();
 
     // ImGui::Begin("Shadow map");

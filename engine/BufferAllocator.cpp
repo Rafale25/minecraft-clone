@@ -2,6 +2,7 @@
 #include <cassert>
 #include <algorithm>
 #include <glad/gl.h>
+#include "tracy/Tracy.hpp"
 #include "BufferAllocator.hpp"
 #include "Logger.hpp"
 
@@ -32,6 +33,7 @@ BufferAllocator::BufferAllocator(const char* name, uint32_t max_memory):
 BufferSlot BufferAllocator::allocate(int32_t size, const void * data) {
     // SimpleProfiler::instance().start("BufferAllocator::allocate");
     // defer SimpleProfiler::instance().stop("BufferAllocator::allocate");
+    ZoneScoped;
 
     const auto it = _free_slot_of_size.equal_range(size).first;
 
@@ -106,6 +108,7 @@ BufferSlot BufferAllocator::allocate(int32_t size, const void * data) {
 }
 
 void BufferAllocator::deallocate(const BufferSlot& slot) {
+    ZoneScoped;
     // NOTE: id is start
     if (slot.start <= -1 || slot.size <= -1 || slot.used == false) return;
 

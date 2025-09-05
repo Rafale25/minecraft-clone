@@ -1,6 +1,7 @@
 #include <glad/gl.h>
 #include <glm/gtc/constants.hpp>
 
+#include "tracy/Tracy.hpp"
 #include "DebugDraw.hpp"
 #include "VAO.hpp"
 #include "Frustum.hpp"
@@ -112,7 +113,10 @@ void DebugDraw::drawFrustum(const glm::mat4 &view_projection, const glm::vec3& c
 
 void DebugDraw::drawAndFlush(const glm::mat4& view_projection)
 {
+    ZoneScoped;
+
     const size_t vertex_count = _vertices.size() / 2; // position, color
+    if (vertex_count == 0) return;
 
     _program.use();
     _program.setMat4("u_viewProjection", view_projection);

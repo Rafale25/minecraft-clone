@@ -103,7 +103,7 @@ public:
     GLuint ssbo_chunk_positions;
     GLuint ssbo_chunk_element_buffer;
 
-    ThreadPool thread_pool;
+    ThreadPool thread_pool{4};
 
 
     std::unordered_set<glm::ivec3> chunks_to_remesh;

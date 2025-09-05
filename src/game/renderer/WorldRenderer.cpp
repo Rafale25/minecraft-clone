@@ -1,6 +1,7 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
+#include "tracy/Tracy.hpp"
 #include "WorldRenderer.hpp"
 #include "Frustum.hpp"
 #include "World.hpp"
@@ -78,6 +79,8 @@ WorldRenderer::WorldRenderer(Context &context): _ctx(context)
 
 void WorldRenderer::setDefaultRenderState()
 {
+    ZoneScoped;
+
     glEnable(GL_MULTISAMPLE); // enabled by default
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -94,6 +97,7 @@ void WorldRenderer::setDefaultRenderState()
 
 void WorldRenderer::render(const Camera &camera)
 {
+    ZoneScoped;
 
     const glm::mat4 view_projection = camera.getProjection() * camera.getView();
 
@@ -104,31 +108,38 @@ void WorldRenderer::render(const Camera &camera)
 
     const float sun_dot_angle = glm::dot(glm::normalize(sunDir), {0.0f, 1.0f, 0.0f});
 
-    _ubuffer.set("projection", camera.getProjection());
-    _ubuffer.set("view", camera.getView());
-    _ubuffer.set("projection_view", view_projection);
-    _ubuffer.set("resolution", glm::vec2(_ctx.width, _ctx.height));
-    _ubuffer.set("sunDotAngle", sun_dot_angle);
-    _ubuffer.set("FOV", glm::radians(camera.fov));
 
-    _ubuffer.set("sunDirection", glm::vec4(glm::normalize(sunDir), 0));
-    _ubuffer.set("viewPosition", glm::vec4(camera.getPosition(), 0));
-    _ubuffer.set("fogDensity", _fog_density);
+    {
+        ZoneScopedN("UniformBuffer update");
 
-    _ubuffer.set("lightSpaceMatrix", shadowmap._lightSpaceMatrix);
-    _ubuffer.set("shadow_bias", shadowmap._shadow_bias);
-    _ubuffer.set("ambient_occlusion_enabled", (int)_ambient_occlusion);
-    _ubuffer.set("ambient_occlusion_strength", _ambient_occlusion_strength);
-    _ubuffer.set("tonemapping_enabled", (int)_tonemapping);
-    _ubuffer.set("time", (float)glfwGetTime());
-    _ubuffer.set("exposure", _exposure);
+        _ubuffer.set("projection", camera.getProjection());
+        _ubuffer.set("view", camera.getView());
+        _ubuffer.set("projection_view", view_projection);
+        _ubuffer.set("resolution", glm::vec2(_ctx.width, _ctx.height));
+        _ubuffer.set("sunDotAngle", sun_dot_angle);
+        _ubuffer.set("FOV", glm::radians(camera.fov));
+
+        _ubuffer.set("sunDirection", glm::vec4(glm::normalize(sunDir), 0));
+        _ubuffer.set("viewPosition", glm::vec4(camera.getPosition(), 0));
+        _ubuffer.set("fogDensity", _fog_density);
+
+        _ubuffer.set("lightSpaceMatrix", shadowmap._lightSpaceMatrix);
+        _ubuffer.set("shadow_bias", shadowmap._shadow_bias);
+        _ubuffer.set("ambient_occlusion_enabled", (int)_ambient_occlusion);
+        _ubuffer.set("ambient_occlusion_strength", _ambient_occlusion_strength);
+        _ubuffer.set("tonemapping_enabled", (int)_tonemapping);
+        _ubuffer.set("time", (float)glfwGetTime());
+        _ubuffer.set("exposure", _exposure);
+    }
 
     setDefaultRenderState();
 
     { // SHADOWMAP //
+        ZoneScopedN("ShadowMap");
         const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, _max_shadow_distance);
 
         shadowmap.setSunDir(sunDir);
+
         glm::mat4 light_view_projection = shadowmap.begin(camera_projection_shorter, camera.getView(), cube_shader_depth_only);
         // DebugDraw::instance().drawFrustum(light_view_projection);
 
@@ -137,14 +148,16 @@ void WorldRenderer::render(const Camera &camera)
         renderTerrain(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent);
         glEnable(GL_CULL_FACE);
 
-        commands_opaque.clear();
-        commands_translucent.clear();
-        chunk_positions_opaque.clear();
-        chunk_positions_translucent.clear();
+        {
+            ZoneScopedN("buffers clear");
+            commands_opaque.clear();
+            commands_translucent.clear();
+            chunk_positions_opaque.clear();
+            chunk_positions_translucent.clear();
+        }
 
         shadowmap.end();
     }
-
 
 
     _framebuffer.bind();
@@ -178,29 +191,31 @@ void WorldRenderer::render(const Camera &camera)
 
     DebugDraw::instance().drawAndFlush(view_projection);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // disable wires mode
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+    {
+        ZoneScopedN("PostProcessing");
 
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // disable wires mode
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 
-    postprocessing_shader.use();
+        postprocessing_shader.use();
+        postprocessing_shader.setInt("colorTexture", 0);
+        postprocessing_shader.setInt("worldPosTexture", 1);
+        postprocessing_shader.setInt("depthTexture", 2);
 
+        glBindTextureUnit(0, _color_texture._texture);
+        glBindTextureUnit(1, _world_position_texture._texture);
+        glBindTextureUnit(2, _depth_texture._texture);
 
-    postprocessing_shader.setInt("colorTexture", 0);
-    postprocessing_shader.setInt("worldPosTexture", 1);
-    postprocessing_shader.setInt("depthTexture", 2);
-
-    glBindTextureUnit(0, _color_texture._texture);
-    glBindTextureUnit(1, _world_position_texture._texture);
-    glBindTextureUnit(2, _depth_texture._texture);
-
-    _quad_fs.draw();
+        _quad_fs.draw();
+    }
 
     // CONTINUE HERE
     // Postprocess shader becomes deferred shader for fog and shadows
 }
 
 void WorldRenderer::onDeletedChunk(const glm::ivec3 &chunk_pos) {
+    ZoneScoped;
     const auto& it = meshes.find(chunk_pos);
     if (it == meshes.end()) return;
 
@@ -210,6 +225,7 @@ void WorldRenderer::onDeletedChunk(const glm::ivec3 &chunk_pos) {
 }
 
 void WorldRenderer::onAddedChunk(const glm::ivec3 &chunk_pos) {
+    ZoneScoped;
     for (int32_t z = -1 ; z <= 1; ++z) {
     for (int32_t y = -1 ; y <= 1; ++y) {
     for (int32_t x = -1 ; x <= 1; ++x) {
@@ -234,12 +250,14 @@ void WorldRenderer::onResize(int32_t width, int32_t height) {
 }
 
 void WorldRenderer::update() {
+    ZoneScoped;
     processChunksToMesh();
     allocateVAOforWaitingChunks();
 }
 
 void WorldRenderer::processChunksToMesh()
 {
+    ZoneScoped;
     for (const auto& pos : chunks_to_remesh) {
         thread_pool.enqueue([this, pos] {
             Chunk* chunk = World::instance().getChunk(pos);
@@ -255,6 +273,7 @@ void WorldRenderer::processChunksToMesh()
 }
 
 void WorldRenderer::allocateVAOforWaitingChunks() {
+    ZoneScoped;
     const std::lock_guard<std::mutex> lock(chunks_waiting_bufferslot_mutex);
 
     for (const auto& [chunk_pos, chunk_raw_mesh]: chunks_waiting_bufferslot) {
@@ -284,12 +303,14 @@ void WorldRenderer::generateDrawCommands(
     const glm::mat4 &view_projection,
     bool use_frustum_culling
 ) {
+    ZoneScoped;
     Frustum camera_frustum = createFrustumFromViewProjection(view_projection);
 
     chunks_drawn = 0;
 
     for (const auto& [chunk_pos, mesh] : meshes)
     {
+        ZoneScoped;
         if (mesh.slot_vertices.start == -1 && mesh.slot_vertices_translucent.start == -1) continue;
 
         if (use_frustum_culling) {
@@ -330,6 +351,7 @@ void WorldRenderer::renderTerrain(
     const std::vector<glm::vec4>& chunk_positions_opaque,
     const std::vector<glm::vec4>& chunk_positions_translucent
 ) {
+    ZoneScoped;
     glBindVertexArray(chunk_vao);
     glVertexArrayVertexBuffer(chunk_vao, 0, buffer_allocator_vertices.getBufferObject(), 0, 1 * sizeof(VERTEX_TYPE)); // Not needed anymore but crashes without
     glVertexArrayElementBuffer(chunk_vao, ssbo_chunk_element_buffer);
@@ -372,6 +394,7 @@ void WorldRenderer::renderTerrain(
 
 void WorldRenderer::renderEntities(const Camera &camera, const Program& program)
 {
+    ZoneScoped;
     program.use();
     program.setMat4("u_projectionMatrix", camera.getProjection());
     program.setMat4("u_viewMatrix", camera.getView());

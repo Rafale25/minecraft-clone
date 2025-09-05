@@ -1,5 +1,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "tracy/Tracy.hpp"
 #include "Shadowmap.hpp"
 #include "Context.hpp"
 #include "Program.hpp"
@@ -19,6 +20,8 @@ Shadowmap::Shadowmap(Context& ctx, GLsizei shadow_width, GLsizei shadow_height):
 
 glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, const Program &program)
 {
+    ZoneScoped;
+
     auto corners = extractFrustumCornersWorldSpace(projection * view);
 
     glm::mat4 lightViewMatrix = getLighViewMatrix(corners, _sunDir);
@@ -30,7 +33,6 @@ glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, c
     // https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering
 
     program.use();
-    program.setMat4("u_lightSpaceMatrix", _lightSpaceMatrix);
     glViewport(0, 0, _shadow_width, _shadow_height);
     _depthFBO.bind();
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -40,6 +42,7 @@ glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, c
 
 void Shadowmap::end()
 {
+    ZoneScoped;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, _ctx.width, _ctx.height);
 }
@@ -51,6 +54,7 @@ void Shadowmap::setSunDir(const glm::vec3& sunDir)
 
 glm::mat4 Shadowmap::getLighViewMatrix(const std::vector<glm::vec4>& cameraFrustumCorners, const glm::vec3& lightDir)
 {
+    ZoneScoped;
     glm::vec3 center = glm::vec3(0, 0, 0);
     for (const auto& v : cameraFrustumCorners) {
         center += glm::vec3(v);
@@ -66,6 +70,7 @@ glm::mat4 Shadowmap::getLighViewMatrix(const std::vector<glm::vec4>& cameraFrust
 
 FrustumBounds Shadowmap::computeFrustumBounds(const glm::mat4& lightView, const std::vector<glm::vec4>& corners)
 {
+    ZoneScoped;
     FrustumBounds b;
 
     b.minX = std::numeric_limits<float>::max();
@@ -91,6 +96,7 @@ FrustumBounds Shadowmap::computeFrustumBounds(const glm::mat4& lightView, const 
 
 glm::mat4 Shadowmap::getLightProjectionMatrix(const glm::mat4& lightView, FrustumBounds& b)
 {
+    ZoneScoped;
     // Tune this parameter according to the scene
     const float zMult = 5.0f;
     if (b.minZ < 0)

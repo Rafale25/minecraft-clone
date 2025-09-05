@@ -1,3 +1,4 @@
+#include "tracy/Tracy.hpp"
 #include "ChunkMesh.hpp"
 #include "BlockTextureManager.hpp"
 #include "ChunkExtra.hpp"
@@ -133,6 +134,8 @@ static inline void makeFace(
     Orientation orientation,
     GLuint texture_id
 ){
+    // ZoneScoped;
+
     glm::ivec3 dir = orientationToDir(orientation);
 
     const int32_t* info = infos[orientation];
@@ -172,6 +175,8 @@ static inline void makeFace(
 
 ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos)
 {
+    ZoneScoped;
+
     ChunkExtra chunkextra = ChunkExtra::get(chunk_pos);
     ChunkRawMesh chunk_raw_mesh;
 
@@ -179,6 +184,7 @@ ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos)
     for (int32_t y = 0 ; y < CHUNK_SIZE ; ++y) {
     for (int32_t x = 0 ; x < CHUNK_SIZE ; ++x) {
         BlockType block = chunkextra.getBlock({x, y, z});
+        ZoneScopedN("block");
 
         if (block == BlockType::Air) continue;
 
@@ -207,6 +213,8 @@ void ChunkMesh::updateVAO(
     BufferAllocator& buffer_allocator_vertices,
     const ChunkRawMesh& raw_mesh
 ){
+    ZoneScoped;
+
     if (raw_mesh.vertices.size() != 0) {
         const int32_t vertices_size = raw_mesh.vertices.size() * sizeof(GLuint64);
         slot_vertices = buffer_allocator_vertices.allocate(vertices_size, raw_mesh.vertices.data());

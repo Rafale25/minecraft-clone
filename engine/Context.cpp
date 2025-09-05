@@ -1,4 +1,3 @@
-#include <iostream>
 #include <cstdio>
 
 #include <GLFW/glfw3.h>
@@ -6,6 +5,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+#include "tracy/Tracy.hpp"
 #include "Context.hpp"
 #include "Logger.hpp"
 
@@ -134,6 +134,7 @@ void Context::run()
 
     while (!glfwWindowShouldClose(window))
     {
+        ZoneScoped;
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
 
@@ -146,6 +147,7 @@ void Context::run()
         _current_view->onDraw(time_since_start, delta_time);
 
         swapBuffers();
+        FrameMark;
         glfwPollEvents();
     }
 
@@ -154,11 +156,13 @@ void Context::run()
 
 void Context::swapBuffers()
 {
+    ZoneScoped;
     glfwSwapBuffers(window);
 }
 
 void Context::imguiNewFrame()
 {
+    ZoneScoped;
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -166,6 +170,7 @@ void Context::imguiNewFrame()
 
 void Context::imguiRender()
 {
+    ZoneScoped;
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
