@@ -30,7 +30,6 @@ glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, c
     // https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering
 
     program.use();
-    program.setMat4("u_lightSpaceMatrix", _lightSpaceMatrix);
     glViewport(0, 0, _shadow_width, _shadow_height);
     _depthFBO.bind();
     glClear(GL_DEPTH_BUFFER_BIT);
