@@ -73,3 +73,24 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     glm
     imgui
 )
+
+IF ((WIN32 AND MSVC))
+    target_compile_definitions(${PROJECT_NAME} PUBLIC NOMINMAX WIN32_LEAN_AND_MEAN) # Removes a lot of includes from windows.h and less namespace pollution
+ENDIF()
+
+
+IF (WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        ws2_32 # networking
+    )
+
+    IF (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        target_link_libraries(${PROJECT_NAME} PRIVATE
+            -lstdc++exp # std::print, std::format
+        )
+    ENDIF()
+ENDIF()
+
+IF (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC NO_CHRONO_CURRENT_ZONE)
+ENDIF()
