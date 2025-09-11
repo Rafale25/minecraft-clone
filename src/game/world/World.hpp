@@ -4,7 +4,8 @@
 #include <unordered_map>
 #include <shared_mutex>
 
-#include <glm/glm.hpp>
+#include <glm/ext/vector_float3.hpp>
+#include <glm/ext/vector_int3.hpp>
 #include <glm/gtx/hash.hpp>
 
 #include "Entity.hpp"
