@@ -14,6 +14,10 @@
 
 #include "UniformBuffer.hpp"
 
+inline double nsToMs(int64_t ns) {
+    return ns / 1e6;
+}
+
 WorldRenderer::WorldRenderer(Context &context): _ctx(context)
 {
     chunk_vao = createVAO(0, "i");
@@ -71,7 +75,6 @@ WorldRenderer::WorldRenderer(Context &context): _ctx(context)
     //     logD("{}: {} {}", name, values[0], values[1]);
     //     auto byteOffset = values[1] + (3 * values[0]);
     // }
-
 
     onResize(context.width, context.height);
 }
@@ -171,7 +174,15 @@ void WorldRenderer::render(const Camera &camera)
 
 
     generateDrawCommands(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent, view_projection, true);
+
+    _query.Begin();
     renderTerrain(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent);
+    int64_t v = _query.End();
+
+    logD("{:.3f}ms", nsToMs(v));
+
+
+
     // glDepthFunc(GL_LESS);
 
     renderEntities(camera, mesh_shader);

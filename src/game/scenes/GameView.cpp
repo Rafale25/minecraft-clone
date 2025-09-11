@@ -13,6 +13,10 @@
 #include "command_line_args.h"
 #include "DebugDraw.hpp"
 
+#include "Profiler.hpp"
+
+using legit::Profiler::scopedTask;
+
 bool isInManhattanDistance(const glm::ivec3& a, const glm::ivec3& b, int32_t distance)
 {
     const glm::ivec3 v = glm::abs(a - b);
@@ -40,12 +44,22 @@ void GameView::onUpdate(double time_since_start, float dt)
 
     Client::instance().task_queue.execute();
 
-    processNewChunks();
-    if (_delete_far_chunks) deleteFarChunks();
-
-    world_renderer.update();
-
-    World::instance().updateEntities();
+    {
+        const auto _ = scopedTask("processNewChunks", legit::Colors::sunFlower);
+        processNewChunks();
+    }
+    {
+        const auto _ = scopedTask("deleteFarChunks", legit::Colors::sunFlower);
+        if (_delete_far_chunks) deleteFarChunks();
+    }
+    {
+        const auto _ = scopedTask("world_renderer.update", legit::Colors::sunFlower);
+        world_renderer.update();
+    }
+    {
+        const auto _ = scopedTask("updateEntities", legit::Colors::sunFlower);
+        World::instance().updateEntities();
+    }
 
     player_blockraycasthit = World::instance().blockRaycast(camera.getPosition(), camera.forward(), 16);
 
@@ -311,13 +325,27 @@ void GameView::networkUpdate()
 
 void GameView::onDraw(double time_since_start, float dt)
 {
-    world_renderer.render(camera);
+    {
+        const auto scopedTasked = scopedTask("world_renderer.render", legit::Colors::sunFlower);
+        world_renderer.render(camera);
+    }
 
-    ctx.imguiNewFrame();
-    if (_show_debug_gui) gui(dt);
+    if (_show_debug_gui) {
+        gui(dt);
+
+        // legit::ProfilerTask task {
+        //     .startTime = 0.006f,
+        //     .endTime = 0.008f,
+        //     .name = "MyTask",
+        //     .color = legit::Colors::amethyst
+        // };
+
+        // _profiler_window.cpuGraph.LoadFrameData(&task, 1);
+
+        // _profiler_window.Render();
+    }
+
     drawPlayersNames();
-
-    ctx.imguiRender();
 }
 
 void GameView::sendTextMessage() {

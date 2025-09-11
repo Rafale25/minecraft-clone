@@ -12,8 +12,8 @@
 #include "Geometry.hpp"
 #include "BufferAllocator.hpp"
 #include "ThreadPool.hpp"
-
 #include "UniformBuffer.hpp"
+#include "GPUQuery.hpp"
 
 struct ChunkMesh;
 struct ChunkRawMesh;
@@ -81,6 +81,7 @@ public:
     Texture _depth_texture;
 
     UniformBuffer _ubuffer;
+    GPUQuery _query;
 
     Mesh _quad_fs = Geometry::quad_2d();
 

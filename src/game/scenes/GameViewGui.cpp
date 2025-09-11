@@ -9,6 +9,9 @@
 
 void GameView::drawPlayersNames()
 {
+    ImGui::GetStyle().FontScaleDpi = 1.5f;
+
+
     ImGuiWindowFlags window_flags = 0;
     window_flags |= ImGuiWindowFlags_NoTitleBar;
     window_flags |= ImGuiWindowFlags_NoScrollbar;
@@ -55,6 +58,7 @@ void GameView::gui(float dt)
         guiWorldEdit();
     }
 
+    ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
 
     ImGui::Begin("Debug", nullptr, !_cursor_enabled ? ImGuiWindowFlags_NoInputs : 0);
 

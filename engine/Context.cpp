@@ -1,4 +1,3 @@
-#include <iostream>
 #include <cstdio>
 
 #include <GLFW/glfw3.h>
@@ -8,6 +7,7 @@
 
 #include "Context.hpp"
 #include "Logger.hpp"
+#include "profiler.hpp"
 
 static void GLFW_error(int error, const char* description)
 {
@@ -142,8 +142,16 @@ void Context::run()
         double delta_time = time - last_frame_time; // TODO: limit max delta time if it gets too laggy
         last_frame_time = time;
 
+        legit::Profiler::beginFrame();
+
         _current_view->onUpdate(time_since_start, delta_time);
+
+        imguiNewFrame();
         _current_view->onDraw(time_since_start, delta_time);
+
+        legit::Profiler::endFrame();
+        imguiRender();
+
 
         swapBuffers();
         glfwPollEvents();
