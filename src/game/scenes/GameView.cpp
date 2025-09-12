@@ -332,17 +332,6 @@ void GameView::onDraw(double time_since_start, float dt)
 
     if (_show_debug_gui) {
         gui(dt);
-
-        // legit::ProfilerTask task {
-        //     .startTime = 0.006f,
-        //     .endTime = 0.008f,
-        //     .name = "MyTask",
-        //     .color = legit::Colors::amethyst
-        // };
-
-        // _profiler_window.cpuGraph.LoadFrameData(&task, 1);
-
-        // _profiler_window.Render();
     }
 
     drawPlayersNames();
