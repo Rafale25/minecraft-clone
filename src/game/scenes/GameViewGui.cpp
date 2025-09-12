@@ -9,9 +9,6 @@
 
 void GameView::drawPlayersNames()
 {
-    ImGui::GetStyle().FontScaleDpi = 1.5f;
-
-
     ImGuiWindowFlags window_flags = 0;
     window_flags |= ImGuiWindowFlags_NoTitleBar;
     window_flags |= ImGuiWindowFlags_NoScrollbar;
@@ -54,6 +51,8 @@ void GameView::gui(float dt)
     // ImGui::Image((ImTextureID)(intptr_t) world_renderer.shadowmap._depthTexture._texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
     // ImGui::End();
 
+
+
     if (block_selection_mode) {
         guiWorldEdit();
     }
@@ -61,6 +60,12 @@ void GameView::gui(float dt)
     ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
 
     ImGui::Begin("Debug", nullptr, !_cursor_enabled ? ImGuiWindowFlags_NoInputs : 0);
+
+
+    static float _dpi = 1.0f;
+    ImGui::GetStyle().FontScaleDpi = _dpi;
+    ImGui::SliderFloat("dpi", &_dpi, 0.25f, 4.0f, "%.2f");
+
 
     ImGui::Text("%s", SimpleProfiler::instance().dump().c_str());
 

@@ -152,14 +152,12 @@ namespace ImGuiUtils
     }
     void RenderLegend(ImDrawList *drawList, glm::vec2 legendPos, glm::vec2 legendSize, size_t frameIndexOffset, float maxFrameTime)
     {
-      // ImGui::GetStyle()
-
       float markerLeftRectMargin = 3.0f;
       float markerLeftRectWidth = 5.0f;
       float markerMidWidth = 30.0f;
       float markerRightRectWidth = 10.0f;
       float markerRigthRectMargin = 3.0f;
-      float markerRightRectHeight = ImGui::GetTextLineHeight();// 10.0f;// * 2;
+      float markerRightRectHeight = ImGui::GetTextLineHeight();
       float markerRightRectSpacing = 4.0f;
       float nameOffset = 30.0f;
       glm::vec2 textMargin = glm::vec2(5.0f, -3.0f);
