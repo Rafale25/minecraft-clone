@@ -15,7 +15,7 @@ namespace legit::Profiler
     static constexpr std::array<uint32_t, 5> _color_wheel = { turqoise, sunFlower, amethyst, emerald, pumpkin };
     static int _color_index = 0;
 
-    ScopedTask::ScopedTask(const std::string& name, uint32_t color) {
+    ScopedTask::ScopedTask(const std::string& name) {//, uint32_t color) {
         _current_task.startTime = glfwGetTime() - _frame_start_time;
         _current_task.name = name;
         // _current_task.color = color;
@@ -37,9 +37,10 @@ namespace legit::Profiler
         _profiler_window.cpuGraph.LoadFrameData(&_tasks[0], _tasks.size());
         _profiler_window.Render();
         _tasks.clear();
+        _color_index = 0;
     }
 
-    ScopedTask scopedTask(const std::string& name, uint32_t color) {
-        return ScopedTask(name, color);
+    ScopedTask scopedTask(const std::string& name) {//, uint32_t color) {
+        return ScopedTask(name);//, color);
     }
 }

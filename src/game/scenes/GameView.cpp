@@ -39,25 +39,31 @@ void GameView::onHideView()
 
 void GameView::onUpdate(double time_since_start, float dt)
 {
-    playerMovements(dt);
-    camera.update(dt);
-
-    Client::instance().task_queue.execute();
+    {
+        const auto _ = scopedTask("player");
+        playerMovements(dt);
+        camera.update(dt);
+    }
 
     {
-        const auto _ = scopedTask("processNewChunks", legit::Colors::sunFlower);
+        const auto _ = scopedTask("task_queue.execute");
+        Client::instance().task_queue.execute();
+    }
+
+    {
+        const auto _ = scopedTask("processNewChunks");
         processNewChunks();
     }
     {
-        const auto _ = scopedTask("deleteFarChunks", legit::Colors::sunFlower);
+        const auto _ = scopedTask("deleteFarChunks");
         if (_delete_far_chunks) deleteFarChunks();
     }
     {
-        const auto _ = scopedTask("world_renderer.update", legit::Colors::sunFlower);
+        const auto _ = scopedTask("world_renderer.update");
         world_renderer.update();
     }
     {
-        const auto _ = scopedTask("updateEntities", legit::Colors::sunFlower);
+        const auto _ = scopedTask("updateEntities");
         World::instance().updateEntities();
     }
 
@@ -85,7 +91,7 @@ void GameView::onUpdate(double time_since_start, float dt)
 
     if (_draw_chunks_borders) {
         for (const auto& [pos, chunk] : World::instance().chunks) {
-            DebugDraw::instance().drawCube(glm::vec3(pos * CHUNK_SIZE) + glm::vec3(CHUNK_SIZE / 2), CHUNK_SIZE);
+            DebugDraw::instance().drawCube(glm::vec3(pos * CHUNK_SIZE) + glm::vec3(int(CHUNK_SIZE / 2)), CHUNK_SIZE);
         }
     }
 
@@ -326,11 +332,12 @@ void GameView::networkUpdate()
 void GameView::onDraw(double time_since_start, float dt)
 {
     {
-        const auto scopedTasked = scopedTask("world_renderer.render", legit::Colors::sunFlower);
+        const auto scopedTasked = scopedTask("world_renderer.render");
         world_renderer.render(camera);
     }
 
     if (_show_debug_gui) {
+        // const auto scopedTasked = scopedTask("gui");
         gui(dt);
     }
 
