@@ -15,8 +15,6 @@
 
 #include "Profiler.hpp"
 
-using legit::Profiler::scopedTask;
-
 bool isInManhattanDistance(const glm::ivec3& a, const glm::ivec3& b, int32_t distance)
 {
     const glm::ivec3 v = glm::abs(a - b);
