@@ -40,30 +40,30 @@ void GameView::onHideView()
 void GameView::onUpdate(double time_since_start, float dt)
 {
     {
-        const auto _ = scopedTask("player");
+        ScopedTask("player");
         playerMovements(dt);
         camera.update(dt);
     }
 
     {
-        const auto _ = scopedTask("task_queue.execute");
+        ScopedTask("task_queue.execute");
         Client::instance().task_queue.execute();
     }
 
     {
-        const auto _ = scopedTask("processNewChunks");
+        ScopedTask("processNewChunks");
         processNewChunks();
     }
     {
-        const auto _ = scopedTask("deleteFarChunks");
+        ScopedTask("deleteFarChunks");
         if (_delete_far_chunks) deleteFarChunks();
     }
     {
-        const auto _ = scopedTask("world_renderer.update");
+        ScopedTask("world_renderer.update");
         world_renderer.update();
     }
     {
-        const auto _ = scopedTask("updateEntities");
+        ScopedTask("updateEntities");
         World::instance().updateEntities();
     }
 
@@ -332,12 +332,11 @@ void GameView::networkUpdate()
 void GameView::onDraw(double time_since_start, float dt)
 {
     {
-        const auto scopedTasked = scopedTask("world_renderer.render");
+        ScopedTask("world_renderer.render");
         world_renderer.render(camera);
     }
 
     if (_show_debug_gui) {
-        // const auto scopedTasked = scopedTask("gui");
         gui(dt);
     }
 
