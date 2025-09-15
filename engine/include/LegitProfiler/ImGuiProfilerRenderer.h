@@ -334,7 +334,8 @@ namespace ImGuiUtils
     ProfilersWindow(float maxFrameTime = 1.0f / 60.0f):
       cpuGraph(300),
       gpuGraph(300),
-      maxFrameTime(maxFrameTime)
+      maxFps(60)
+      // maxFrameTime(maxFrameTime)
     {
       stopProfiling = false;
       frameOffset = 0;
@@ -379,8 +380,8 @@ namespace ImGuiUtils
       int graphHeight = std::min(maxGraphHeight, availableGraphHeight);
       int legendWidth = canvasSize.x * 0.25;
       int graphWidth = int(canvasSize.x) - legendWidth;
-      gpuGraph.RenderTimings(graphWidth, legendWidth, graphHeight, frameOffset, maxFrameTime);
-      cpuGraph.RenderTimings(graphWidth, legendWidth, graphHeight, frameOffset, maxFrameTime);
+      gpuGraph.RenderTimings(graphWidth, legendWidth, graphHeight, frameOffset, 1.0f / (float)maxFps);
+      cpuGraph.RenderTimings(graphWidth, legendWidth, graphHeight, frameOffset, 1.0f / (float)maxFps);
       if (graphHeight * 2 + sizeMargin + sizeMargin < canvasSize.y)
       {
         ImGui::Columns(2);
@@ -393,6 +394,7 @@ namespace ImGuiUtils
 
         ImGui::SliderInt("Frame width", &frameWidth, 1, 4);
         ImGui::SliderInt("Frame spacing", &frameSpacing, 0, 2);
+        ImGui::SliderInt("Max Fps", &maxFps, 1, 240);
         ImGui::SliderFloat("Transparency", &ImGui::GetStyle().Colors[ImGuiCol_WindowBg].w, 0.0f, 1.0f);
         ImGui::Columns(1);
       }
@@ -418,6 +420,7 @@ namespace ImGuiUtils
     TimePoint prevFpsFrameTime;
     size_t fpsFramesCount;
     float avgFrameTime;
-    float maxFrameTime;
+    // float maxFrameTime;
+    int maxFps;
   };
 }
