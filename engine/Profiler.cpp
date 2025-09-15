@@ -5,8 +5,6 @@
 #include <string>
 #include <vector>
 
-// #include "Logger.hpp"
-
 inline double nsToMs(int64_t ns) {
     return double(ns) / 1e6;
 }
@@ -106,8 +104,6 @@ namespace legit::Profiler
                 .name = name,
                 .color = color
             };
-
-            // logD("{}", color);
 
             _tasks_gpu.push_back(task);
         }
