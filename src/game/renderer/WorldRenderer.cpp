@@ -13,15 +13,19 @@
 #include "ChunkMesh.hpp"
 
 #include "UniformBuffer.hpp"
+#include "Profiler.hpp"
 
 inline double nsToMs(int64_t ns) {
-    return ns / 1e6;
+    return double(ns) / 1e6;
+}
+
+inline double nsToS(int64_t ns) {
+    return double(ns) / 1e9;
 }
 
 WorldRenderer::WorldRenderer(Context &context): _ctx(context)
 {
     chunk_vao = createVAO(0, "i");
-
 
     draw_command_buffer = createBufferStorage(nullptr, sizeof(DrawElementsIndirectCommand) * MAX_COMMANDS, GL_DYNAMIC_STORAGE_BIT);
     ssbo_chunk_positions = createBufferStorage(nullptr, sizeof(GLfloat)*4 * MAX_COMMANDS, GL_DYNAMIC_STORAGE_BIT);
@@ -97,6 +101,8 @@ void WorldRenderer::setDefaultRenderState()
 
 void WorldRenderer::render(const Camera &camera)
 {
+    // glQueryCounter(_query_test[0], GL_TIMESTAMP);
+    // legit::Profiler::setStartTimeGPU();
 
     const glm::mat4 view_projection = camera.getProjection() * camera.getView();
 
@@ -129,6 +135,8 @@ void WorldRenderer::render(const Camera &camera)
     setDefaultRenderState();
 
     { // SHADOWMAP //
+        ScopedTaskGPU("shadowmap");
+
         const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, _max_shadow_distance);
 
         shadowmap.setSunDir(sunDir);
@@ -162,8 +170,6 @@ void WorldRenderer::render(const Camera &camera)
 
 
     cube_shader.use();
-
-
     glBindTextureUnit(0, shadowmap._depthTexture._texture);
 
     // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
@@ -172,20 +178,23 @@ void WorldRenderer::render(const Camera &camera)
 
     // glDepthFunc(GL_EQUAL);
 
+    {
+        // ScopedTaskGPU("generateDrawCommands");
+        generateDrawCommands(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent, view_projection, true);
+    }
 
-    generateDrawCommands(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent, view_projection, true);
-
-    _query.Begin();
-    renderTerrain(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent);
-    int64_t v = _query.End();
-
-    logD("{:.3f}ms", nsToMs(v));
-
-
+    {
+        ScopedTaskGPU("terrain");
+        renderTerrain(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent);
+    }
 
     // glDepthFunc(GL_LESS);
 
-    renderEntities(camera, mesh_shader);
+    {
+        ScopedTaskGPU("entities");
+        renderEntities(camera, mesh_shader);
+    }
+
 
     DebugDraw::instance().drawAndFlush(view_projection);
 
@@ -196,7 +205,6 @@ void WorldRenderer::render(const Camera &camera)
 
     postprocessing_shader.use();
 
-
     postprocessing_shader.setInt("colorTexture", 0);
     postprocessing_shader.setInt("worldPosTexture", 1);
     postprocessing_shader.setInt("depthTexture", 2);
@@ -205,7 +213,10 @@ void WorldRenderer::render(const Camera &camera)
     glBindTextureUnit(1, _world_position_texture._texture);
     glBindTextureUnit(2, _depth_texture._texture);
 
-    _quad_fs.draw();
+    {
+        ScopedTaskGPU("postProcessing");
+        _quad_fs.draw();
+    }
 
     // CONTINUE HERE
     // Postprocess shader becomes deferred shader for fog and shadows

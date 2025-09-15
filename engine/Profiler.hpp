@@ -1,16 +1,23 @@
 #pragma once
 
-// #include "LegitProfiler/ProfilerTask.h"
 #include <string>
-// #include <cstdint>
+
+#define ScopedTask(name) const auto _ = legit::Profiler::scopedTask(name)
+#define ScopedTaskGPU(name) const auto _ = legit::Profiler::scopedTaskGPU(name)
 
 namespace legit::Profiler {
-    struct [[nodiscard]] ScopedTask {
-        ScopedTask(const std::string& name);//, uint32_t color);
-        ~ScopedTask();
+    struct [[nodiscard]] _ScopedTask {
+        _ScopedTask(const std::string& name);//, uint32_t color);
+        ~_ScopedTask();
+    };
+
+    struct [[nodiscard]] _ScopedTaskGPU {
+        _ScopedTaskGPU(const std::string& name);//, uint32_t color);
+        ~_ScopedTaskGPU();
     };
 
     void beginFrame();
     void endFrame();
-    ScopedTask scopedTask(const std::string& name);//, uint32_t color = legit::Colors::turqoise);
+    _ScopedTask scopedTask(const std::string& name);//, uint32_t color = legit::Colors::turqoise);
+    _ScopedTaskGPU scopedTaskGPU(const std::string& name);//, uint32_t color = legit::Colors::turqoise);
 }
