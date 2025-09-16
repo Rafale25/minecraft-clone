@@ -2,8 +2,8 @@
 
 #include <string>
 
-#define ScopedTask(name) const auto _ = legit::Profiler::scopedTask(name)
-#define ScopedTaskGPU(name) const auto _ = legit::Profiler::scopedTaskGPU(name)
+#define ScopedTask(name) const auto _scoped_task_cpu = legit::Profiler::_ScopedTask(name)
+#define ScopedTaskGPU(name) const auto _scoped_task_gpu = legit::Profiler::_ScopedTaskGPU(name)
 
 namespace legit::Profiler {
     struct [[nodiscard]] _ScopedTask {
@@ -18,6 +18,4 @@ namespace legit::Profiler {
 
     void beginFrame();
     void endFrame();
-    _ScopedTask scopedTask(const std::string& name);//, uint32_t color = legit::Colors::turqoise);
-    _ScopedTaskGPU scopedTaskGPU(const std::string& name);//, uint32_t color = legit::Colors::turqoise);
 }

@@ -112,12 +112,4 @@ namespace legit::Profiler
         _profiler_window.loadFrameDataGPU(&_tasks_gpu[0], _tasks_gpu.size());
         _profiler_window.Render();
     }
-
-    _ScopedTask scopedTask(const std::string& name) {//, uint32_t color) {
-        return _ScopedTask(name);//, color);
-    }
-
-    _ScopedTaskGPU scopedTaskGPU(const std::string& name) {//, uint32_t color) {
-        return _ScopedTaskGPU(name);//, color);
-    }
 }
