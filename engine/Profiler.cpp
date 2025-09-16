@@ -110,8 +110,6 @@ namespace legit::Profiler
 
         _profiler_window.loadFrameDataCPU(&_tasks_cpu[0], _tasks_cpu.size());
         _profiler_window.loadFrameDataGPU(&_tasks_gpu[0], _tasks_gpu.size());
-        // _profiler_window.cpuGraph.LoadFrameData(&_tasks_cpu[0], _tasks_cpu.size());
-        // _profiler_window.gpuGraph.LoadFrameData(&_tasks_gpu[0], _tasks_gpu.size());
         _profiler_window.Render();
     }
 
