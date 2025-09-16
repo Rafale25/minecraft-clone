@@ -14,6 +14,7 @@ namespace ImGuiUtils
   {
     return glm::vec2(vec.x, vec.y);
   }
+
   class ProfilerGraph
   {
   public:
@@ -72,10 +73,12 @@ namespace ImGuiUtils
 
       RebuildTaskStats(currFrameIndex, 300/*frames.size()*/);
     }
+
     float GetTotalTaskTime(int frameIndexOffset)
     {
       return frames[GetCurrFrameIndex(frameIndexOffset)].totalTime;
     }
+
     void RenderTimings(int graphWidth, int legendWidth, int height, int frameIndexOffset, float maxFrameTime)
     {
       ImDrawList* drawList = ImGui::GetWindowDrawList();
@@ -94,6 +97,7 @@ namespace ImGuiUtils
     {
       return (currFrameIndex - frameIndexOffset - 1 + 2 * frames.size()) % frames.size();
     }
+
     void RebuildTaskStats(size_t endFrame, size_t framesCount)
     {
       for (auto &taskStat : taskStats)
@@ -126,6 +130,7 @@ namespace ImGuiUtils
         taskStats[statIndex].priorityOrder = statNumber;
       }
     }
+
     void RenderGraph(ImDrawList *drawList, glm::vec2 graphPos, glm::vec2 graphSize, size_t frameIndexOffset, float maxFrameTime)
     {
       Rect(drawList, graphPos, graphPos + graphSize, 0xffffffff, false);
@@ -150,6 +155,7 @@ namespace ImGuiUtils
         }
       }
     }
+
     void RenderLegend(ImDrawList *drawList, glm::vec2 legendPos, glm::vec2 legendSize, size_t frameIndexOffset, float maxFrameTime)
     {
       float markerLeftRectMargin = 3.0f;
@@ -279,10 +285,12 @@ namespace ImGuiUtils
       else
         drawList->AddRect(ImVec2(minPoint.x, minPoint.y), ImVec2(maxPoint.x, maxPoint.y), col);
     }
+
     static void Text(ImDrawList *drawList, glm::vec2 point, uint32_t col, const char *text)
     {
       drawList->AddText(ImVec2(point.x, point.y), col, text);
     }
+
     static void Triangle(ImDrawList *drawList, std::array<glm::vec2, 3> points, uint32_t col, bool filled = true)
     {
       if (filled)
@@ -290,6 +298,7 @@ namespace ImGuiUtils
       else
         drawList->AddTriangle(ImVec2(points[0].x, points[0].y), ImVec2(points[1].x, points[1].y), ImVec2(points[2].x, points[2].y), col);
     }
+
     static void RenderTaskMarker(ImDrawList *drawList, glm::vec2 leftMinPoint, glm::vec2 leftMaxPoint, glm::vec2 rightMinPoint, glm::vec2 rightMaxPoint, uint32_t col)
     {
       Rect(drawList, leftMinPoint, leftMaxPoint, col, true);
@@ -302,6 +311,7 @@ namespace ImGuiUtils
       };
       drawList->AddConvexPolyFilled(points.data(), int(points.size()), col);
     }
+
     struct FrameData
     {
       std::vector<legit::ProfilerTask> tasks;
@@ -409,6 +419,17 @@ namespace ImGuiUtils
 
       ImGui::End();
     }
+
+    void loadFrameDataCPU(const legit::ProfilerTask *tasks, size_t count) {
+      if (stopProfiling) return;
+      cpuGraph.LoadFrameData(&tasks[0], count);
+    }
+
+    void loadFrameDataGPU(const legit::ProfilerTask *tasks, size_t count) {
+      if (stopProfiling) return;
+      gpuGraph.LoadFrameData(&tasks[0], count);
+    }
+
     bool stopProfiling;
     int frameOffset;
     ProfilerGraph cpuGraph;
