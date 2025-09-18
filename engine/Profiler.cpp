@@ -15,6 +15,7 @@ inline double nsToS(int64_t ns) {
 
 namespace legit::Profiler
 {
+    static bool _enabled = false;
     static ImGuiUtils::ProfilersWindow _profiler_window;
     static std::vector<legit::ProfilerTask> _tasks_cpu;
     static std::vector<legit::ProfilerTask> _tasks_gpu;
@@ -33,13 +34,23 @@ namespace legit::Profiler
     };
     static std::vector<_scopedTaskGPUInfo> _gpuTasks; // temp data to store name/color info until querying times at end of frame
 
-    // GLuint _query_object_start_time = 0;
-    std::vector<GLuint> _query_objects;
-    size_t _current_query_object = 0;
+    static std::vector<GLuint> _query_objects;
+    static size_t _current_query_object = 0;
 
-    GLuint getNewQueryObject()
+    static void reset()
     {
-        if (_query_objects.size() >= _current_query_object) { // create new query object if not enough
+        _tasks_cpu.clear();
+        _tasks_gpu.clear();
+        _gpuTasks.clear();
+        _color_index = 0;
+        _color_index_gpu = 0;
+        _current_query_object = 0;
+    }
+
+    static GLuint getNewQueryObject()
+    {
+        assert(_query_objects.size() < 1000);
+        if (_current_query_object >= _query_objects.size()) { // create new query object if not enough
             GLuint id = 0;
             glGenQueries(1, &id);
             _query_objects.push_back(id);
@@ -51,6 +62,8 @@ namespace legit::Profiler
 // ----
 
     _ScopedTask::_ScopedTask(const std::string& name) {//, uint32_t color) {
+        if (!_enabled) return;
+
         _current_task.startTime = glfwGetTime() - _frame_start_time;
         _current_task.name = name;
         _current_task.color = _color_wheel[_color_index];
@@ -59,33 +72,41 @@ namespace legit::Profiler
     }
 
     _ScopedTask::~_ScopedTask() {
+        if (!_enabled) return;
+
         _current_task.endTime = glfwGetTime() - _frame_start_time;
         _tasks_cpu.push_back(_current_task);
     }
 
     _ScopedTaskGPU::_ScopedTaskGPU(const std::string& name) {//, uint32_t color) {
+        if (!_enabled) return;
+
         glQueryCounter(getNewQueryObject(), GL_TIMESTAMP);
         _gpuTasks.push_back({name, _color_wheel[_color_index]});
         _color_index = (_color_index + 1) % _color_wheel.size();
     }
 
     _ScopedTaskGPU::~_ScopedTaskGPU() {
+        if (!_enabled) return;
+
         glQueryCounter(getNewQueryObject(), GL_TIMESTAMP);
     }
 
     void beginFrame() {
-        _tasks_cpu.clear();
-        _tasks_gpu.clear();
-        _gpuTasks.clear();
-        _color_index = 0;
-        _color_index_gpu = 0;
-        _current_query_object = 0;
+        if (!_enabled) return;
+        reset();
 
         _frame_start_time = glfwGetTime();
         glQueryCounter(getNewQueryObject(), GL_TIMESTAMP); // _frame_start_time_gpu
     }
 
     void endFrame() {
+        static bool previous_enabled = false; // hack to avoid big spike when enabling/disabling profiler
+        if (!_enabled || !previous_enabled) {
+            previous_enabled = _enabled;
+            return;
+        }
+
         GLuint64 start_time{0};
         glGetQueryObjectui64v(_query_objects[0], GL_QUERY_RESULT, &start_time);
 
@@ -111,5 +132,10 @@ namespace legit::Profiler
         _profiler_window.loadFrameDataCPU(&_tasks_cpu[0], _tasks_cpu.size());
         _profiler_window.loadFrameDataGPU(&_tasks_gpu[0], _tasks_gpu.size());
         _profiler_window.Render();
+    }
+
+    void setEnable(bool enable) {
+        if (_enabled != enable) reset();
+        _enabled = enable;
     }
 }

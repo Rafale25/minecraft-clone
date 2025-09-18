@@ -18,4 +18,5 @@ namespace legit::Profiler {
 
     void beginFrame();
     void endFrame();
+    void setEnable(bool enable);
 }

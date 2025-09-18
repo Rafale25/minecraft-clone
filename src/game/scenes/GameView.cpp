@@ -37,6 +37,8 @@ void GameView::onHideView()
 
 void GameView::onUpdate(double time_since_start, float dt)
 {
+    legit::Profiler::setEnable(_show_profiler_gui);
+
     {
         ScopedTask("player");
         playerMovements(dt);

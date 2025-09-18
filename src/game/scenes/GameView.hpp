@@ -40,6 +40,7 @@ private:
     float network_timer = 1.0f;
 
     bool _show_debug_gui = false;
+    bool _show_profiler_gui = false;
     bool _cursor_enabled = false;
     bool _vsync = true;
     bool _delete_far_chunks = true;
