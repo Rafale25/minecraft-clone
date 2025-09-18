@@ -51,8 +51,6 @@ void GameView::gui(float dt)
     // ImGui::Image((ImTextureID)(intptr_t) world_renderer.shadowmap._depthTexture._texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
     // ImGui::End();
 
-
-
     if (block_selection_mode) {
         guiWorldEdit();
     }
@@ -62,21 +60,12 @@ void GameView::gui(float dt)
     ImGui::Begin("Debug", nullptr, !_cursor_enabled ? ImGuiWindowFlags_NoInputs : 0);
 
 
-    static float _dpi = 1.0f;
-    ImGui::GetStyle().FontScaleDpi = _dpi;
-    ImGui::SliderFloat("dpi", &_dpi, 0.25f, 4.0f, "%.2f");
-
-
     ImGui::Text("%s", SimpleProfiler::instance().dump().c_str());
-
     ImGui::Text("RAM: %.4f / %.4f Go", ((double)getCurrentRSS()) / (1024*1024*1024), ((double)getPeakRSS()) / (1024*1024*1024));
-
     ImGui::Text("BufferVertices: %d / %d - %d", world_renderer.buffer_allocator_vertices.getAvailableMemory(), world_renderer.buffer_allocator_vertices.getMaxMemory(), world_renderer.buffer_allocator_vertices.getSlotCount());
-
 
     ImGui::Text("New chunks: %d", (int32_t)Client::instance().new_chunks.size());
     ImGui::Text("ThreadPool{%d} tasks: %d", (int32_t)world_renderer.thread_pool._workers.size(), (int32_t)world_renderer.thread_pool._task_queue.size());
-
     ImGui::Text("Chunks: %d (%d rendered)", World::instance().getChunkCount(), world_renderer.chunks_drawn);
 
     ImGui::Text("%.4f secs", dt);
@@ -134,8 +123,9 @@ void GameView::gui(float dt)
         ImGui::TextWrapped("%s", msg.c_str());
         ImGui::Spacing();
     }
-
     ImGui::EndChild();
+
+    ImGui::Checkbox("Profiler", &_show_profiler_gui);
 
     ImGui::InputText("##inputText", input_text_buffer, IM_ARRAYSIZE(input_text_buffer));
     ImGui::SameLine();
