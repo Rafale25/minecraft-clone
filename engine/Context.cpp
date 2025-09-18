@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <unordered_map>
 
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
@@ -170,10 +171,35 @@ void Context::imguiNewFrame()
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+
+    { // Automatically load and store font at window scale
+        static std::unordered_map<float, ImFont*> fonts;
+
+        float window_xscale, window_yscale;
+        glfwGetWindowContentScale(window, &window_xscale, &window_yscale);
+        const float dpi = window_xscale - 0.5f;
+        ImGui::GetStyle().FontScaleDpi = dpi;
+
+        if (!fonts.contains(dpi)) {
+            const ImGuiIO& io = ImGui::GetIO();
+            constexpr float baseFontSize = 13.0f;  // ImGui's default size
+            ImFont* font = io.Fonts->AddFontFromFileTTF(
+                "./submodules/imgui/misc/fonts/ProggyClean.ttf",
+                baseFontSize * dpi
+            );
+            fonts[dpi] = font;
+
+            logD("loaded font at scale {}", dpi);
+        }
+
+        ImGui::PushFont(fonts.at(dpi));
+    }
 }
 
 void Context::imguiRender()
 {
+    ImGui::PopFont();
+
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
