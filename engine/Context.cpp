@@ -184,7 +184,8 @@ void Context::imguiNewFrame()
             const ImGuiIO& io = ImGui::GetIO();
             constexpr float baseFontSize = 13.0f;  // ImGui's default size
             ImFont* font = io.Fonts->AddFontFromFileTTF(
-                "./submodules/imgui/misc/fonts/ProggyClean.ttf",
+                // "./submodules/imgui/misc/fonts/ProggyClean.ttf",
+                RESSOURCE_PATH "ProggyClean.ttf",
                 baseFontSize * dpi
             );
             fonts[dpi] = font;
