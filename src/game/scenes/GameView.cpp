@@ -25,12 +25,12 @@ GameView::GameView(Context& ctx): View(ctx)
 {
     glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    Client::instance().init(tchat, global_argv[1], std::atoi(global_argv[2]));
-    Client::instance().Start();
-
     if (global_argc > 3) {
         GameState::setRenderDistance(std::atoi(global_argv[3]));
     }
+
+    Client::instance().init(tchat, global_argv[1], std::atoi(global_argv[2]));
+    Client::instance().Start();
 }
 
 void GameView::onHideView()
