@@ -1,9 +1,3 @@
-#include "Client.hpp" // include before GLFW to avoid macro redefinition warning with MSVC
-
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
-#include <imgui.h>
-
 #include "GameView.hpp"
 #include "GameState.hpp"
 #include "World.hpp"
@@ -12,8 +6,11 @@
 #include "AABB.hpp"
 #include "command_line_args.h"
 #include "DebugDraw.hpp"
-
 #include "Profiler.hpp"
+#include "Client.hpp" // include before GLFW to avoid macro redefinition warning with MSVC
+#include <glad/gl.h>
+#include <GLFW/glfw3.h>
+#include <imgui.h>
 
 bool isInManhattanDistance(const glm::ivec3& a, const glm::ivec3& b, int32_t distance)
 {

@@ -1,8 +1,8 @@
-#include <string.h>
-#include <mutex>
 #include "World.hpp"
 #include "Chunk.hpp"
 #include "BlockRaycastHit.hpp"
+#include <cstring>
+#include <mutex>
 
 World::World()
 {

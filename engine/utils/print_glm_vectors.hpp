@@ -1,10 +1,9 @@
 #pragma once
 
-#include <stdio.h>
-
 #include <glm/ext/vector_float3.hpp>
 #include <glm/ext/vector_float4.hpp>
 #include <glm/ext/vector_int3.hpp>
+#include <stdio.h>
 
 inline void printVec3(const glm::vec3& v)
 {

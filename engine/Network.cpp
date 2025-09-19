@@ -5,7 +5,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
-#include <string.h>
+#include <cstring>
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <glm/ext/vector_int3.hpp>
 #include "enums.hpp"
 #include "constants.hpp"
+#include <glm/ext/vector_int3.hpp>
 
 struct Chunk
 {

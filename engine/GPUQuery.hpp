@@ -1,4 +1,5 @@
 #include <cstdint>
+
 typedef unsigned int GLuint;
 
 class GPUQuery {

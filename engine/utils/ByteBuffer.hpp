@@ -1,9 +1,9 @@
 #pragma once
 
-#include <cstdint>
-#include <stddef.h>
-#include <cstring>
 #include "endianess.h"
+#include <stddef.h>
+#include <cstdint>
+#include <cstring>
 
 // TODO: add option to put bytes into buffer
 

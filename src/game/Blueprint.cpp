@@ -1,14 +1,12 @@
-#include <iostream>
-#include <fstream>
-#include <regex>
-#include <cstdio>
-
 #include "Blueprint.hpp"
 #include "enums.hpp"
 #include "World.hpp"
 #include "Client.hpp"
-
 #include "Logger.hpp"
+#include <iostream>
+#include <fstream>
+#include <regex>
+#include <cstdio>
 
 static const std::string BLUEPRINT_FOLDER_PATH = "./blueprints/";
 

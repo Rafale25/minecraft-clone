@@ -1,9 +1,8 @@
-#include <glad/gl.h>
-#include <glm/gtc/constants.hpp>
-
 #include "DebugDraw.hpp"
 #include "VAO.hpp"
 #include "Frustum.hpp"
+#include <glad/gl.h>
+#include <glm/gtc/constants.hpp>
 
 DebugDraw::DebugDraw()
 {

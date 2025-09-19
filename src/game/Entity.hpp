@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string>
 #include <glm/ext/vector_float3.hpp>
 #include "Transform.hpp"
+#include <string>
 
 typedef unsigned int GLuint;
 

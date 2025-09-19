@@ -4,7 +4,6 @@
 #include <glm/ext/vector_int3.hpp>
 #include "BufferAllocator.hpp"
 
-
 struct ChunkRawMesh {
     std::vector<GLuint64> vertices;
     std::vector<GLuint64> vertices_translucent;

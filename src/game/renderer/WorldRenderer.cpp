@@ -1,6 +1,3 @@
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
-
 #include "WorldRenderer.hpp"
 #include "Frustum.hpp"
 #include "World.hpp"
@@ -11,9 +8,10 @@
 #include "DebugDraw.hpp"
 #include "VAO.hpp"
 #include "ChunkMesh.hpp"
-
 #include "UniformBuffer.hpp"
 #include "Profiler.hpp"
+#include <glad/gl.h>
+#include <GLFW/glfw3.h>
 
 inline double nsToMs(int64_t ns) {
     return double(ns) / 1e6;

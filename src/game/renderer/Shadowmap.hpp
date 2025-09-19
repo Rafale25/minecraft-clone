@@ -1,14 +1,12 @@
 #pragma once
 
-#include <glm/detail/type_mat4x4.hpp>
-
 #include "Framebuffer.hpp"
 #include "Texture.hpp"
+#include <glm/detail/type_mat4x4.hpp>
 
 class Camera;
 class Context;
 class Program;
-// struct AABB;
 
 struct FrustumBounds {
     float minX, maxX;

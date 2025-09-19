@@ -1,10 +1,9 @@
 #pragma once
 
-#include <vector>
-#include <string>
-
 #include "glm/ext/vector_int3.hpp"
 #include "enums.hpp"
+#include <vector>
+#include <string>
 
 struct Blueprint {
     glm::ivec3 dimensions;

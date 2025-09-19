@@ -1,5 +1,4 @@
 #include "AABB.hpp"
-
 #include <glm/ext/vector_bool3.hpp>
 #include <glm/common.hpp>
 

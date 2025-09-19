@@ -1,10 +1,5 @@
 #pragma once
 
-#include <unordered_set>
-
-#include <glad/gl.h>
-#include <glm/gtx/hash.hpp>
-
 #include "ChunkMesh.hpp"
 #include "Context.hpp"
 #include "Program.hpp"
@@ -13,6 +8,9 @@
 #include "BufferAllocator.hpp"
 #include "ThreadPool.hpp"
 #include "UniformBuffer.hpp"
+#include <glad/gl.h>
+#include <glm/gtx/hash.hpp>
+#include <unordered_set>
 
 struct ChunkMesh;
 struct ChunkRawMesh;

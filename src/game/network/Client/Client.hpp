@@ -1,16 +1,15 @@
 #pragma once
 
-#include <unordered_map>
-#include <thread>
-#include <mutex>
-#include <deque>
-
 #include "enums.hpp"
 #include "ByteBuffer.hpp"
 #include "TaskQueue.hpp"
 #include "Network.hpp"
 #include "ServerPacket.hpp"
-#include "ClientPacket.hpp"
+
+#include <unordered_map>
+#include <thread>
+#include <mutex>
+#include <deque>
 
 class World;
 struct Chunk;

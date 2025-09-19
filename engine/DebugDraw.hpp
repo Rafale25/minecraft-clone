@@ -1,8 +1,8 @@
 #pragma once
 
+#include "Program.hpp"
 #include <glm/detail/type_vec3.hpp>
 #include <glm/detail/type_mat4x4.hpp>
-#include "Program.hpp"
 
 constexpr glm::vec3 DEFAULT_COLOR = {1.0f, 0.0f, 0.0f};
 

@@ -1,9 +1,8 @@
-// #include <stdio.h>
-#include <cassert>
-#include <algorithm>
-#include <glad/gl.h>
 #include "BufferAllocator.hpp"
 #include "Logger.hpp"
+#include <glad/gl.h>
+#include <cassert>
+#include <algorithm>
 
 #define PRINT_ERRORS
 

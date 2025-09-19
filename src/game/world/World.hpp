@@ -1,17 +1,14 @@
 #pragma once
 
-#include <vector>
-#include <unordered_map>
-#include <shared_mutex>
-
-#include <glm/ext/vector_float3.hpp>
-#include <glm/ext/vector_int3.hpp>
-#include <glm/gtx/hash.hpp>
-
 #include "Entity.hpp"
 #include "enums.hpp"
 #include "constants.hpp"
-
+#include <glm/ext/vector_float3.hpp>
+#include <glm/ext/vector_int3.hpp>
+#include <glm/gtx/hash.hpp>
+#include <vector>
+#include <unordered_map>
+#include <shared_mutex>
 
 struct Chunk;
 struct BlockRaycastHit;

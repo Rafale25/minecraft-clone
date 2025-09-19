@@ -1,4 +1,3 @@
-#include <imgui.h>
 #include "GameView.hpp"
 #include "Client.hpp"
 #include "World.hpp"
@@ -6,6 +5,7 @@
 #include "clock.hpp"
 #include "string_helpers.hpp"
 #include "mem_info.h"
+#include <imgui.h>
 
 void GameView::drawPlayersNames()
 {

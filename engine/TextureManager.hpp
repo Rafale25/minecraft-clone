@@ -1,9 +1,8 @@
 #pragma once
 
+#include <glad/gl.h>
 #include <string>
 #include <unordered_map>
-
-#include <glad/gl.h>
 
 class TextureManager
 {

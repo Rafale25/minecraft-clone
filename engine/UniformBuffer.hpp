@@ -1,12 +1,11 @@
 #pragma once
 
+#include "Logger.hpp"
+#include "VAO.hpp"
 #include <cassert>
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include "Logger.hpp"
-#include "VAO.hpp"
-// #include "gl/gl.h"
 
 struct UniformDefinition
 {

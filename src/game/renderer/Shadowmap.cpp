@@ -1,9 +1,8 @@
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "Shadowmap.hpp"
 #include "Context.hpp"
 #include "Program.hpp"
 #include "Frustum.hpp"
+#include <glm/gtc/matrix_transform.hpp>
 
 static const float borderColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 

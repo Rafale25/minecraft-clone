@@ -1,9 +1,7 @@
-#include <glad/gl.h>
-
 #include "BlockTextureManager.hpp"
 #include "TextureManager.hpp"
 #include "stb_image.h"
-
+#include <glad/gl.h>
 
 // #define DISABLE_BINDLESS_TEXTURE
 

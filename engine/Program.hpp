@@ -1,8 +1,8 @@
 #pragma once
 
+#include <glm/detail/type_mat4x4.hpp>
 #include <string>
 #include <unordered_map>
-#include <glm/detail/type_mat4x4.hpp>
 
 typedef unsigned int GLuint;
 typedef int GLint;

@@ -1,14 +1,14 @@
-#include <cstdio>
-#include <unordered_map>
+#include "Context.hpp"
+#include "Logger.hpp"
+#include "profiler.hpp"
 
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-#include "Context.hpp"
-#include "Logger.hpp"
-#include "profiler.hpp"
+#include <cstdio>
+#include <unordered_map>
 
 static void GLFW_error(int error, const char* description)
 {

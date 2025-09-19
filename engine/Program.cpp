@@ -1,8 +1,8 @@
-#include <glm/detail/type_mat4x4.hpp>
-#include <glad/gl.h>
 #include "Program.hpp"
 #include "Logger.hpp"
 #include "stb_include.h"
+#include <glm/detail/type_mat4x4.hpp>
+#include <glad/gl.h>
 
 Program::Program(const char* vertexPath, const char* fragmentPath, const char* geometryPath):
 _vertexPath(vertexPath), _fragmentPath(fragmentPath), _geometryPath(geometryPath)

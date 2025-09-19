@@ -1,9 +1,8 @@
-#include <filesystem>
-#include <algorithm>
-
 #include "GameView.hpp"
 #include "Blueprint.hpp"
 #include "imgui.h"
+#include <filesystem>
+#include <algorithm>
 
 struct BlueprintFileInfo {
     std::filesystem::directory_entry entry;

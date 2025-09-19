@@ -1,141 +1,181 @@
 #include "Client.hpp"
+#include "World.hpp"
+#include "constants.hpp"
+#include <algorithm>
 
-#include "endianess.h"
-#include "byte_manipulation.hpp"
-
-void Client::sendBreakBlockPacket(const glm::ivec3& world_pos)
+Packet::Server::ChunkPacket* readChunkPacket(ByteBuffer& buffer)
 {
-    Packet::Client::UpdateBlock packet = {};
+    auto* chunk_data = new Packet::Server::ChunkPacket;
 
-    packet.id = Packet::Client::PACKET_EDIT_BLOCK; // update block //
-    packet.blockType = (uint8_t)BlockType::Air;
+    int32_t x = buffer.getInt();
+    int32_t y = buffer.getInt();
+    int32_t z = buffer.getInt();
 
-    packet.x = htobe32(*(uint32_t*)&world_pos.x);
-    packet.y = htobe32(*(uint32_t*)&world_pos.y);
-    packet.z = htobe32(*(uint32_t*)&world_pos.z);
+    chunk_data->pos = glm::ivec3(x, y, z) / CHUNK_SIZE;
 
-    sendPacket(&packet, sizeof(packet));
-}
+    for (int32_t i = 0 ; i < CHUNK_BLOCK_COUNT ; ++i) {
+        uint8_t byte = buffer.get();
 
-void Client::sendBlockBulkEditPacket(const std::vector<std::tuple<glm::ivec3, BlockType>> blocks)
-{
-    size_t size_in_bytes = sizeof(uint8_t) +
-                            sizeof(uint32_t) +
-                            blocks.size() * (sizeof(uint8_t) + 3*sizeof(int32_t));
+        /* convert to BlackoutBurst indexing -_- */
+        // int32_t x = i % 16;
+        // int32_t y = (i / 16) % 16;
+        // int32_t z = i / (16 * 16);
+        // int32_t index = x * 16*16 + y * 16 + z;
+        // chunk.blocks[index] = (BlockType)byte;
 
-    auto buffer = std::make_unique<uint8_t[]>(size_in_bytes);
-    uint8_t *head = &buffer[0];
-
-    // id
-    head[0] = Packet::Client::PACKET_EDIT_BLOCK_BULK;
-    head += sizeof(uint8_t);
-
-    // blockCount
-    putIntBe(head, blocks.size());
-    head += sizeof(int32_t);
-
-    for (const auto& [pos, blocktype] : blocks) {
-        head[0] = (uint8_t)blocktype;
-        head += sizeof(uint8_t);
-
-        putIntBe(head, pos.x);
-        head += sizeof(int32_t);
-
-        putIntBe(head, pos.y);
-        head += sizeof(int32_t);
-
-        putIntBe(head, pos.z);
-        head += sizeof(int32_t);
+        chunk_data->blocks[i] = (BlockType)byte;
     }
 
-    sendPacket(buffer.get(), size_in_bytes);
+    return chunk_data;
 }
 
-
-void Client::sendBlockBulkEditPacketMonotype(const std::vector<glm::ivec3>& world_pos, BlockType blocktype)
+Packet::Server::ChunkPacket* readFullMonoChunkPacket(ByteBuffer buffer)
 {
-    size_t size_in_bytes = sizeof(uint8_t) +
-                            sizeof(uint32_t) +
-                            world_pos.size() * (sizeof(uint8_t) + 3*sizeof(int32_t));
+    int32_t x = buffer.getInt();
+    int32_t y = buffer.getInt();
+    int32_t z = buffer.getInt();
+    uint8_t blockType = buffer.get();
 
-    auto buffer = std::make_unique<uint8_t[]>(size_in_bytes);
-    uint8_t *head = &buffer[0];
+    auto *chunk_data = new Packet::Server::ChunkPacket;
+    chunk_data->pos = glm::ivec3(x, y, z) / CHUNK_SIZE;
+    memset(chunk_data->blocks, blockType, CHUNK_BLOCK_COUNT);
 
-    // id
-    head[0] = Packet::Client::PACKET_EDIT_BLOCK_BULK;
-    head += sizeof(uint8_t);
+    return chunk_data;
+}
 
-    // blockCount
-    putIntBe(head, world_pos.size());
-    head += sizeof(int32_t);
+Packet::Server::AddEntity readAddEntityPacket(ByteBuffer buffer)
+{
+    Packet::Server::AddEntity packet = {};
 
-    for (size_t i = 0 ; i < world_pos.size() ; ++i)
-    {
-        head[0] = (uint8_t)blocktype;
-        head += sizeof(uint8_t);
+    packet.id = buffer.getInt();
+    packet.position.x = buffer.getFloat();
+    packet.position.y = buffer.getFloat();
+    packet.position.z = buffer.getFloat();
+    packet.yaw = buffer.getFloat();
+    packet.pitch = buffer.getFloat();
+    buffer.getN((uint8_t*)packet.name, 64);
 
-        putIntBe(head, world_pos[i].x);
-        head += sizeof(int32_t);
+    return packet;
+}
 
-        putIntBe(head, world_pos[i].y);
-        head += sizeof(int32_t);
+Packet::Server::UpdateEntity readUpdateEntityPacket(ByteBuffer buffer)
+{
+    Packet::Server::UpdateEntity packet = {};
 
-        putIntBe(head, world_pos[i].z);
-        head += sizeof(int32_t);
+    packet.entity_id = buffer.getInt();
+    packet.position.x = buffer.getFloat();
+    packet.position.y = buffer.getFloat();
+    packet.position.z = buffer.getFloat();
+    packet.yaw = buffer.getFloat();
+    packet.pitch = buffer.getFloat();
+
+    return packet;
+}
+
+Packet::Server::UpdateEntityMetadata readUpdateEntityMetadata(ByteBuffer buffer)
+{
+    Packet::Server::UpdateEntityMetadata packet = {};
+
+    packet.entity_id = buffer.getInt();
+    buffer.getN((uint8_t*)packet.name, 64);
+
+    return packet;
+}
+
+void Client::decodePacketIdentification(ByteBuffer buffer)
+{
+    Client::instance().client_id = buffer.getInt();
+}
+
+void Client::decodePacketAddEntity(ByteBuffer buffer)
+{
+    Client& client = Client::instance();
+
+    Packet::Server::AddEntity packet = readAddEntityPacket(buffer);
+
+    client.task_queue.push_safe([=]() {
+        Entity e{packet.id, packet.position};
+        // e.transform.rotation.y = yaw;
+        // e.transform.rotation.x = pitch;
+        e.name = std::string(packet.name);
+        World::instance().addEntity(e);
+    } );
+}
+
+void Client::decodePacketRemoveEntity(ByteBuffer buffer)
+{
+    Client& client = Client::instance();
+
+    int32_t entity_id = buffer.getInt();
+    client.task_queue.push_safe([=]() {
+        World::instance().removeEntity(entity_id);
+    });
+}
+
+void Client::decodePacketUpdateEntity(ByteBuffer buffer)
+{
+    Client& client = Client::instance();
+
+    Packet::Server::UpdateEntity packet = readUpdateEntityPacket(buffer);
+
+    client.task_queue.push_safe([=]() {
+        World::instance().setEntityTransform(packet.entity_id, packet.position, packet.yaw, packet.pitch);
+    } );
+}
+
+void Client::decodePacketChunk(ByteBuffer buffer)
+{
+    Client& client = Client::instance();
+
+    auto* chunk_data = readChunkPacket(buffer);
+
+    const std::lock_guard<std::mutex> lock(client.new_chunks_mutex);
+
+    // Replace chunk if already in new chunk list to reduce charge on mainthread //
+    auto it = std::find_if(client.new_chunks.begin(), client.new_chunks.end(), [&](const auto& chunk){ return chunk->pos == chunk_data->pos; });
+    if (it != client.new_chunks.end()) {
+        delete *it;
+        *it = chunk_data;
+    } else {
+        client.new_chunks.push_front(chunk_data);
     }
-
-    sendPacket(buffer.get(), size_in_bytes);
 }
 
-void Client::sendPlaceBlockPacket(const glm::ivec3& world_pos, BlockType blocktype)
+void Client::decodePacketMonotypeChunk(ByteBuffer buffer)
 {
-    Packet::Client::UpdateBlock packet = {};
+    Client& client = Client::instance();
 
-    packet.id = Packet::Client::PACKET_EDIT_BLOCK; // update block //
-    packet.blockType = (uint8_t)blocktype;
-    packet.x = htobe32(*(uint32_t*)&world_pos.x);
-    packet.y = htobe32(*(uint32_t*)&world_pos.y);
-    packet.z = htobe32(*(uint32_t*)&world_pos.z);
-
-    sendPacket(&packet, sizeof(packet));
+    auto* chunk_data = readFullMonoChunkPacket(buffer);
+    const std::lock_guard<std::mutex> lock(client.new_chunks_mutex);
+    client.new_chunks.push_front(chunk_data);
 }
 
-void Client::sendUpdateEntityPacket(const glm::vec3& pos, float yaw, float pitch)
+void Client::decodePacketEntityMetadata(ByteBuffer buffer)
 {
-    // if (client_id == -1) return;
+    Client& client = Client::instance();
 
-    Packet::Client::UpdateEntity packet = {};
+    Packet::Server::UpdateEntityMetadata packet = readUpdateEntityMetadata(buffer);
 
-    packet.id = Packet::Client::PACKET_UPDATE_ENTITY; // update entity //
-    packet.x = htobe32(*(uint32_t*)&pos.x);
-    packet.y = htobe32(*(uint32_t*)&pos.y);
-    packet.z = htobe32(*(uint32_t*)&pos.z);
-    packet.yaw = htobe32(*(uint32_t*)&yaw);
-    packet.pitch = htobe32(*(uint32_t*)&pitch);
-
-    sendPacket(&packet, sizeof(packet));
+    client.task_queue.push_safe([=]() {
+        World::instance().setEntityName(packet.entity_id, std::string(packet.name));
+    });
 }
 
-void Client::sendChatMessagePacket(const char* buffer)
+void Client::decodePacketChatMessage(ByteBuffer buffer)
 {
-    Packet::Client::ChatMessage packet = {};
+    Client& client = Client::instance();
 
-    size_t size = strlen(buffer) * sizeof(char);
-    assert(size <= sizeof(packet.buffer));
+    std::string str = std::string((char*)buffer.getPtr(), 4096);
 
-    packet.id = Packet::Client::PACKET_TEXT_MESSAGE;
-    memcpy(packet.buffer, buffer, size);
+    // Removes '&[]' from message //
+    size_t index = 0;
+    while (true) {
+        index = str.find("&", index);
+        if (index == std::string::npos) break;
+        str.replace(index, 2, "");
+        index += 2;
+    }
+    // --
 
-    sendPacket(&packet, sizeof(packet));
-}
-
-void Client::sendClientMetadataPacket(int32_t render_distance, std::string name)
-{
-    Packet::Client::ClientMetadata packet = {};
-
-    packet.id = Packet::Client::PACKET_CLIENT_METADATA;
-    packet.render_distance = render_distance;
-    memcpy(packet.name, name.c_str(), name.length());
-
-    sendPacket(&packet, sizeof(packet));
+    client._tchat->push_back(str);
 }
