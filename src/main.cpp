@@ -1,5 +1,4 @@
 #include "command_line_args.h"
-#include "GameState.hpp"
 #include "Context.hpp"
 #include "GameView.hpp"
 #include "Logger.hpp"
@@ -17,10 +16,6 @@ int main(int argc, char** argv)
     if (global_argc < 4) {
         logE("Please enter ip, port and render distance in command line argument");
         return -1;
-    }
-
-    if (global_argc > 3) {
-        GameState::setRenderDistance(std::atoi(global_argv[3]));
     }
 
     Context ctx(SCR_WIDTH, SCR_HEIGHT, TITLE, 0, 4);

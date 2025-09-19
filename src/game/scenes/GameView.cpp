@@ -27,6 +27,10 @@ GameView::GameView(Context& ctx): View(ctx)
 
     Client::instance().init(tchat, global_argv[1], std::atoi(global_argv[2]));
     Client::instance().Start();
+
+    if (global_argc > 3) {
+        GameState::setRenderDistance(std::atoi(global_argv[3]));
+    }
 }
 
 void GameView::onHideView()
