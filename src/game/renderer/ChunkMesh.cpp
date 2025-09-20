@@ -3,10 +3,10 @@
 #include "ChunkExtra.hpp"
 #include "Logger.hpp"
 
-static inline GLuint64 packVertex(int32_t x, int32_t y, int32_t z, int32_t o, int32_t t, int32_t ao00, int32_t ao10, int32_t ao11, int32_t ao01) {
+static inline GLuint64 packVertex(int32_t x, int32_t y, int32_t z, int32_t o, int32_t t, int32_t ao00, int32_t ao10, int32_t ao11, int32_t ao01, bool translucent) {
     // 8 bytes, 64 bits
 
-    // ------------------------aaaaaaaa
+    // -----------------------iaaaaaaaa
     // --tttttttttooozzzzzzyyyyyyxxxxxx
     GLuint64 p = (GLuint64)
         ((GLuint64)(x & 63)   << 0)   |
@@ -18,7 +18,8 @@ static inline GLuint64 packVertex(int32_t x, int32_t y, int32_t z, int32_t o, in
         (((GLuint64)(ao00 & 3)) << 32) |
         (((GLuint64)(ao10 & 3)) << 34) |
         (((GLuint64)(ao11 & 3)) << 36) |
-        (((GLuint64)(ao01 & 3)) << 38);
+        (((GLuint64)(ao01 & 3)) << 38) |
+        (((GLuint64)(translucent & 1)) << 40);
 
     return p;
 }
@@ -42,7 +43,7 @@ static inline glm::ivec3 orientationToDir(Orientation orientation) {
     }
 }
 
-constexpr int32_t infos[][26] = {
+constexpr int8_t infos[][26] = {
     // [Orientation::Top] 0
     {
      // nb_lx
@@ -135,7 +136,7 @@ static inline void makeFace(
 ){
     glm::ivec3 dir = orientationToDir(orientation);
 
-    const int32_t* info = infos[orientation];
+    const int8_t* info = infos[orientation];
 
     BlockType self_block = chunkextra.getBlock(local_pos);
     BlockType neighbor_block = chunkextra.getBlock(local_pos + dir);
@@ -161,7 +162,7 @@ static inline void makeFace(
     int32_t a11 = vertexAO(nb_hx, nb_hy, nb_hxhy);
     int32_t a01 = vertexAO(nb_lx, nb_hy, nb_lxhy);
 
-    GLuint64 facedata = packVertex(x, y, z, orientation, texture_id, a00, a10, a11, a01);
+    GLuint64 facedata = packVertex(x, y, z, orientation, texture_id, a00, a10, a11, a01, self_block_info.translucent);
 
     if (self_block_info.translucent) {
         mesh.vertices_translucent.push_back(facedata);
@@ -174,6 +175,8 @@ ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos)
 {
     ChunkExtra chunkextra = ChunkExtra::get(chunk_pos);
     ChunkRawMesh chunk_raw_mesh;
+
+    const auto& block_textures_ids = BlockTextureManager::Get().block_textures_ids;
 
     for (int32_t z = 0 ; z < CHUNK_SIZE ; ++z) {
     for (int32_t y = 0 ; y < CHUNK_SIZE ; ++y) {
@@ -188,7 +191,7 @@ ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos)
         }
 
         const glm::ivec3 local_pos = glm::ivec3(x, y, z);
-        auto [texture_handle_lz, texture_handle_hz, texture_handle_lx, texture_handle_hx, texture_handle_ly, texture_handle_hy] = BlockTextureManager::Get().block_textures_ids[block];
+        auto [texture_handle_lz, texture_handle_hz, texture_handle_lx, texture_handle_hx, texture_handle_ly, texture_handle_hy] = block_textures_ids.at(block);
 
         makeFace(chunk_raw_mesh, x, y, z, chunkextra, local_pos, Orientation::Front, texture_handle_lz);
         makeFace(chunk_raw_mesh, x, y, z, chunkextra, local_pos, Orientation::Back, texture_handle_hz);

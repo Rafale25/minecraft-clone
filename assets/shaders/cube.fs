@@ -17,27 +17,19 @@ const vec3 orientation_normal_table[] = {
 };
 
 in VS_OUT {
-    in vec3 frag_pos;
-    in vec2 uv;
-    flat in uint orientation;
-    flat in uint texture_id;
+    vec3 frag_pos;
+    vec2 uv;
+    flat uint orientation;
+    flat uint texture_id;
     float ambient_occlusion;
-    in vec4 FragPosLightSpace;
+    vec4 FragPosLightSpace;
+    flat uint isTranslucent;
 } fs_in;
 
 #include "uniforms.glsl"
 
 layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec3 gPosition;
-
-// uniform vec3 u_sun_direction;
-// uniform float u_shadow_bias;
-// uniform bool u_ambient_occlusion_enabled = true;
-// uniform float u_ambient_occlusion_strength = 0.9;
-// uniform vec2 u_resolution;
-// uniform bool u_tonemapping_enabled = true;
-// uniform float u_exposure = 1.0;
-
 
 uniform sampler2D shadowMap;
 
@@ -104,7 +96,7 @@ void main()
     float diff = max(dot(normal, normalize(uniforms.sunDirection.xyz)), 0.0);
     vec3 diffuse = diff * lightColor;
 
-    if (color.a < 0.65) { // magic value
+    if (fs_in.isTranslucent == 0 && color.a < 0.65) { // magic value
         discard;
     }
 
@@ -131,7 +123,7 @@ void main()
     }
 
     vec3 gammaCorrected = fromLinearToSRGB(lighting);// pow(lighting, vec3(1.0/2.2));
-    FragColor = vec4(gammaCorrected, 1.0);
+    FragColor = vec4(gammaCorrected, color.a);
 
     // FragColor = vec4(normal, 1.0);
 }

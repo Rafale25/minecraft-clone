@@ -12,12 +12,13 @@ layout(binding = 2, std430) readonly buffer ssbo_blocks_faces {
 };
 
 out VS_OUT {
-    out vec3 frag_pos;
-    out vec2 uv;
-    flat out uint orientation;
+    vec3 frag_pos;
+    vec2 uv;
+    flat uint orientation;
     flat uint texture_id;
     float ambient_occlusion;
-    out vec4 FragPosLightSpace;
+    vec4 FragPosLightSpace;
+    flat uint isTranslucent;
 } vs_out;
 
 #include "uniforms.glsl"
@@ -71,6 +72,8 @@ void main() {
         int((data >> 38) & 3)
     };
 
+    uint isTranslucent = uint((data >> 40) & 1);
+
     int offset = (orientation == 1 || orientation == 3) ? 4 : 0;
     int vertex_index = (gl_VertexID % 4) + offset;
 
@@ -101,6 +104,7 @@ void main() {
     vs_out.orientation = orientation;
     vs_out.texture_id = texture_id;
     vs_out.ambient_occlusion = ao_factor;
+    vs_out.isTranslucent = isTranslucent;
 
     gl_Position = uniforms.projection_view * vec4(world_pos, 1.0);
 }
