@@ -18,7 +18,7 @@ class Camera;
 
 class WorldRenderer
 {
-    using VERTEX_TYPE = GLuint64;
+    static constexpr int VERTEX_SIZE = sizeof(GLuint64);
 
 public:
     WorldRenderer(Context &context);

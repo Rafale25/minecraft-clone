@@ -321,22 +321,22 @@ void WorldRenderer::generateDrawCommands(
         if (mesh.slot_vertices.start != -1) {
             chunk_positions_opaque.push_back(glm::vec4(chunk_pos * CHUNK_SIZE, 1.0f));
             commands_opaque.push_back({
-                (uint32_t)(mesh.slot_vertices.size / sizeof(VERTEX_TYPE)) * 6, // one face if 2 triangles, 6 vertices
+                (uint32_t)(mesh.slot_vertices.size / VERTEX_SIZE) * 6, // one face if 2 triangles, 6 vertices
                 1u,
                 0u,
                 0, // don't need it first vertex so set it at 0 to avoid crash/bug
-                (uint32_t)(mesh.slot_vertices.start / sizeof(VERTEX_TYPE)), // pass first vertex information by using this field that get sent to gl_BaseInstance
+                (uint32_t)(mesh.slot_vertices.start / VERTEX_SIZE), // pass first vertex information by using this field that get sent to gl_BaseInstance
             });
         }
 
         if (mesh.slot_vertices_translucent.start != -1) {
             chunk_positions_translucent.push_back(glm::vec4(chunk_pos * CHUNK_SIZE, 1.0f));
             commands_translucent.push_back({
-                (uint32_t)(mesh.slot_vertices_translucent.size / sizeof(VERTEX_TYPE)) * 6, // one face if 2 triangles, 6 vertices
+                (uint32_t)(mesh.slot_vertices_translucent.size / VERTEX_SIZE) * 6, // one face if 2 triangles, 6 vertices
                 1u,
                 0u,
                 0, // don't need it first vertex so set it at 0 to avoid crash/bug
-                (uint32_t)(mesh.slot_vertices_translucent.start / sizeof(VERTEX_TYPE)), // pass first vertex information by using this field that get sent to gl_BaseInstance
+                (uint32_t)(mesh.slot_vertices_translucent.start / VERTEX_SIZE), // pass first vertex information by using this field that get sent to gl_BaseInstance
             });
         }
 
@@ -351,7 +351,7 @@ void WorldRenderer::renderTerrain(
     const std::vector<glm::vec4>& chunk_positions_translucent
 ) {
     glBindVertexArray(chunk_vao);
-    glVertexArrayVertexBuffer(chunk_vao, 0, buffer_allocator_vertices.getBufferObject(), 0, 1 * sizeof(VERTEX_TYPE)); // Not needed anymore but crashes without
+    glVertexArrayVertexBuffer(chunk_vao, 0, buffer_allocator_vertices.getBufferObject(), 0, 1 * VERTEX_SIZE); // Not needed anymore but crashes without
     glVertexArrayElementBuffer(chunk_vao, ssbo_chunk_element_buffer);
 
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_texture_handles);
@@ -360,18 +360,24 @@ void WorldRenderer::renderTerrain(
 
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, draw_command_buffer);
 
+    // opaque
     glNamedBufferSubData(ssbo_chunk_positions, 0, sizeof(GLfloat) * 4 * chunk_positions_opaque.size(), (const void *)chunk_positions_opaque.data());
     glNamedBufferSubData(draw_command_buffer, 0, sizeof(commands_opaque[0]) * commands_opaque.size(), (const void *)commands_opaque.data());
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (const void *)0, commands_opaque.size(), 0);
 
+    // translucent //
     glNamedBufferSubData(ssbo_chunk_positions, 0, sizeof(GLfloat) * 4 * chunk_positions_translucent.size(), (const void *)chunk_positions_translucent.data());
     glNamedBufferSubData(draw_command_buffer, 0, sizeof(commands_translucent[0]) * commands_translucent.size(), (const void *)commands_translucent.data());
 
     glEnable(GL_BLEND);
+    // glDisable(GL_DEPTH_TEST);
+    // glDepthMask(GL_FALSE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (const void *)0, commands_translucent.size(), 0);
     glDisable(GL_BLEND);
+    // glEnable(GL_DEPTH_TEST);
+    // glDepthMask(GL_TRUE);
 }
 
 // void WorldRenderer::renderShadowmap(const Camera &camera)
