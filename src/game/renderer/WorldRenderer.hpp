@@ -1,5 +1,6 @@
 #pragma once
 
+#include "IWorldRender.hpp"
 #include "ChunkMesh.hpp"
 #include "Context.hpp"
 #include "Program.hpp"
@@ -16,19 +17,19 @@ struct ChunkMesh;
 struct ChunkRawMesh;
 class Camera;
 
-class WorldRenderer
+class WorldRenderer : public IWorldRenderer
 {
     static constexpr int VERTEX_SIZE = sizeof(GLuint64);
 
 public:
     WorldRenderer(Context &context);
 
-    void onDeletedChunk(const glm::ivec3& chunk_pos);
-    void onAddedChunk(const glm::ivec3& chunk_pos);
-    void onResize(int32_t width, int32_t height);
+    void onDeletedChunk(const glm::ivec3& chunk_pos) override;
+    void onAddedChunk(const glm::ivec3& chunk_pos) override;
+    void onResize(int32_t width, int32_t height) override;
 
-    void render(const Camera &camera);
-    void update();
+    void render(const Camera &camera) override;
+    void update() override;
 
 private:
     void processChunksToMesh();
