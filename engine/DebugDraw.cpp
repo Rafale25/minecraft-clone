@@ -133,7 +133,12 @@ void DebugDraw::drawAndFlush(const glm::mat4& view_projection)
 
     int32_t buffer_size = -1;
     glGetNamedBufferParameteriv(_vbo, GL_BUFFER_SIZE, &buffer_size);
-    logD("size {}", buffer_size);
+
+    if (buffer_size < vertices_size_bytes) {
+        glNamedBufferData(_vbo, vertices_size_bytes, (const void *)_vertices.data(), GL_DYNAMIC_DRAW);
+    } else {
+        glNamedBufferSubData(_vbo, 0, vertices_size_bytes, (const void *)_vertices.data());
+    }
 
     _program.use();
     _program.setMat4("u_viewProjection", view_projection);
@@ -141,12 +146,6 @@ void DebugDraw::drawAndFlush(const glm::mat4& view_projection)
     float line_width; // save state
     glGetFloatv(GL_LINE_WIDTH, &line_width);
     glLineWidth(2.0f);
-
-    if (buffer_size < vertices_size_bytes) {
-        glNamedBufferData(_vbo, vertices_size_bytes, (const void *)_vertices.data(), GL_DYNAMIC_DRAW);
-    } else {
-        glNamedBufferSubData(_vbo, 0, vertices_size_bytes, (const void *)_vertices.data());
-    }
 
     glBindVertexArray(_vao);
     glDrawArrays(GL_LINES, 0, vertex_count);
