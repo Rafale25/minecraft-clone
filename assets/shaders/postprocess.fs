@@ -4,55 +4,12 @@ in vec2 TexCoords;
 
 out vec4 FragColor;
 
-#include "uniforms.glsl"
-
-
 layout (location = 0) uniform sampler2D colorTexture;
 layout (location = 1) uniform sampler2D worldPosTexture;
 layout (location = 2) uniform sampler2D depthTexture;
 
-// https://www.shadertoy.com/view/4ljBRy
-// quick and pretty sky colour
-vec3 SkyColour(vec3 ray)
-{
-    return exp2(-ray.y/vec3(.1,.3,.6)); // blue
-//    return exp2(-ray.y/vec3(.18,.2,.28))*vec3(1,.95,.8); // overcast
-//    return exp2(-ray.y/vec3(.1,.2,.8))*vec3(1,.75,.5); // dusk
-//    return exp2(-ray.y/vec3(.03,.2,.9)); // tropical blue
-//    return exp2(-ray.y/vec3(.4,.06,.01)); // orange-red
-//    return exp2(-ray.y/vec3(.1,.2,.01)); // green
-}
-
-vec3 SkyColourMorning(vec3 ray)
-{
-   return exp2(-ray.y/vec3(.1,.2,.8))*vec3(1,.75,.5); // dusk
-}
-
-vec3 skyray(vec2 uv, float fieldOfView, float aspectRatio)
-{
-    float d = 0.5 / tan(fieldOfView / 2.0);
-    return vec3((uv.x - 0.5) * aspectRatio, uv.y - 0.5, -d);
-}
-
-vec3 getSkyColor(vec3 ray) {
-    // Dynamic horizon height based on camera.y
-    // const float horizon_height = -u_viewPosition.y * 0.001; //-0.15;
-    // ray = normalize(ray - vec3(0.0, horizon_height, 0.0));
-
-    vec3 tint = vec3(1);
-    vec3 skyColorMorning = SkyColourMorning(ray.xyz);
-    vec3 skyColorZenit = SkyColour(ray.xyz);
-
-    // vec3 color = mix(skyColorMorni:ng, skyColorZenit, clamp(uniforms.sunDotAngle, 0.0, 1.0));
-    vec3 color = mix(skyColorMorning, skyColorZenit, clamp(uniforms.sunDotAngle, 0.0, 1.0));
-    color *= tint;
-
-    // corrections
-    color = 0.6 + (clamp(color, 0.0, 1.0) - 0.6);
-    color = pow(color, vec3(1.0/2.2));
-
-    return color;
-}
+#include "uniforms.glsl"
+#include "skyColor.glsl"
 
 // const float fog_start = 150.0;
 // const float fog_end = 350.0;
@@ -94,18 +51,6 @@ vec3 applyFog(vec3  col,   // color of pixel
     return mix( col, finalfogColor, fogAmount );
 }
 
-float linearize_depth(float d, float zNear, float zFar)
-{
-    return zNear * zFar / (zFar + d * (zNear - zFar));
-}
-
-float depthToFragDistance(vec2 uv, float depth)
-{
-    vec4 clipSpace = vec4(uv, depth*2.0-1.0, 1.0);
-    vec4 viewSpace = inverse(uniforms.projection) * clipSpace;
-    return length(viewSpace.xyz / viewSpace.w);
-}
-
 void main()
 {
     vec2 uv = (gl_FragCoord.xy - 0.5*uniforms.resolution.xy) / uniforms.resolution.y;
@@ -117,7 +62,7 @@ void main()
     vec2 what_uv = vec2(uv.x * 0.5 + 0.5, uv.y + 0.5);
 
     vec3 ray = normalize(mat3(inverse(uniforms.view)) * skyray(what_uv, uniforms.FOV, uniforms.resolution.x / uniforms.resolution.y));
-    vec3 skyColor = getSkyColor(ray);
+    vec3 skyColor = getSkyColor(ray, uniforms.sunDotAngle);
 
     // float fragDistance = depthToFragDistance(uv, depth);
     float fragDistance = distance(uniforms.viewPosition.xyz, worldPos); //worldPosdepthToFragDistance(uv, depth);
