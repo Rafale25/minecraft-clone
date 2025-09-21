@@ -75,7 +75,8 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
     return shadow;
 }
 
-#include "tonemapping.glsl"
+#include "utils/tonemapping.glsl"
+#include "utils/SRGB.glsl"
 
 void main()
 {
