@@ -4,22 +4,42 @@
 #include <glad/gl.h>
 #include <glm/gtc/constants.hpp>
 
+static inline int32_t packColor(uint8_t r, uint8_t g, uint8_t b) {
+    return (r << 16 | g << 8 | b);
+}
+
+static float intBitsToFloat(int32_t int_value)
+{
+    union {
+        int32_t i;
+        float f;
+    } bits;
+
+    bits.i = int_value;
+    return bits.f;
+}
+
 DebugDraw::DebugDraw()
 {
     constexpr int32_t MAX_SIZE = sizeof(float) * 10'000'000; //12 * 4
 
     _vbo = createBufferStorage(nullptr, MAX_SIZE, GL_DYNAMIC_STORAGE_BIT);
-    _vao = createVAO(_vbo, "3f 3f");
+    _vao = createVAO(_vbo, "3f 1i");
 }
 
 void DebugDraw::drawLine(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &color)
 {
     // TODO: add check for max size
 
-    _vertices.push_back(a);
-    _vertices.push_back(color);
-    _vertices.push_back(b);
-    _vertices.push_back(color);
+    _vertices.emplace_back(a.r);
+    _vertices.emplace_back(a.g);
+    _vertices.emplace_back(a.b);
+    _vertices.emplace_back(intBitsToFloat(packColor(color.r * 255, color.g * 255, color.b * 255)));
+
+    _vertices.emplace_back(b.r);
+    _vertices.emplace_back(b.g);
+    _vertices.emplace_back(b.b);
+    _vertices.emplace_back(intBitsToFloat(packColor(color.r * 255, color.g * 255, color.b * 255)));
 }
 
 void DebugDraw::drawRay(const glm::vec3 &start, const glm::vec3 &v, const glm::vec3 &color)
@@ -111,7 +131,7 @@ void DebugDraw::drawFrustum(const glm::mat4 &view_projection, const glm::vec3& c
 
 void DebugDraw::drawAndFlush(const glm::mat4& view_projection)
 {
-    const size_t vertex_count = _vertices.size() / 2; // position, color
+    const size_t vertex_count = _vertices.size() / 4; // x y z packedColor
 
     _program.use();
     _program.setMat4("u_viewProjection", view_projection);
@@ -120,7 +140,7 @@ void DebugDraw::drawAndFlush(const glm::mat4& view_projection)
     glGetFloatv(GL_LINE_WIDTH, &line_width);
     glLineWidth(2.0f);
 
-    glNamedBufferSubData(_vbo, 0, sizeof(float) * 6 * vertex_count, (const void *)_vertices.data());
+    glNamedBufferSubData(_vbo, 0, sizeof(float) * 4 * vertex_count, (const void *)_vertices.data());
     glBindVertexArray(_vao);
     glDrawArrays(GL_LINES, 0, vertex_count);
 

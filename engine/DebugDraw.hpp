@@ -38,5 +38,5 @@ private:
 private:
     Program _program{ENGINE_RESSOURCE_PATH "debug_draw/line.vert", ENGINE_RESSOURCE_PATH "debug_draw/line.frag"};
     GLuint _vao, _vbo;
-    std::vector<glm::vec3> _vertices;
+    std::vector<float> _vertices;
 };
