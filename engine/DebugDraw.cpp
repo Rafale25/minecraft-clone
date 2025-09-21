@@ -1,6 +1,7 @@
 #include "DebugDraw.hpp"
 #include "VAO.hpp"
 #include "Frustum.hpp"
+#include "Logger.hpp"
 #include <glad/gl.h>
 #include <glm/gtc/constants.hpp>
 
@@ -8,8 +9,7 @@ static inline int32_t packColor(uint8_t r, uint8_t g, uint8_t b) {
     return (r << 16 | g << 8 | b);
 }
 
-static float intBitsToFloat(int32_t int_value)
-{
+static inline float intBitsToFloat(int32_t int_value) {
     union {
         int32_t i;
         float f;
@@ -21,16 +21,13 @@ static float intBitsToFloat(int32_t int_value)
 
 DebugDraw::DebugDraw()
 {
-    constexpr int32_t MAX_SIZE = sizeof(float) * 10'000'000; //12 * 4
-
-    _vbo = createBufferStorage(nullptr, MAX_SIZE, GL_DYNAMIC_STORAGE_BIT);
+    constexpr int initial_size = 10'000 * sizeof(float) * 4;
+    _vbo = createBufferData(nullptr, initial_size, GL_DYNAMIC_DRAW);
     _vao = createVAO(_vbo, "3f 1i");
 }
 
 void DebugDraw::drawLine(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &color)
 {
-    // TODO: add check for max size
-
     _vertices.emplace_back(a.r);
     _vertices.emplace_back(a.g);
     _vertices.emplace_back(a.b);
@@ -131,7 +128,12 @@ void DebugDraw::drawFrustum(const glm::mat4 &view_projection, const glm::vec3& c
 
 void DebugDraw::drawAndFlush(const glm::mat4& view_projection)
 {
-    const size_t vertex_count = _vertices.size() / 4; // x y z packedColor
+    const int32_t vertex_count = _vertices.size() / 4; // x y z packedColor
+    const int32_t vertices_size_bytes = _vertices.size() * sizeof(float);
+
+    int32_t buffer_size = -1;
+    glGetNamedBufferParameteriv(_vbo, GL_BUFFER_SIZE, &buffer_size);
+    logD("size {}", buffer_size);
 
     _program.use();
     _program.setMat4("u_viewProjection", view_projection);
@@ -140,7 +142,12 @@ void DebugDraw::drawAndFlush(const glm::mat4& view_projection)
     glGetFloatv(GL_LINE_WIDTH, &line_width);
     glLineWidth(2.0f);
 
-    glNamedBufferSubData(_vbo, 0, sizeof(float) * 4 * vertex_count, (const void *)_vertices.data());
+    if (buffer_size < vertices_size_bytes) {
+        glNamedBufferData(_vbo, vertices_size_bytes, (const void *)_vertices.data(), GL_DYNAMIC_DRAW);
+    } else {
+        glNamedBufferSubData(_vbo, 0, vertices_size_bytes, (const void *)_vertices.data());
+    }
+
     glBindVertexArray(_vao);
     glDrawArrays(GL_LINES, 0, vertex_count);
 
