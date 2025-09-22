@@ -80,13 +80,17 @@ public:
     UniformBuffer _ubuffer;
 
     Mesh _quad_fs = Geometry::quad_2d();
+    Mesh _skybox_cube = Geometry::cube(glm::vec3(1.0f), glm::vec3(0.0f));
 
     GLuint ssbo_texture_handles;
 
-    Program cube_shader                 {RESSOURCE_PATH "shaders/cube.vs",            RESSOURCE_PATH "shaders/cube.fs"};
-    Program cube_shader_depth_only      {RESSOURCE_PATH "shaders/cube_depth_only.vs", RESSOURCE_PATH "shaders/cube_depth_only.fs"};
-    Program mesh_shader                 {RESSOURCE_PATH "shaders/mesh.vs",            RESSOURCE_PATH "shaders/mesh.fs"};
-    Program postprocessing_shader       {RESSOURCE_PATH "shaders/postprocess.vs",     RESSOURCE_PATH "shaders/postprocess.fs"};
+    std::unordered_map<std::string, Program> _shaders = {
+        {"cube",                {RESSOURCE_PATH "shaders/cube.vs",              RESSOURCE_PATH "shaders/cube.fs"            }},
+        {"cube_depth_only",     {RESSOURCE_PATH "shaders/cube_depth_only.vs",   RESSOURCE_PATH "shaders/cube_depth_only.fs" }},
+        {"mesh",                {RESSOURCE_PATH "shaders/mesh.vs",              RESSOURCE_PATH "shaders/mesh.fs"            }},
+        {"postprocessing",      {RESSOURCE_PATH "shaders/postprocess.vs",       RESSOURCE_PATH "shaders/postprocess.fs"     }},
+        {"skybox",              {RESSOURCE_PATH "shaders/skybox.vs",            RESSOURCE_PATH "shaders/skybox.fs"          }},
+    };
 
     const int32_t CHUNK_DELETE_DISTANCE_OFFSET = 2;
 

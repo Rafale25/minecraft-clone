@@ -392,12 +392,10 @@ void GameView::onKeyPress(int key)
     }
 
     if (key == GLFW_KEY_R) {
-        world_renderer.cube_shader.reload();
-        world_renderer.cube_shader_depth_only.reload();
-        world_renderer.mesh_shader.reload();
-        world_renderer.postprocessing_shader.reload();
+        for (auto& [_, program]: world_renderer._shaders) {
+            program.reload();
+        }
     }
-
 
     if (key == GLFW_KEY_F11) {
         // GLFWmonitor* monitor = glfwGetWindowMonitor(ctx.window);

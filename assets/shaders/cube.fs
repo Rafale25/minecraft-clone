@@ -78,6 +78,9 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
 #include "utils/tonemapping.glsl"
 #include "utils/SRGB.glsl"
 
+#include "utils/fog.glsl"
+#include "skyColor.glsl"
+
 void main()
 {
     vec2 uv = (gl_FragCoord.xy - 0.5*uniforms.resolution.xy) / uniforms.resolution.y;
@@ -115,16 +118,24 @@ void main()
         lighting = mix(lighting * (1.0 - uniforms.ambient_occlusion_strength), lighting, fs_in.ambient_occlusion);
     }
 
-    // FragColor = vec4(lighting, color.a);
     gPosition = fs_in.frag_pos;
-    // FragColor = vec4(fs_in.frag_pos, 1.0);
 
     if (uniforms.tonemapping_enabled == 1) {
         lighting = lottes(lighting.rgb * uniforms.exposure);
     }
+    lighting = fromLinearToSRGB(lighting);// pow(lighting, vec3(1.0/2.2));
 
-    vec3 gammaCorrected = fromLinearToSRGB(lighting);// pow(lighting, vec3(1.0/2.2));
-    FragColor = vec4(gammaCorrected, color.a);
+    { // FOG
+        vec3 worldPos = fs_in.frag_pos;
+        vec3 delta = worldPos - uniforms.viewPosition.xyz;
+        float fragDistance = length(delta);
+        vec3 ray = normalize(delta);
+        vec3 skyColor = getSkyColor(ray, uniforms.sunDotAngle);
+        vec3 rd = normalize(worldPos - uniforms.viewPosition.xyz);
+        lighting = applyFog(lighting, fragDistance, rd, uniforms.sunDirection.xyz, skyColor, uniforms.fogDensity);
+    }
 
+    FragColor = vec4(lighting, color.a);
     // FragColor = vec4(normal, 1.0);
+    // FragColor = vec4(fs_in.frag_pos, 1.0);
 }

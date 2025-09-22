@@ -1,19 +1,20 @@
 #version 460 core
 
-#define GROUND false
+in vec3 fragPos;
 
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;
 
 #include "uniforms.glsl"
 #include "skyColor.glsl"
 
+vec3 sunColor = vec3(1.0, 0.9, 0.7);
+
 void main()
 {
-    vec2 uv = (gl_FragCoord.xy - 0.5*uniforms.resolution.xy) / uniforms.resolution.y;
-    vec3 ray = mat3(inverse(uniforms.view)) * skyray(uv + 0.5, uniforms.FOV, uniforms.resolution.x / uniforms.resolution.y);
-
+    vec3 ray = normalize(fragPos);
     vec3 color = getSkyColor(ray, uniforms.sunDotAngle);
 
+    mixSunColor(color, sunColor, ray, uniforms.sunDirection.xyz);
+
     FragColor = vec4(color, 1.0);
-    // FragColor = vec4(ray, 1.0);
 }

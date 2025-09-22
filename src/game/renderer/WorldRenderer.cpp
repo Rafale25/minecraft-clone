@@ -24,25 +24,24 @@ inline double nsToS(int64_t ns) {
 WorldRenderer::WorldRenderer(Context &context): _ctx(context)
 {
     chunk_vao = createVAO(0, "i");
-
     draw_command_buffer = createBufferStorage(nullptr, sizeof(DrawElementsIndirectCommand) * MAX_COMMANDS, GL_DYNAMIC_STORAGE_BIT);
     ssbo_chunk_positions = createBufferStorage(nullptr, sizeof(GLfloat)*4 * MAX_COMMANDS, GL_DYNAMIC_STORAGE_BIT);
-
     ssbo_chunk_element_buffer = createBufferStorage(nullptr, sizeof(uint32_t) * CHUNK_BLOCK_COUNT * 6 * 6, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
 
     uint32_t* buf = (uint32_t*)glMapNamedBuffer(ssbo_chunk_element_buffer, GL_WRITE_ONLY);
     for (int i = 0 ; i < CHUNK_BLOCK_COUNT * 6 * 6 ; i += 6) {
         buf[i + 0] = i + 0;
-        buf[i + 1] = i + 1;
-        buf[i + 2] = i + 2;
+        buf[i + 1] = i + 2;
+        buf[i + 2] = i + 1;
+
         buf[i + 3] = i + 0;
-        buf[i + 4] = i + 2;
-        buf[i + 5] = i + 3;
+        buf[i + 4] = i + 3;
+        buf[i + 5] = i + 2;
     }
     glUnmapNamedBuffer(ssbo_chunk_element_buffer);
 
-    cube_shader.use();
-    cube_shader.setInt("shadowMap", 0);
+    _shaders.at("cube").use();
+    _shaders.at("cube").setInt("shadowMap", 0);
 
     BlockTextureManager::loadAllTextures();
     ssbo_texture_handles = createBufferStorage(BlockTextureManager::Get().textures_handles.data(), BlockTextureManager::Get().textures_handles.size() * sizeof(GLuint64));
@@ -92,16 +91,13 @@ void WorldRenderer::setDefaultRenderState()
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
-    glFrontFace(GL_CW);
+    glFrontFace(GL_CCW);
 
     // glEnable(GL_FRAMEBUFFER_SRGB);
 }
 
 void WorldRenderer::render(const Camera &camera)
 {
-    // glQueryCounter(_query_test[0], GL_TIMESTAMP);
-    // legit::Profiler::setStartTimeGPU();
-
     const glm::mat4 view_projection = camera.getProjection() * camera.getView();
 
     std::vector<DrawElementsIndirectCommand> commands_opaque;
@@ -117,11 +113,9 @@ void WorldRenderer::render(const Camera &camera)
     _ubuffer.set("resolution", glm::vec2(_ctx.width, _ctx.height));
     _ubuffer.set("sunDotAngle", sun_dot_angle);
     _ubuffer.set("FOV", glm::radians(camera.fov));
-
     _ubuffer.set("sunDirection", glm::vec4(glm::normalize(sunDir), 0));
     _ubuffer.set("viewPosition", glm::vec4(camera.getPosition(), 0));
     _ubuffer.set("fogDensity", _fog_density);
-
     _ubuffer.set("lightSpaceMatrix", shadowmap._lightSpaceMatrix);
     _ubuffer.set("shadow_bias", shadowmap._shadow_bias);
     _ubuffer.set("ambient_occlusion_enabled", (int)_ambient_occlusion);
@@ -138,11 +132,11 @@ void WorldRenderer::render(const Camera &camera)
         const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, _max_shadow_distance);
 
         shadowmap.setSunDir(sunDir);
-        glm::mat4 light_view_projection = shadowmap.begin(camera_projection_shorter, camera.getView(), cube_shader_depth_only);
+        glm::mat4 light_view_projection = shadowmap.begin(camera_projection_shorter, camera.getView(), _shaders.at("cube_depth_only"));
         // DebugDraw::instance().drawFrustum(light_view_projection);
 
-        glDisable(GL_CULL_FACE);
         generateDrawCommands(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent, light_view_projection, true);
+        glDisable(GL_CULL_FACE);
         renderTerrain(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent);
         glEnable(GL_CULL_FACE);
 
@@ -155,7 +149,6 @@ void WorldRenderer::render(const Camera &camera)
     }
 
 
-
     _framebuffer.bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glPolygonMode(GL_FRONT_AND_BACK, _wireframe ? GL_LINE : GL_FILL);
@@ -166,31 +159,43 @@ void WorldRenderer::render(const Camera &camera)
     // cube_shader_depth_only.setMat4("u_lightSpaceMatrix", view_projection);
     // renderTerrain(camera.getProjection() * camera.getView(), true);
 
-
-    cube_shader.use();
     glBindTextureUnit(0, shadowmap._depthTexture._texture);
-
-    // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
     uint32_t attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-    glDrawBuffers(2, attachments);
+    glDrawBuffers(2, attachments); // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
 
-    // glDepthFunc(GL_EQUAL);
+    { // skybox
+        ScopedTaskGPU("skybox");
+
+        glDisable(GL_CULL_FACE); // because cube mesh if facing outside
+        glDepthMask(GL_FALSE);
+
+        _shaders.at("skybox").use();
+        _shaders.at("skybox").setMat4("u_view", glm::mat4(glm::mat3(camera.getView())));
+        _shaders.at("skybox").setMat4("u_projection", camera.getProjection());
+        _skybox_cube.draw();
+
+        glDepthMask(GL_TRUE);
+        glEnable(GL_CULL_FACE);
+    }
 
     {
         // ScopedTaskGPU("generateDrawCommands");
         generateDrawCommands(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent, view_projection, true);
     }
 
+    _shaders.at("cube").use();
+
     {
+        // glDepthFunc(GL_EQUAL); // used for depth prepass
         ScopedTaskGPU("terrain");
         renderTerrain(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent);
+        // glDepthFunc(GL_LESS); // used for depth prepass
     }
 
-    // glDepthFunc(GL_LESS);
 
     {
         ScopedTaskGPU("entities");
-        renderEntities(camera, mesh_shader);
+        renderEntities(camera, _shaders.at("mesh"));
     }
 
 
@@ -201,11 +206,10 @@ void WorldRenderer::render(const Camera &camera)
     glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 
 
-    postprocessing_shader.use();
-
-    postprocessing_shader.setInt("colorTexture", 0);
-    postprocessing_shader.setInt("worldPosTexture", 1);
-    postprocessing_shader.setInt("depthTexture", 2);
+    _shaders.at("postprocessing").use();
+    _shaders.at("postprocessing").setInt("colorTexture", 0);
+    // _shaders.at("postprocessing").setInt("worldPosTexture", 1);
+    // _shaders.at("postprocessing").setInt("depthTexture", 2);
 
     glBindTextureUnit(0, _color_texture._texture);
     glBindTextureUnit(1, _world_position_texture._texture);
@@ -215,9 +219,6 @@ void WorldRenderer::render(const Camera &camera)
         ScopedTaskGPU("postProcessing");
         _quad_fs.draw();
     }
-
-    // CONTINUE HERE
-    // Postprocess shader becomes deferred shader for fog and shadows
 }
 
 void WorldRenderer::onDeletedChunk(const glm::ivec3 &chunk_pos) {
@@ -316,7 +317,6 @@ void WorldRenderer::generateDrawCommands(
             AABB chunk_aabb = {(chunk_pos * CHUNK_SIZE), (chunk_pos * CHUNK_SIZE) + CHUNK_SIZE};
             if (!isAABBOnFrustum(chunk_aabb, camera_frustum)) continue;
         }
-
 
         if (mesh.slot_vertices.start != -1) {
             chunk_positions_opaque.push_back(glm::vec4(chunk_pos * CHUNK_SIZE, 1.0f));

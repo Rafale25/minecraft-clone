@@ -30,7 +30,7 @@ vec3 getSkyColor(vec3 ray, float sunAngle) {
     vec3 skyColorMorning = SkyColourMorning(ray.xyz);
     vec3 skyColorZenit = SkyColour(ray.xyz);
 
-    // vec3 color = mix(skyColorMorni:ng, skyColorZenit, clamp(uniforms.sunDotAngle, 0.0, 1.0));
+    // vec3 color = mix(skyColorMorning, skyColorZenit, clamp(uniforms.sunDotAngle, 0.0, 1.0));
     vec3 color = mix(skyColorMorning, skyColorZenit, clamp(sunAngle, 0.0, 1.0));
     color *= tint;
 
@@ -39,4 +39,17 @@ vec3 getSkyColor(vec3 ray, float sunAngle) {
     color = pow(color, vec3(1.0/2.2));
 
     return color;
+}
+
+void mixSunColor(inout vec3 color, vec3 sunColor, vec3 ray, vec3 sunDirection)
+{
+    // sun glow (mimics athmosphere scattering)
+    float sunAmount = max( dot(ray, sunDirection), 0.0 );
+    color = mix( color, sunColor, pow(sunAmount, 4.0) );
+
+    // sun
+    float sun = pow(max(0.0, dot(ray, normalize(sunDirection))), 4096.0) * 1.0;
+    float groundToSkyT = smoothstep(-0.1, 0.0, ray.y);
+    float sunMask = float(groundToSkyT >= 1.0);
+    color += sun * groundToSkyT;
 }
