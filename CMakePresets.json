@@ -100,15 +100,13 @@
             "name": "msvc-debug",
             "displayName": "Build Debug",
             "configurePreset": "windows",
-            "configuration": "Debug",
-            "jobs": 0
+            "configuration": "Debug"
         },
         {
             "name": "msvc-release",
             "displayName": "Build Release",
             "configurePreset": "windows",
-            "configuration": "Release",
-            "jobs": 0
+            "configuration": "Release"
         }
     ]
 }
