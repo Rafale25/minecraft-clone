@@ -7,6 +7,7 @@
 #include <chrono>
 #include <map>
 #include <vector>
+#include <algorithm>
 
 namespace ImGuiUtils
 {
