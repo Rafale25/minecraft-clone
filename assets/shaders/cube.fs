@@ -33,8 +33,11 @@ layout (location = 1) out vec3 gPosition;
 
 uniform sampler2D shadowMap;
 
-float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal)
+float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 viewPosition)
 {
+    // bias along view vector, wtf??
+    fragPosLightSpace.xyz += normalize(viewPosition - fragPosLightSpace.xyz) * 0.00015; // https://c0de517e.blogspot.com/2011/05/shadowmap-bias-notes.html
+
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 
@@ -105,7 +108,7 @@ void main()
     }
 
     // calculate shadow
-    float shadow = ShadowCalculation(fs_in.FragPosLightSpace, normal);
+    float shadow = ShadowCalculation(fs_in.FragPosLightSpace, normal, uniforms.viewPosition.xyz);
 
     // if cube face is not facing light, then it's in its own shadow
     if (dot(normal, uniforms.sunDirection.xyz) < 0.0
