@@ -51,7 +51,8 @@ private:
         const std::vector<DrawElementsIndirectCommand>& commands_opaque,
         const std::vector<DrawElementsIndirectCommand>& commands_translucent,
         const std::vector<glm::vec4>& chunk_positions_opaque,
-        const std::vector<glm::vec4>& chunk_positions_translucent
+        const std::vector<glm::vec4>& chunk_positions_translucent,
+        bool drawTranslucent = true
     );
 
     void renderEntities(const Camera &camera, const Program& program);

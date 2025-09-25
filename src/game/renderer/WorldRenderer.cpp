@@ -140,7 +140,7 @@ void WorldRenderer::render(const Camera &camera)
         glDisable(GL_CULL_FACE);
         {
             ScopedTaskGPU("shadowmap: render");
-            renderTerrain(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent);
+            renderTerrain(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent, false);
         }
         glEnable(GL_CULL_FACE);
 
@@ -352,7 +352,8 @@ void WorldRenderer::renderTerrain(
     const std::vector<DrawElementsIndirectCommand>& commands_opaque,
     const std::vector<DrawElementsIndirectCommand>& commands_translucent,
     const std::vector<glm::vec4>& chunk_positions_opaque,
-    const std::vector<glm::vec4>& chunk_positions_translucent
+    const std::vector<glm::vec4>& chunk_positions_translucent,
+    bool drawTranslucent
 ) {
     glBindVertexArray(chunk_vao);
     glVertexArrayVertexBuffer(chunk_vao, 0, buffer_allocator_vertices.getBufferObject(), 0, 1 * VERTEX_SIZE); // Not needed anymore but crashes without
@@ -370,6 +371,7 @@ void WorldRenderer::renderTerrain(
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (const void *)0, commands_opaque.size(), 0);
 
     // translucent //
+    if (!drawTranslucent) return;
     glNamedBufferSubData(ssbo_chunk_positions, 0, sizeof(GLfloat) * 4 * chunk_positions_translucent.size(), (const void *)chunk_positions_translucent.data());
     glNamedBufferSubData(draw_command_buffer, 0, sizeof(commands_translucent[0]) * commands_translucent.size(), (const void *)commands_translucent.data());
 
