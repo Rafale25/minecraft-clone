@@ -59,6 +59,7 @@ void GameView::gui(float dt)
 
     ImGui::Begin("Debug", nullptr, !_cursor_enabled ? ImGuiWindowFlags_NoInputs : 0);
 
+    ImGui::Checkbox("Profiler", &_show_profiler_gui);
 
     ImGui::Text("%s", SimpleProfiler::instance().dump().c_str());
     ImGui::Text("RAM: %.4f / %.4f Go", ((double)getCurrentRSS()) / (1024*1024*1024), ((double)getPeakRSS()) / (1024*1024*1024));
@@ -124,8 +125,6 @@ void GameView::gui(float dt)
         ImGui::Spacing();
     }
     ImGui::EndChild();
-
-    ImGui::Checkbox("Profiler", &_show_profiler_gui);
 
     ImGui::InputText("##inputText", input_text_buffer, IM_ARRAYSIZE(input_text_buffer));
     ImGui::SameLine();

@@ -127,17 +127,21 @@ void WorldRenderer::render(const Camera &camera)
     setDefaultRenderState();
 
     { // SHADOWMAP //
-        ScopedTaskGPU("shadowmap");
-
         const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, _max_shadow_distance);
 
         shadowmap.setSunDir(sunDir);
         glm::mat4 light_view_projection = shadowmap.begin(camera_projection_shorter, camera.getView(), _shaders.at("cube_depth_only"));
         // DebugDraw::instance().drawFrustum(light_view_projection);
 
-        generateDrawCommands(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent, light_view_projection, true);
+        {
+            ScopedTask("shadowmap: generateDrawCommands");
+            generateDrawCommands(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent, light_view_projection, true);
+        }
         glDisable(GL_CULL_FACE);
-        renderTerrain(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent);
+        {
+            ScopedTaskGPU("shadowmap: render");
+            renderTerrain(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent);
+        }
         glEnable(GL_CULL_FACE);
 
         commands_opaque.clear();
@@ -164,7 +168,7 @@ void WorldRenderer::render(const Camera &camera)
     glDrawBuffers(2, attachments); // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
 
     { // skybox
-        ScopedTaskGPU("skybox");
+        ScopedTaskGPU("skybox: render");
 
         glDisable(GL_CULL_FACE); // because cube mesh if facing outside
         glDepthMask(GL_FALSE);
@@ -179,7 +183,7 @@ void WorldRenderer::render(const Camera &camera)
     }
 
     {
-        // ScopedTaskGPU("generateDrawCommands");
+        ScopedTask("terrain: generateDrawCommands");
         generateDrawCommands(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent, view_projection, true);
     }
 
@@ -187,7 +191,7 @@ void WorldRenderer::render(const Camera &camera)
 
     {
         // glDepthFunc(GL_EQUAL); // used for depth prepass
-        ScopedTaskGPU("terrain");
+        ScopedTaskGPU("terrain: render");
         renderTerrain(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent);
         // glDepthFunc(GL_LESS); // used for depth prepass
     }
@@ -379,22 +383,6 @@ void WorldRenderer::renderTerrain(
     // glEnable(GL_DEPTH_TEST);
     // glDepthMask(GL_TRUE);
 }
-
-// void WorldRenderer::renderShadowmap(const Camera &camera)
-// {
-//     const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, _max_shadow_distance);
-//     glm::mat4 light_view_projection;
-
-//     shadowmap.setSunDir(sunDir);
-//     light_view_projection = shadowmap.begin(camera_projection_shorter, camera.getView(), cube_shader_depth_only);
-//     // DebugDraw::instance().drawFrustum(light_view_projection);
-
-//     glDisable(GL_CULL_FACE);
-//     // renderTerrain(light_view_projection, true);
-//     glEnable(GL_CULL_FACE);
-
-//     shadowmap.end();
-// }
 
 void WorldRenderer::renderEntities(const Camera &camera, const Program& program)
 {

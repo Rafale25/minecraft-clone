@@ -333,7 +333,7 @@ void GameView::networkUpdate()
 void GameView::onDraw(double time_since_start, float dt)
 {
     {
-        ScopedTask("world_renderer.render");
+        // ScopedTask("world_renderer.render");
         world_renderer.render(camera);
     }
 
