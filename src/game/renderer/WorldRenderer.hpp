@@ -13,6 +13,8 @@
 #include <glm/gtx/hash.hpp>
 #include <unordered_set>
 
+#include "unordered_dense.h"
+
 struct ChunkMesh;
 struct ChunkRawMesh;
 class Camera;
@@ -111,5 +113,6 @@ public:
     std::vector<std::tuple<glm::ivec3, ChunkRawMesh>> chunks_waiting_bufferslot;
     std::mutex chunks_waiting_bufferslot_mutex;
 
-    std::unordered_map<glm::ivec3, ChunkMesh> meshes;
+    // std::unordered_map<glm::ivec3, ChunkMesh> meshes;
+    ankerl::unordered_dense::map<glm::ivec3, ChunkMesh> meshes;
 };
