@@ -41,12 +41,12 @@ void extractPlanesFromProjectionViewMatrix(const glm::mat4& m, glm::vec4 planes[
     for (int32_t i = 4; i--; ) { planes[5][i] = m[i][3] - m[i][2]; } // far
 }
 
-// std::vector<glm::vec4> extractFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view)
 std::vector<glm::vec4> extractFrustumCornersWorldSpace(const glm::mat4& view_projection)
 {
     const auto inv = glm::inverse(view_projection);
 
     std::vector<glm::vec4> frustumCorners;
+    frustumCorners.reserve(8);
     for (uint32_t z = 0; z < 2; ++z) {
         for (uint32_t y = 0; y < 2; ++y) {
             for (uint32_t x = 0; x < 2; ++x) {
