@@ -76,12 +76,12 @@ FrustumBounds Shadowmap::computeFrustumBounds(const glm::mat4& lightView, const 
     for (const auto& v : corners)
     {
         const glm::vec4 trf = lightView * v;
-        b.minX = std::min(b.minX, trf.x);
-        b.maxX = std::max(b.maxX, trf.x);
-        b.minY = std::min(b.minY, trf.y);
-        b.maxY = std::max(b.maxY, trf.y);
-        b.minZ = std::min(b.minZ, trf.z);
-        b.maxZ = std::max(b.maxZ, trf.z);
+        b.minX = glm::min(b.minX, trf.x);
+        b.maxX = glm::max(b.maxX, trf.x);
+        b.minY = glm::min(b.minY, trf.y);
+        b.maxY = glm::max(b.maxY, trf.y);
+        b.minZ = glm::min(b.minZ, trf.z);
+        b.maxZ = glm::max(b.maxZ, trf.z);
     }
 
     return b;
