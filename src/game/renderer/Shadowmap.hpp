@@ -17,8 +17,7 @@ struct FrustumBounds {
 class Shadowmap
 {
 public:
-    // TODO: Remove ctx from shadowmap
-    Shadowmap(Context& ctx, GLsizei shadow_width, GLsizei shadow_height);
+    Shadowmap(GLsizei shadowmap_size);
 
     glm::mat4 begin(const glm::mat4& projection, const glm::mat4& view, const Program &program);
 
@@ -31,13 +30,13 @@ private:
     glm::mat4 getLightProjectionMatrix(const glm::mat4& lightView, FrustumBounds& b);
 
 private:
-    Context& _ctx;
-    GLsizei _shadow_width, _shadow_height;
+    GLsizei _shadowmap_size;
+    GLint _cached_viewport[4];
     Framebuffer _depthFBO{GL_NONE, GL_NONE};
     glm::vec3 _sunDir;
 
 public:
     Texture _depthTexture;
     glm::mat4 _lightSpaceMatrix;
-    float _shadow_bias = 0.000175f;
+    float _shadow_bias = 0.0001f;
 };
