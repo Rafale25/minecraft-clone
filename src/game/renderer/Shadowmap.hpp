@@ -25,8 +25,8 @@ public:
     void setSunDir(const glm::vec3& sunDir);
 
 private:
-    glm::mat4 getLighViewMatrix(const std::vector<glm::vec4>& cameraFrustumCorners, const glm::vec3& lightDir);
-    FrustumBounds computeFrustumBounds(const glm::mat4& lightView, const std::vector<glm::vec4>& corners);
+    glm::mat4 getLighViewMatrix(const std::vector<glm::vec3>& cameraFrustumCorners, const glm::vec3& lightDir);
+    FrustumBounds computeFrustumBounds(const glm::mat4& lightView, const std::vector<glm::vec3>& corners);
     glm::mat4 getLightProjectionMatrix(const glm::mat4& lightView, FrustumBounds& b);
 
 private:

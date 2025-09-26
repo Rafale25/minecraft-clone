@@ -14,5 +14,5 @@ struct Frustum
 // Frustum createFrustumFromCamera(const Camera& camera);
 Frustum createFrustumFromViewProjection(const glm::mat4& view_projection);
 void extractPlanesFromProjectionViewMatrix(const glm::mat4& m, glm::vec4 planes[6]);
-std::vector<glm::vec4> extractFrustumCornersWorldSpace(const glm::mat4& view_projection);
+std::vector<glm::vec3> extractFrustumCornersWorldSpace(const glm::mat4& view_projection);
 bool isAABBOnFrustum(const AABB& aabb, const Frustum& frustum);

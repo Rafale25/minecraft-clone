@@ -47,11 +47,11 @@ void Shadowmap::setSunDir(const glm::vec3& sunDir)
     _sunDir = sunDir;
 }
 
-glm::mat4 Shadowmap::getLighViewMatrix(const std::vector<glm::vec4>& cameraFrustumCorners, const glm::vec3& lightDir)
+glm::mat4 Shadowmap::getLighViewMatrix(const std::vector<glm::vec3>& cameraFrustumCorners, const glm::vec3& lightDir)
 {
     glm::vec3 center = glm::vec3(0, 0, 0);
     for (const auto& v : cameraFrustumCorners) {
-        center += glm::vec3(v);
+        center += v;
     }
     center /= cameraFrustumCorners.size();
 
@@ -62,7 +62,7 @@ glm::mat4 Shadowmap::getLighViewMatrix(const std::vector<glm::vec4>& cameraFrust
     );
 }
 
-FrustumBounds Shadowmap::computeFrustumBounds(const glm::mat4& lightView, const std::vector<glm::vec4>& corners)
+FrustumBounds Shadowmap::computeFrustumBounds(const glm::mat4& lightView, const std::vector<glm::vec3>& corners)
 {
     FrustumBounds b;
 
@@ -75,7 +75,7 @@ FrustumBounds Shadowmap::computeFrustumBounds(const glm::mat4& lightView, const 
 
     for (const auto& v : corners)
     {
-        const glm::vec4 trf = lightView * v;
+        const glm::vec4 trf = lightView * glm::vec4(v, 1.0f);
         b.minX = glm::min(b.minX, trf.x);
         b.maxX = glm::max(b.maxX, trf.x);
         b.minY = glm::min(b.minY, trf.y);

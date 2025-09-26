@@ -108,7 +108,7 @@ void DebugDraw::drawSphere(const glm::vec3 &center, float radius, const glm::vec
 
 void DebugDraw::drawFrustum(const glm::mat4 &view_projection, const glm::vec3& color)
 {
-    const std::vector<glm::vec4> points = extractFrustumCornersWorldSpace(view_projection);
+    const std::vector<glm::vec3> points = extractFrustumCornersWorldSpace(view_projection);
 
     drawLine(points[0], points[1], color);
     drawLine(points[0], points[2], color);
