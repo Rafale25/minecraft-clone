@@ -63,6 +63,7 @@ target_include_directories(${PROJECT_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/
         ${CMAKE_CURRENT_SOURCE_DIR}/camera/
         ${CMAKE_CURRENT_SOURCE_DIR}/utils/
+        ${CMAKE_CURRENT_SOURCE_DIR}/bounds/
         ${CMAKE_CURRENT_SOURCE_DIR}/include/
         ${IMGUI_DIR}
         ${IMGUI_DIR}/backends
