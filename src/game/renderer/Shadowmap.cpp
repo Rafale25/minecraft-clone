@@ -54,7 +54,7 @@ glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, c
     glm::mat4 lightProjectionMatrix = glm::orthoZO(-bounds*0.5f, bounds*0.5f, -bounds*0.5f, bounds*0.5f, nearClip, farClip);
 
 
-    // shimmering fix
+    // shimmering fix // https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering
     // Create the rounding matrix, by projecting the world-space origin and determining
     // the fractional offset in texel space
     glm::mat4 shadowMatrix = lightProjectionMatrix * lightViewMatrix;
