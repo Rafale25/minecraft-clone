@@ -55,12 +55,14 @@ glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, c
 
 
     // shimmering fix
+    // Create the rounding matrix, by projecting the world-space origin and determining
+    // the fractional offset in texel space
     glm::mat4 shadowMatrix = lightProjectionMatrix * lightViewMatrix;
     glm::vec4 shadowOrigin = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     shadowOrigin = shadowMatrix * shadowOrigin;
     shadowOrigin = shadowOrigin * (_shadowmap_size / 2.0f);
 
-    glm::vec4 roundedOrigin = glm::floor(shadowOrigin);
+    glm::vec4 roundedOrigin = glm::round(shadowOrigin);
     glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
     roundOffset = roundOffset * (2.0f / float(_shadowmap_size));
     roundOffset.z = 0.0f;
