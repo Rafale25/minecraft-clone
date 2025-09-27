@@ -13,14 +13,71 @@ Shadowmap::Shadowmap(GLsizei shadowmap_size):
     _depthFBO.attachTexture(_depthTexture._texture, GL_DEPTH_ATTACHMENT);
 }
 
+
+
+static glm::mat4 createOrthographic(float width, float height, float zNearPlane, float zFarPlane)
+{
+    glm::mat4 result{0.0f};
+
+    result[0][0] = 2.0f / width;
+    result[0][1] = result[0][2] = result[0][3] = 0.0f;
+    result[1][1] = 2.0f / height;
+    result[1][0] = result[1][2] = result[1][3] = 0.0f;
+    result[2][2] = 1.0f / (zNearPlane - zFarPlane);
+    result[2][0] = result[2][1] = result[2][3] = 0.0f;
+    result[3][0] = result[3][1] = 0.0f;
+    result[3][2] = zNearPlane / (zNearPlane - zFarPlane);
+    result[3][3] = 1.0f;
+
+    return result;
+}
+
+
+#include "BoundingSphere.hpp"
+#include "DebugDraw.hpp"
+
 glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, const Program &program)
 {
-    auto corners = extractFrustumCornersWorldSpace(projection * view);
+    BoundingSphere sphere = BoundingSphere::createFromFrustum(projection * view);
+    sphere.radius = glm::ceil(sphere.radius); // fix micro shimmering cause by radius changing by very tiny amount
 
+    auto corners = extractFrustumCornersWorldSpace(projection * view);
     glm::mat4 lightViewMatrix = getLighViewMatrix(corners, _sunDir);
-    FrustumBounds bounds = computeFrustumBounds(lightViewMatrix, corners);
-    glm::mat4 lightProjectionMatrix = getLightProjectionMatrix(lightViewMatrix, bounds);
-    _lightSpaceMatrix = lightProjectionMatrix * lightViewMatrix;
+
+    const float extraBackup = 20.0f;
+    const float nearClip = 1.0f;
+    float backupDist = extraBackup + nearClip + sphere.radius;
+
+    float bounds = sphere.radius * 2.0f;
+    float farClip = extraBackup + sphere.radius;
+
+    glm::mat4 lightProjectionMatrix = glm::orthoZO(-bounds*0.5f, bounds*0.5f, -bounds*0.5f, bounds*0.5f, nearClip, farClip);
+
+
+    // shimmering fix
+    glm::mat4 shadowMatrix = lightProjectionMatrix * lightViewMatrix;
+    glm::vec4 shadowOrigin = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    shadowOrigin = shadowMatrix * shadowOrigin;
+    shadowOrigin = shadowOrigin * (_shadowmap_size / 2.0f);
+
+    glm::vec4 roundedOrigin = glm::floor(shadowOrigin);
+    glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
+    roundOffset = roundOffset * (2.0f / float(_shadowmap_size));
+    roundOffset.z = 0.0f;
+    roundOffset.w = 0.0f;
+
+    glm::mat4 shadowProj = lightProjectionMatrix;
+    shadowProj[3] += roundOffset;
+    // --
+
+    _lightSpaceMatrix = shadowProj * lightViewMatrix;
+
+    // auto corners = extractFrustumCornersWorldSpace(projection * view);
+    // glm::mat4 lightViewMatrix = getLighViewMatrix(corners, _sunDir);
+    // FrustumBounds bounds = computeFrustumBounds(lightViewMatrix, corners);
+    // glm::mat4 lightProjectionMatrix = getLightProjectionMatrix(bounds);
+
+    // _lightSpaceMatrix = lightProjectionMatrix * lightViewMatrix;
     // https://learn.microsoft.com/en-us/windows/win32/dxtecharts/common-techniques-to-improve-shadow-depth-maps?redirectedfrom=MSDN
     // https://chetanjags.wordpress.com/2015/02/05/real-time-shadows-cascaded-shadow-maps/
     // https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering
@@ -87,7 +144,7 @@ FrustumBounds Shadowmap::computeFrustumBounds(const glm::mat4& lightView, const 
     return b;
 }
 
-glm::mat4 Shadowmap::getLightProjectionMatrix(const glm::mat4& lightView, FrustumBounds& b)
+glm::mat4 Shadowmap::getLightProjectionMatrix(FrustumBounds& b)
 {
     // Tune this parameter according to the scene
     const float zMult = 5.0f;
