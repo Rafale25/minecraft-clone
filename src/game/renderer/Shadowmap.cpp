@@ -1,4 +1,5 @@
 #include "Shadowmap.hpp"
+#include "BoundingSphere.hpp"
 #include "Program.hpp"
 #include "Frustum.hpp"
 #include <glm/gtc/matrix_transform.hpp>
@@ -12,29 +13,6 @@ Shadowmap::Shadowmap(GLsizei shadowmap_size):
     _depthTexture.setSwizzle({ GL_RED, GL_RED, GL_RED, GL_ONE });
     _depthFBO.attachTexture(_depthTexture._texture, GL_DEPTH_ATTACHMENT);
 }
-
-
-
-static glm::mat4 createOrthographic(float width, float height, float zNearPlane, float zFarPlane)
-{
-    glm::mat4 result{0.0f};
-
-    result[0][0] = 2.0f / width;
-    result[0][1] = result[0][2] = result[0][3] = 0.0f;
-    result[1][1] = 2.0f / height;
-    result[1][0] = result[1][2] = result[1][3] = 0.0f;
-    result[2][2] = 1.0f / (zNearPlane - zFarPlane);
-    result[2][0] = result[2][1] = result[2][3] = 0.0f;
-    result[3][0] = result[3][1] = 0.0f;
-    result[3][2] = zNearPlane / (zNearPlane - zFarPlane);
-    result[3][3] = 1.0f;
-
-    return result;
-}
-
-
-#include "BoundingSphere.hpp"
-#include "DebugDraw.hpp"
 
 glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, const Program &program)
 {
