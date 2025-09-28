@@ -33,10 +33,18 @@ layout (location = 1) out vec3 gPosition;
 
 uniform sampler2D shadowMap;
 
-float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 viewPosition)
+float getSlopeScaledBias(vec3 N, vec3 L)
 {
-    // bias along view vector, wtf??
-    fragPosLightSpace.xyz += normalize(viewPosition - fragPosLightSpace.xyz) * 0.00015; // https://c0de517e.blogspot.com/2011/05/shadowmap-bias-notes.html
+    float cosAlpha = clamp(dot(N, L), 0.0, 1.0);
+    float sinAlpha = sqrt(1.0 - cosAlpha * cosAlpha);     // sin(acos(L*N))
+    float tanAlpha = sinAlpha / cosAlpha;            // tan(acos(L*N))
+    return tanAlpha;
+}
+
+float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 viewPosition, vec3 lightDirection)
+{
+    // bias along view vector, wtf?? // cause weird bugs near world origin
+    // fragPosLightSpace.xyz += normalize(viewPosition - fragPosLightSpace.xyz) * 0.00015; // https://c0de517e.blogspot.com/2011/05/shadowmap-bias-notes.html
 
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
@@ -53,10 +61,8 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 viewPosition)
         return 0.0;
     }
 
-    // calculate bias (based on depth map resolution and slope)
-    float cosTheta = dot(normal, normalize(uniforms.sunDirection.xyz));
-    float magic_bias_constant = uniforms.shadow_bias;// 0.00035;
-    float bias = magic_bias_constant*tan(acos(cosTheta));
+    // calculate bias (based on slope and sunDirection)
+    float bias = uniforms.shadow_bias * getSlopeScaledBias(normal, lightDirection);
 
     // PCF
     float shadow = 0.0;
@@ -64,6 +70,7 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 viewPosition)
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y)
         {
+            // vec2 offset = vec2(0.0);
             vec2 offset = vec2(x, y) + rand(projCoords.xy + vec2(x, y)); // smooth out shadows by using random offsets
             float pcfDepth = texture(shadowMap, projCoords.xy + offset * texelSize).r;
             shadow += (currentDepth - bias) > pcfDepth  ? 1.0 : 0.0;
@@ -108,7 +115,7 @@ void main()
     }
 
     // calculate shadow
-    float shadow = ShadowCalculation(fs_in.FragPosLightSpace, normal, uniforms.viewPosition.xyz);
+    float shadow = ShadowCalculation(fs_in.FragPosLightSpace, normal, uniforms.viewPosition.xyz, normalize(uniforms.sunDirection.xyz));
 
     // if cube face is not facing light, then it's in its own shadow
     if (dot(normal, uniforms.sunDirection.xyz) < 0.0
