@@ -192,7 +192,7 @@ void Context::imguiNewFrame()
 
             ImFont* font = ImGui::GetIO().Fonts->AddFontFromFileTTF(
                 RESSOURCE_PATH "ProggyClean.ttf",
-                int(base_font_size * dpi) + 1, // ceil
+                int(base_font_size * dpi), // floor
                 &cfg
             );
             fonts[dpi] = font;
