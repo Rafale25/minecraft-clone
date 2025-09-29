@@ -177,16 +177,23 @@ void Context::imguiNewFrame()
 
         float window_xscale, window_yscale;
         glfwGetWindowContentScale(window, &window_xscale, &window_yscale);
-        const float dpi = window_xscale - 0.5f;
-        ImGui::GetStyle().FontScaleDpi = dpi;
+        const float dpi = window_xscale;
+        // ImGui::GetStyle().FontScaleDpi = dpi;
+        // ImGui::GetIO().FontGlobalScale = 1.0f / dpi;
 
         if (!fonts.contains(dpi)) {
-            const ImGuiIO& io = ImGui::GetIO();
-            constexpr float baseFontSize = 13.0f;  // ImGui's default size
-            ImFont* font = io.Fonts->AddFontFromFileTTF(
-                // "./submodules/imgui/misc/fonts/ProggyClean.ttf",
+            ImFontConfig cfg;
+            cfg.OversampleH = 2; // horizontal oversampling
+            cfg.OversampleV = 1; // vertical
+            cfg.PixelSnapH  = true;
+            cfg.PixelSnapV  = true;
+
+            constexpr float base_font_size = 13.0f;  // ImGui's default size
+
+            ImFont* font = ImGui::GetIO().Fonts->AddFontFromFileTTF(
                 RESSOURCE_PATH "ProggyClean.ttf",
-                baseFontSize * dpi
+                int(base_font_size * dpi) + 1, // ceil
+                &cfg
             );
             fonts[dpi] = font;
 
