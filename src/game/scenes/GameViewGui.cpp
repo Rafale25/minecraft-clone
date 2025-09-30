@@ -77,7 +77,7 @@ void GameView::gui(float dt)
     ImGui::Text("%.4f secs", dt);
     ImGui::Text("%.2f fps", 1.0f / dt);
 
-    ImGui::SliderFloat("FOV", &camera.fov, 20.0f, 179.0f, "%.2f");
+    ImGui::SliderFloat("FOV", &camera.fov, 20.0f, 179.0f, "%.0f");
     glm::vec3 camera_pos = camera.getPosition();
     ImGui::Text("position: %.2f, %.2f, %.2f", camera_pos.x, camera_pos.y, camera_pos.z);
     ImGui::Text("forward: %.2f, %.2f, %.2f", camera.forward().x, camera.forward().y, camera.forward().z);
