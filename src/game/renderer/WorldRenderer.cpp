@@ -21,7 +21,7 @@ inline double nsToS(int64_t ns) {
     return double(ns) / 1e9;
 }
 
-WorldRenderer::WorldRenderer(Context &context): _ctx(context)
+WorldRenderer::WorldRenderer(int32_t width, int32_t height)
 {
     chunk_vao = createVAO(0, "i");
     draw_command_buffer = createBufferStorage(nullptr, sizeof(DrawElementsIndirectCommand) * MAX_COMMANDS, GL_DYNAMIC_STORAGE_BIT);
@@ -77,7 +77,7 @@ WorldRenderer::WorldRenderer(Context &context): _ctx(context)
     //     auto byteOffset = values[1] + (3 * values[0]);
     // }
 
-    onResize(context.width, context.height);
+    onResize(width, height);
 }
 
 void WorldRenderer::setDefaultRenderState()
@@ -112,7 +112,7 @@ void WorldRenderer::render(const Camera &camera)
     _ubuffer.set("projection", camera.getProjection());
     _ubuffer.set("view", camera.getView());
     _ubuffer.set("projection_view", view_projection);
-    _ubuffer.set("resolution", glm::vec2(_ctx.width, _ctx.height));
+    _ubuffer.set("resolution", glm::vec2(_framebuffer_width, _framebuffer_height));
     _ubuffer.set("sunDotAngle", sun_dot_angle);
     _ubuffer.set("FOV", glm::radians(camera.fov));
     _ubuffer.set("sunDirection", glm::vec4(glm::normalize(sunDirection), 0));
@@ -246,6 +246,9 @@ void WorldRenderer::onAddedChunk(const glm::ivec3 &chunk_pos) {
 }
 
 void WorldRenderer::onResize(int32_t width, int32_t height) {
+    _framebuffer_width = width;
+    _framebuffer_height = height;
+
     _framebuffer.destroy();
     _color_texture.destroy();
     _world_position_texture.destroy();

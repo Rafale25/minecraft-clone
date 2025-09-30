@@ -35,7 +35,7 @@ public:
     void onResize(int width, int height);
 
 private:
-    WorldRenderer world_renderer{ctx};
+    WorldRenderer world_renderer{ctx.width, ctx.height};
 
     float network_timer = 1.0f;
 

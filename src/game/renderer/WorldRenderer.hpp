@@ -25,7 +25,7 @@ class WorldRenderer : public IWorldRenderer
     static constexpr int VERTEX_SIZE = sizeof(GLuint64);
 
 public:
-    WorldRenderer(Context &context);
+    WorldRenderer(int32_t width, int32_t height);
 
     void onDeletedChunk(const glm::ivec3& chunk_pos) override;
     void onAddedChunk(const glm::ivec3& chunk_pos) override;
@@ -63,7 +63,8 @@ private:
     void renderShadowmap(const Camera &camera);
 
 private:
-    Context &_ctx;
+    float _framebuffer_width;
+    float _framebuffer_height;
 
 public:
     static constexpr float camera_far_plane = 1000.0f;
