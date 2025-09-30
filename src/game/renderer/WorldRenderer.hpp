@@ -11,6 +11,7 @@
 #include "UniformBuffer.hpp"
 #include <glad/gl.h>
 #include <glm/gtx/hash.hpp>
+#include <glm/gtx/euler_angles.hpp>
 #include <unordered_set>
 
 #include "unordered_dense.h"
@@ -55,6 +56,8 @@ private:
         bool drawTranslucent = true
     );
 
+    glm::vec3 getSunDirection() const;
+
     void renderEntities(const Camera &camera, const Program& program);
 
     void renderShadowmap(const Camera &camera);
@@ -63,10 +66,14 @@ private:
     Context &_ctx;
 
 public:
+    static constexpr float camera_far_plane = 1000.0f;
+    std::vector<float> shadowCascadeLevels{ camera_far_plane / 50.0f, camera_far_plane / 25.0f, camera_far_plane / 10.0f, camera_far_plane / 2.0f };
     Shadowmap shadowmap{4096};
     float _max_shadow_distance = 350.0f;
+    float _sun_rotation = glm::radians(90.0f);
+    float _sun_pitch = glm::radians(20.0f);
+    float _sun_yaw = glm::radians(128.0f);
 
-    glm::vec3 sunDir = glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f));
     int32_t chunks_drawn;
     bool _wireframe = false;
     bool _ambient_occlusion = true;

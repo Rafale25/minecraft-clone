@@ -105,7 +105,9 @@ void WorldRenderer::render(const Camera &camera)
     std::vector<glm::vec4> chunk_positions_opaque;
     std::vector<glm::vec4> chunk_positions_translucent;
 
-    const float sun_dot_angle = glm::dot(glm::normalize(sunDir), {0.0f, 1.0f, 0.0f});
+    const glm::vec3 sunDirection = getSunDirection();
+
+    const float sun_dot_angle = glm::dot(glm::normalize(sunDirection), {0.0f, 1.0f, 0.0f});
 
     _ubuffer.set("projection", camera.getProjection());
     _ubuffer.set("view", camera.getView());
@@ -113,7 +115,7 @@ void WorldRenderer::render(const Camera &camera)
     _ubuffer.set("resolution", glm::vec2(_ctx.width, _ctx.height));
     _ubuffer.set("sunDotAngle", sun_dot_angle);
     _ubuffer.set("FOV", glm::radians(camera.fov));
-    _ubuffer.set("sunDirection", glm::vec4(glm::normalize(sunDir), 0));
+    _ubuffer.set("sunDirection", glm::vec4(glm::normalize(sunDirection), 0));
     _ubuffer.set("viewPosition", glm::vec4(camera.getPosition(), 0));
     _ubuffer.set("fogDensity", _fog_density);
     _ubuffer.set("lightSpaceMatrix", shadowmap._lightSpaceMatrix);
@@ -129,7 +131,7 @@ void WorldRenderer::render(const Camera &camera)
     { // SHADOWMAP //
         const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, _max_shadow_distance);
 
-        shadowmap.setSunDir(sunDir);
+        shadowmap.setSunDir(sunDirection);
         glm::mat4 light_view_projection = shadowmap.begin(camera_projection_shorter, camera.getView(), _shaders.at("cube_depth_only"));
         // DebugDraw::instance().drawFrustum(light_view_projection);
 
@@ -396,4 +398,12 @@ void WorldRenderer::renderEntities(const Camera &camera, const Program& program)
         program.setMat4("u_modelMatrix", entity.smooth_transform.getMatrix());
         entity.draw();
     }
+}
+
+glm::vec3 WorldRenderer::getSunDirection() const
+{
+    return glm::normalize(
+        glm::yawPitchRoll(_sun_yaw, _sun_pitch, _sun_rotation)
+        * glm::vec4{1.0f, 0.0f, 0.0f, 1.0f}
+    );
 }
