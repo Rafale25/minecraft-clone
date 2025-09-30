@@ -112,12 +112,15 @@ void GameView::gui(float dt)
     ImGui::Checkbox("Ambient occlusion", &world_renderer._ambient_occlusion);
     ImGui::SliderFloat("AO strength", &world_renderer._ambient_occlusion_strength, 0.0f, 1.0f, "%.2f");
 
-
     if (ImGui::Checkbox("VSync", &_vsync)) {
         ctx.setVsync(_vsync);
     }
 
-    ImGui::DragFloat3("Sun direction", &world_renderer.sunDir.x, 0.01f, -glm::pi<float>()*2, glm::pi<float>()*2, "%.2f");
+    ImGui::SliderAngle("Sun Rotation", &world_renderer._sun_rotation, 0.0f, 360.0f);
+    ImGui::SliderAngle("Sun Pitch", &world_renderer._sun_pitch, 0.0f, 90.0f);
+    ImGui::SliderAngle("Sun Yaw", &world_renderer._sun_yaw, 0.0f, 360.0f);
+
+    // ImGui::DragFloat3("Sun direction", &world_renderer.sunDir.x, 0.01f, -glm::pi<float>()*2, glm::pi<float>()*2, "%.2f");
     ImGui::SliderFloat("Shadow Bias", &world_renderer.shadowmap._shadow_bias, 0.000001f, 0.001f, "%.6f");
     ImGui::SliderFloat("Shadow Distance", &world_renderer._max_shadow_distance, 0.3f, 2000.0f, "%.2f");
     ImGui::SliderFloat("Fog density", &world_renderer._fog_density, 0.0f, 0.05f, "%.5f");
