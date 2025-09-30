@@ -68,7 +68,7 @@ private:
 
 public:
     static constexpr float camera_far_plane = 1000.0f;
-    std::vector<float> shadowCascadeLevels{ camera_far_plane / 50.0f, camera_far_plane / 25.0f, camera_far_plane / 10.0f, camera_far_plane / 2.0f };
+    std::array<float, 4> shadowCascadeLevels{ camera_far_plane / 50.0f, camera_far_plane / 25.0f, camera_far_plane / 10.0f, camera_far_plane / 2.0f };
     Shadowmap shadowmap{4096};
     float _max_shadow_distance = 350.0f;
     float _sun_rotation = glm::radians(90.0f);
@@ -91,7 +91,7 @@ public:
     UniformBuffer _ubuffer;
 
     Mesh _quad_fs = Geometry::quad_2d();
-    Mesh _skybox_cube = Geometry::cube(glm::vec3(1.0f), glm::vec3(0.0f));
+    Mesh _skybox_cube = Geometry::cube(glm::vec3(100.0f), glm::vec3(0.0f)); // make it big to avoid clipping with high FOV (>120)
 
     GLuint ssbo_texture_handles;
 
