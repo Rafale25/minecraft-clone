@@ -2,8 +2,11 @@
 #include "BoundingSphere.hpp"
 #include "ShaderProgram.hpp"
 #include "Frustum.hpp"
-#include <glm/gtc/matrix_transform.hpp>
+#include "Camera.hpp"
 #include "VAO.hpp"
+#include <glm/gtc/matrix_transform.hpp>
+
+#include "Logger.hpp"
 
 static const float borderColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
@@ -14,7 +17,7 @@ Shadowmap::Shadowmap(GLsizei shadowmap_size):
     // _depthTexture.setSwizzle({ GL_RED, GL_RED, GL_RED, GL_ONE });
     // _depthFBO.attachTexture(_depthTexture._texture, GL_DEPTH_ATTACHMENT);
 
-    glCreateTextures(1, GL_TEXTURE_2D_ARRAY, &_depthTextureArray);
+    glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &_depthTextureArray);
     // glTextureStorage2D(_texture, 1, format, width, height);
 
     glTextureParameteri(_depthTextureArray, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -22,10 +25,12 @@ Shadowmap::Shadowmap(GLsizei shadowmap_size):
     glTextureParameteri(_depthTextureArray, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTextureParameteri(_depthTextureArray, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
-    glTextureStorage3D(_depthTextureArray, 0, GL_DEPTH_COMPONENT32F, _shadowmap_size, _shadowmap_size, shadowCascadeLevels.size() + 1);
+    glTextureStorage3D(_depthTextureArray, 1, GL_DEPTH_COMPONENT32F, shadowmap_size, shadowmap_size, shadowCascadeLevels.size() + 1);
 
     constexpr float bordercolor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     glTextureParameterfv(_depthTextureArray, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+    _depthFBO.attachTexture(_depthTextureArray, GL_DEPTH_ATTACHMENT);
 
     _matricesBuffer = createBufferStorage(NULL, 4*16 * shadowCascadeLevels.size());
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, _matricesBuffer);
@@ -156,8 +161,6 @@ glm::mat4 Shadowmap::getLightProjectionMatrix(FrustumBounds& b)
 
     return glm::ortho(b.minX, b.maxX, b.minY, b.maxY, b.minZ, b.maxZ);
 }
-
-#include "Camera.hpp"
 
 glm::mat4 Shadowmap::getLightSpaceMatrix(const Camera& camera, float near_plane, float far_plane)
 {
