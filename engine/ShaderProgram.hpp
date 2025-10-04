@@ -7,7 +7,7 @@
 typedef unsigned int GLuint;
 typedef int GLint;
 
-class Program
+class ShaderProgram
 {
 private:
     GLuint ID = 0;
@@ -18,7 +18,7 @@ private:
     std::unordered_map<std::string, int> _uniformsLocations;
 
 public:
-    Program(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr);
+    ShaderProgram(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr);
 
     void load(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr);
     void reload();

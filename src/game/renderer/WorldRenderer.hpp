@@ -2,8 +2,7 @@
 
 #include "IWorldRender.hpp"
 #include "ChunkMesh.hpp"
-#include "Context.hpp"
-#include "Program.hpp"
+#include "ShaderProgram.hpp"
 #include "Shadowmap.hpp"
 #include "Geometry.hpp"
 #include "BufferAllocator.hpp"
@@ -58,7 +57,7 @@ private:
 
     glm::vec3 getSunDirection() const;
 
-    void renderEntities(const Camera &camera, const Program& program);
+    void renderEntities(const Camera &camera, const ShaderProgram& program);
 
     void renderShadowmap(const Camera &camera);
 
@@ -93,7 +92,7 @@ public:
 
     GLuint ssbo_texture_handles;
 
-    std::unordered_map<std::string, Program> _shaders = {
+    std::unordered_map<std::string, ShaderProgram> _shaders = {
         {"cube",                {RESSOURCE_PATH "shaders/cube.vs",              RESSOURCE_PATH "shaders/cube.fs"            }},
         {"cube_depth_only",     {RESSOURCE_PATH "shaders/cube_depth_only.vs",   RESSOURCE_PATH "shaders/cube_depth_only.fs" }},
         {"mesh",                {RESSOURCE_PATH "shaders/mesh.vs",              RESSOURCE_PATH "shaders/mesh.fs"            }},

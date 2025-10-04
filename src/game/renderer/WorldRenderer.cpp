@@ -392,7 +392,7 @@ void WorldRenderer::renderTerrain(
     // glDepthMask(GL_TRUE);
 }
 
-void WorldRenderer::renderEntities(const Camera &camera, const Program& program)
+void WorldRenderer::renderEntities(const Camera &camera, const ShaderProgram& program)
 {
     program.use();
     program.setMat4("u_projectionMatrix", camera.getProjection());

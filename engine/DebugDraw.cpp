@@ -28,14 +28,14 @@ DebugDraw::DebugDraw()
 
 void DebugDraw::drawLine(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &color)
 {
-    _vertices.emplace_back(a.r);
-    _vertices.emplace_back(a.g);
-    _vertices.emplace_back(a.b);
+    _vertices.emplace_back(a.x);
+    _vertices.emplace_back(a.y);
+    _vertices.emplace_back(a.z);
     _vertices.emplace_back(intBitsToFloat(packColor(color.r * 255, color.g * 255, color.b * 255)));
 
-    _vertices.emplace_back(b.r);
-    _vertices.emplace_back(b.g);
-    _vertices.emplace_back(b.b);
+    _vertices.emplace_back(b.x);
+    _vertices.emplace_back(b.y);
+    _vertices.emplace_back(b.z);
     _vertices.emplace_back(intBitsToFloat(packColor(color.r * 255, color.g * 255, color.b * 255)));
 }
 

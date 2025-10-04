@@ -1,6 +1,6 @@
 #include "Shadowmap.hpp"
 #include "BoundingSphere.hpp"
-#include "Program.hpp"
+#include "ShaderProgram.hpp"
 #include "Frustum.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include "VAO.hpp"
@@ -33,7 +33,7 @@ Shadowmap::Shadowmap(GLsizei shadowmap_size):
 
 // need to extract the boundingSphere + shimmering fix code out of begin to make it simpler
 
-glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, const Program &program)
+glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, const ShaderProgram &program)
 {
     BoundingSphere sphere = BoundingSphere::createFromFrustum(projection * view);
     sphere.radius = glm::ceil(sphere.radius); // fix micro shimmering cause by radius changing by very tiny amount

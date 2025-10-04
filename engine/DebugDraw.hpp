@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Program.hpp"
+#include "ShaderProgram.hpp"
 #include <glm/detail/type_vec3.hpp>
 #include <glm/detail/type_mat4x4.hpp>
 
@@ -36,7 +36,7 @@ private:
     DebugDraw& operator=(DebugDraw&&) = delete;
 
 private:
-    Program _program{ENGINE_RESSOURCE_PATH "debug_draw/line.vert", ENGINE_RESSOURCE_PATH "debug_draw/line.frag"};
+    ShaderProgram _program{ENGINE_RESSOURCE_PATH "debug_draw/line.vert", ENGINE_RESSOURCE_PATH "debug_draw/line.frag"};
     GLuint _vao, _vbo;
     std::vector<float> _vertices;
 };

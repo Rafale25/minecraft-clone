@@ -3,10 +3,11 @@
 #include "Framebuffer.hpp"
 #include "Texture.hpp"
 #include <glm/detail/type_mat4x4.hpp>
+#include <array>
 
 class Camera;
 class Context;
-class Program;
+class ShaderProgram;
 
 struct FrustumBounds {
     float minX, maxX;
@@ -19,7 +20,7 @@ class Shadowmap
 public:
     Shadowmap(GLsizei shadowmap_size);
 
-    glm::mat4 begin(const glm::mat4& projection, const glm::mat4& view, const Program &program);
+    glm::mat4 begin(const glm::mat4& projection, const glm::mat4& view, const ShaderProgram &program);
 
     void end();
     void setSunDir(const glm::vec3& sunDir);

@@ -4,6 +4,7 @@
 #include <glad/gl.h>
 #include <string>
 #include <vector>
+#include <array>
 
 inline double nsToMs(int64_t ns) {
     return double(ns) / 1e6;
