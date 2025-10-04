@@ -160,6 +160,8 @@ void GameView::playerMovements(float dt)
         return;
     }
 
+    delta *= 0.5f;
+
     glm::vec3 forward_xz = glm::normalize(glm::vec3(camera.forward().x, 0.0f, camera.forward().z));
     glm::vec3 move_vector = -delta.x * camera.right() + delta.z * forward_xz;
 

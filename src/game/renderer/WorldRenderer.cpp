@@ -129,7 +129,8 @@ void WorldRenderer::render(const Camera &camera)
     setDefaultRenderState();
 
     { // SHADOWMAP //
-        const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, _max_shadow_distance);
+        // const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, _max_shadow_distance);
+        const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, 1000.0f);
 
         shadowmap.setSunDir(sunDirection);
         glm::mat4 light_view_projection = shadowmap.begin(camera_projection_shorter, camera.getView(), _shaders.at("cube_depth_only"));
@@ -165,7 +166,7 @@ void WorldRenderer::render(const Camera &camera)
     // cube_shader_depth_only.setMat4("u_lightSpaceMatrix", view_projection);
     // renderTerrain(camera.getProjection() * camera.getView(), true);
 
-    glBindTextureUnit(0, shadowmap._depthTexture._texture);
+    // glBindTextureUnit(0, shadowmap._depthTexture._texture);
     uint32_t attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
     glDrawBuffers(2, attachments); // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
 

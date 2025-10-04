@@ -70,8 +70,8 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 viewPosition, 
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y)
         {
-            // vec2 offset = vec2(0.0);
-            vec2 offset = vec2(x, y) + rand(projCoords.xy + vec2(x, y)); // smooth out shadows by using random offsets
+            vec2 offset = vec2(0.0);
+            // vec2 offset = vec2(x, y) + rand(projCoords.xy + vec2(x, y)); // smooth out shadows by using random offsets
             float pcfDepth = texture(shadowMap, projCoords.xy + offset * texelSize).r;
             shadow += (currentDepth - bias) > pcfDepth  ? 1.0 : 0.0;
         }

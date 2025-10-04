@@ -67,8 +67,6 @@ private:
     float _framebuffer_height;
 
 public:
-    static constexpr float camera_far_plane = 1000.0f;
-    std::array<float, 4> shadowCascadeLevels{ camera_far_plane / 50.0f, camera_far_plane / 25.0f, camera_far_plane / 10.0f, camera_far_plane / 2.0f };
     Shadowmap shadowmap{4096};
     float _max_shadow_distance = 350.0f;
     float _sun_rotation = glm::radians(90.0f);
