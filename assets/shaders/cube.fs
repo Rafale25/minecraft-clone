@@ -31,7 +31,8 @@ in VS_OUT {
 layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec3 gPosition;
 
-uniform sampler2D shadowMap;
+// uniform sampler2D shadowMap;
+uniform sampler2DArray shadowMap;
 
 float getSlopeScaledBias(vec3 N, vec3 L)
 {
@@ -53,7 +54,8 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 viewPosition, 
     projCoords = projCoords * 0.5 + 0.5;
 
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    float closestDepth = texture(shadowMap, projCoords.xy).r;
+    // float closestDepth = texture(shadowMap, projCoords.xy).r;
+    float closestDepth = texture(shadowMap, vec3(projCoords.xy, 0)).r;
 
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
@@ -66,13 +68,14 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 viewPosition, 
 
     // PCF
     float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0).xy;
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y)
         {
             vec2 offset = vec2(0.0);
             // vec2 offset = vec2(x, y) + rand(projCoords.xy + vec2(x, y)); // smooth out shadows by using random offsets
-            float pcfDepth = texture(shadowMap, projCoords.xy + offset * texelSize).r;
+            // float pcfDepth = texture(shadowMap, projCoords.xy + offset * texelSize).r;
+            float pcfDepth = texture(shadowMap, vec3(projCoords.xy + offset * texelSize, 0)).r;
             shadow += (currentDepth - bias) > pcfDepth  ? 1.0 : 0.0;
         }
     }

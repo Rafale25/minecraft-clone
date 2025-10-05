@@ -12,13 +12,12 @@ static const float borderColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 Shadowmap::Shadowmap(GLsizei shadowmap_size):
     _shadowmap_size(shadowmap_size)
-    // ,_depthTexture(Texture(shadowmap_size, shadowmap_size, GL_DEPTH_COMPONENT32F, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_BORDER, borderColor))
+    // ,_depthTexture(Texture(shadowmap_size, shadowmap_size, GL_DEPTH_COMPONENT24, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_BORDER, borderColor))
 {
     // _depthTexture.setSwizzle({ GL_RED, GL_RED, GL_RED, GL_ONE });
     // _depthFBO.attachTexture(_depthTexture._texture, GL_DEPTH_ATTACHMENT);
 
     glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &_depthTextureArray);
-    // glTextureStorage2D(_texture, 1, format, width, height);
 
     glTextureParameteri(_depthTextureArray, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTextureParameteri(_depthTextureArray, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -36,45 +35,28 @@ Shadowmap::Shadowmap(GLsizei shadowmap_size):
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, _matricesBuffer);
 }
 
-// need to extract the boundingSphere + shimmering fix code out of begin to make it simpler
+/*
+call begin and end for each level of the CSM and change layer for each one
+*/
 
-glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, const ShaderProgram &program)
+static glm::mat4 getlightProjectionMatrix(const glm::mat4& cameraViewProjection)
 {
-    BoundingSphere sphere = BoundingSphere::createFromFrustum(projection * view);
+    BoundingSphere sphere = BoundingSphere::createFromFrustum(cameraViewProjection);
     sphere.radius = glm::ceil(sphere.radius); // fix micro shimmering cause by radius changing by very tiny amount
-
-    auto corners = extractFrustumCornersWorldSpace(projection * view);
-    glm::mat4 lightViewMatrix = getLightViewMatrix(corners, _sunDir);
 
     const float extraBackup = 20.0f;
     const float nearClip = 1.0f;
-    float backupDist = extraBackup + nearClip + sphere.radius;
+    // float backupDist = extraBackup + nearClip + sphere.radius;
 
     float bounds = sphere.radius * 2.0f;
     float farClip = extraBackup + sphere.radius;
 
-    glm::mat4 lightProjectionMatrix = glm::orthoZO(-bounds*0.5f, bounds*0.5f, -bounds*0.5f, bounds*0.5f, nearClip, farClip);
+    return glm::orthoZO(-bounds*0.5f, bounds*0.5f, -bounds*0.5f, bounds*0.5f, nearClip, farClip);
+}
 
-
-    // shimmering fix // https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering
-    // Create the rounding matrix, by projecting the world-space origin and determining
-    // the fractional offset in texel space
-    glm::mat4 shadowMatrix = lightProjectionMatrix * lightViewMatrix;
-    glm::vec4 shadowOrigin = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    shadowOrigin = shadowMatrix * shadowOrigin;
-    shadowOrigin = shadowOrigin * (_shadowmap_size / 2.0f);
-
-    glm::vec4 roundedOrigin = glm::round(shadowOrigin);
-    glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
-    roundOffset = roundOffset * (2.0f / float(_shadowmap_size));
-    roundOffset.z = 0.0f;
-    roundOffset.w = 0.0f;
-
-    glm::mat4 shadowProj = lightProjectionMatrix;
-    shadowProj[3] += roundOffset;
-    // --
-
-    _lightSpaceMatrix = shadowProj * lightViewMatrix;
+glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, const ShaderProgram &program)
+{
+    _lightSpaceMatrix = getLightSpaceMatrix(projection * view);
 
     // auto corners = extractFrustumCornersWorldSpace(projection * view);
     // glm::mat4 lightViewMatrix = getLighViewMatrix(corners, _sunDir);
@@ -145,54 +127,60 @@ FrustumBounds Shadowmap::computeFrustumBounds(const glm::mat4& lightView, const 
     return b;
 }
 
-glm::mat4 Shadowmap::getLightProjectionMatrix(FrustumBounds& b)
+glm::mat4 Shadowmap::getLightSpaceMatrix(const glm::mat4& cameraViewProjection)
 {
-    // Tune this parameter according to the scene
-    const float zMult = 5.0f;
-    if (b.minZ < 0)
-        b.minZ *= zMult;
-    else
-        b.minZ /= zMult;
+    // Old lightSpace Matrix
+    // const glm::mat4 proj = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, near_plane, far_plane);
+    // auto corners = extractFrustumCornersWorldSpace(proj * camera.getView());
+    // glm::mat4 lightViewMatrix = getLightViewMatrix(corners, _sunDir);
+    // FrustumBounds bounds = computeFrustumBounds(lightViewMatrix, corners);
+    // glm::mat4 lightProjectionMatrix = getLightProjectionMatrix(bounds);
 
-    if (b.maxZ < 0)
-        b.maxZ /= zMult;
-    else
-        b.maxZ *= zMult;
 
-    return glm::ortho(b.minX, b.maxX, b.minY, b.maxY, b.minZ, b.maxZ);
-}
+    glm::mat4 lightProjectionMatrix = getlightProjectionMatrix(cameraViewProjection);
+    auto corners = extractFrustumCornersWorldSpace(cameraViewProjection);
 
-glm::mat4 Shadowmap::getLightSpaceMatrix(const Camera& camera, float near_plane, float far_plane)
-{
-    const glm::mat4 proj = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, near_plane, far_plane);
-
-    auto corners = extractFrustumCornersWorldSpace(proj * camera.getView());
     glm::mat4 lightViewMatrix = getLightViewMatrix(corners, _sunDir);
-    FrustumBounds bounds = computeFrustumBounds(lightViewMatrix, corners);
-    glm::mat4 lightProjectionMatrix = getLightProjectionMatrix(bounds);
 
-    return lightProjectionMatrix;
+    // shimmering fix // https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering
+    // Create the rounding matrix, by projecting the world-space origin and determining the fractional offset in texel space
+    glm::mat4 shadowMatrix = lightProjectionMatrix * lightViewMatrix;
+    glm::vec4 shadowOrigin = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    shadowOrigin = shadowMatrix * shadowOrigin;
+    shadowOrigin = shadowOrigin * (_shadowmap_size / 2.0f);
+
+    glm::vec4 roundedOrigin = glm::round(shadowOrigin);
+    glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
+    roundOffset = roundOffset * (2.0f / float(_shadowmap_size));
+    roundOffset.z = 0.0f;
+    roundOffset.w = 0.0f;
+
+    glm::mat4 shadowProj = lightProjectionMatrix;
+    shadowProj[3] += roundOffset;
+    // --
+
+    return shadowProj * lightViewMatrix;
 }
 
 std::vector<glm::mat4> Shadowmap::getLightSpaceMatrices(const Camera& camera)
 {
-    float near_plane = 0.1f;
-    float far_plane = 1000.0f;
-
     std::vector<glm::mat4> ret;
     for (size_t i = 0; i < shadowCascadeLevels.size() + 1; ++i)
     {
         if (i == 0)
         {
-            ret.push_back(getLightSpaceMatrix(camera, near_plane, shadowCascadeLevels[i]));
+            const glm::mat4 m = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, camera.near_plane, shadowCascadeLevels[i]);
+            ret.push_back(getLightSpaceMatrix(m));
         }
         else if (i < shadowCascadeLevels.size())
         {
-            ret.push_back(getLightSpaceMatrix(camera, shadowCascadeLevels[i - 1], shadowCascadeLevels[i]));
+            const glm::mat4 m = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, shadowCascadeLevels[i - 1], shadowCascadeLevels[i]);
+            ret.push_back(getLightSpaceMatrix(m));
         }
         else
         {
-            ret.push_back(getLightSpaceMatrix(camera, shadowCascadeLevels[i - 1], far_plane));
+            const glm::mat4 m = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, shadowCascadeLevels[i - 1],  camera.far_plane);
+            ret.push_back(getLightSpaceMatrix(m));
         }
     }
     return ret;

@@ -14,6 +14,8 @@ void main()
 {
     vec4 color = texture(texture_handles[fs_in.texture_id], fs_in.uv).rgba;
 
+    gl_Layer = 0;
+
     if (color.a < 0.65) { // magic value
         discard;
     }

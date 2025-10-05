@@ -52,7 +52,7 @@ private:
 
     FPSCamera camera = {
         glm::vec3(0.0f, 0.0, 0.0f), 0.0f, 0.0f,
-        60.0f, (float)ctx.width / (float)ctx.height, 0.1f, 5000.0f
+        60.0f, (float)ctx.width / (float)ctx.height, 0.1f, 1000.0f
     };
 
     BlockType block_in_hand = BlockType::Grass;
