@@ -37,6 +37,9 @@ public:
 private:
     WorldRenderer world_renderer{ctx.width, ctx.height};
 
+    // GLuint _texture_view = 0;
+    GLuint _texture_view[4]{};
+
     float network_timer = 1.0f;
 
     bool _show_debug_gui = false;

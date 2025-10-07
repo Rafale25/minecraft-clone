@@ -28,6 +28,21 @@ GameView::GameView(Context& ctx): View(ctx)
 
     Client::instance().init(tchat, global_argv[1], std::atoi(global_argv[2]));
     Client::instance().Start();
+
+
+    glGenTextures(4, _texture_view);
+
+    for (int i = 0 ; i < 4 ; ++i) {
+        glTextureView(
+            _texture_view[i], GL_TEXTURE_2D,
+            world_renderer.shadowmap._depthTextureArray, GL_DEPTH_COMPONENT32F,
+            0, 1, i, 1
+        );
+
+        constexpr GLint rgba[4] = { GL_RED, GL_RED, GL_RED, GL_ONE };
+        glTextureParameteriv(_texture_view[i], GL_TEXTURE_SWIZZLE_RGBA, (GLint*)&rgba); // to make the texture grayscale in imgui
+    }
+
 }
 
 void GameView::onHideView()

@@ -55,14 +55,16 @@ void GameView::gui(float dt)
 
     ImGui::Begin("Debug", nullptr, !_cursor_enabled ? ImGuiWindowFlags_NoInputs : 0);
 
-    // static bool _shadowmap_texture = false;
-    // ImGui::Checkbox("ShadowMap texture", &_shadowmap_texture);
-    // if (_shadowmap_texture) {
-    //     ImGui::Begin("Shadow map");
-    //     // ImGui::Image((ImTextureID)(intptr_t) world_renderer.shadowmap._depthTexture._texture, ImVec2(ctx.width/3, ctx.height/3), ImVec2(0, 1), ImVec2(1, 0));
-    //     ImGui::Image((ImTextureID)(intptr_t) world_renderer.shadowmap._depthTexture._texture, ImVec2(world_renderer.shadowmap._shadowmap_size/4, world_renderer.shadowmap._shadowmap_size/4), ImVec2(0, 1), ImVec2(1, 0));
-    //     ImGui::End();
-    // }
+    static bool _shadowmap_texture = false;
+    ImGui::Checkbox("ShadowMap texture", &_shadowmap_texture);
+    if (_shadowmap_texture) {
+        ImGui::Begin("Shadow map");
+        // ImGui::Image((ImTextureID)(intptr_t) world_renderer.shadowmap._depthTexture._texture, ImVec2(world_renderer.shadowmap._shadowmap_size/4, world_renderer.shadowmap._shadowmap_size/4), ImVec2(0, 1), ImVec2(1, 0));
+        for (int i = 0 ; i < 4 ; ++i) {
+            ImGui::Image((ImTextureID)(intptr_t) _texture_view[i], ImVec2(world_renderer.shadowmap.getShadowmapSize()/8, world_renderer.shadowmap.getShadowmapSize()/8), ImVec2(0, 1), ImVec2(1, 0));
+        }
+        ImGui::End();
+    }
 
     ImGui::Checkbox("Profiler", &_show_profiler_gui);
 

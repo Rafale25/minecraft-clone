@@ -35,24 +35,7 @@ Shadowmap::Shadowmap(GLsizei shadowmap_size):
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, _matricesBuffer);
 }
 
-/*
-call begin and end for each level of the CSM and change layer for each one
-*/
 
-static glm::mat4 getlightProjectionMatrix(const glm::mat4& cameraViewProjection)
-{
-    BoundingSphere sphere = BoundingSphere::createFromFrustum(cameraViewProjection);
-    sphere.radius = glm::ceil(sphere.radius); // fix micro shimmering cause by radius changing by very tiny amount
-
-    const float extraBackup = 20.0f;
-    const float nearClip = 1.0f;
-    // float backupDist = extraBackup + nearClip + sphere.radius;
-
-    float bounds = sphere.radius * 2.0f;
-    float farClip = extraBackup + sphere.radius;
-
-    return glm::orthoZO(-bounds*0.5f, bounds*0.5f, -bounds*0.5f, bounds*0.5f, nearClip, farClip);
-}
 
 glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, const ShaderProgram &program)
 {
@@ -87,7 +70,22 @@ void Shadowmap::setSunDir(const glm::vec3& sunDir)
     _sunDir = sunDir;
 }
 
-glm::mat4 Shadowmap::getLightViewMatrix(const std::vector<glm::vec3>& cameraFrustumCorners, const glm::vec3& lightDir)
+static glm::mat4 getlightProjectionMatrix(const glm::mat4& cameraViewProjection)
+{
+    BoundingSphere sphere = BoundingSphere::createFromFrustum(cameraViewProjection);
+    sphere.radius = glm::ceil(sphere.radius); // fix micro shimmering cause by radius changing by very tiny amount
+
+    const float extraBackup = 20.0f;
+    const float nearClip = 1.0f;
+    // float backupDist = extraBackup + nearClip + sphere.radius;
+
+    float bounds = sphere.radius * 2.0f;
+    float farClip = extraBackup + sphere.radius;
+
+    return glm::orthoZO(-bounds*0.5f, bounds*0.5f, -bounds*0.5f, bounds*0.5f, nearClip, farClip);
+}
+
+static glm::mat4 getLightViewMatrix(const std::vector<glm::vec3>& cameraFrustumCorners, const glm::vec3& lightDir)
 {
     glm::vec3 center = glm::vec3(0, 0, 0);
     for (const auto& v : cameraFrustumCorners) {
@@ -100,31 +98,6 @@ glm::mat4 Shadowmap::getLightViewMatrix(const std::vector<glm::vec3>& cameraFrus
         center,
         glm::vec3(0.0f, 1.0f, 0.0f)
     );
-}
-
-FrustumBounds Shadowmap::computeFrustumBounds(const glm::mat4& lightView, const std::vector<glm::vec3>& corners)
-{
-    FrustumBounds b;
-
-    b.minX = std::numeric_limits<float>::max();
-    b.maxX = std::numeric_limits<float>::lowest();
-    b.minY = std::numeric_limits<float>::max();
-    b.maxY = std::numeric_limits<float>::lowest();
-    b.minZ = std::numeric_limits<float>::max();
-    b.maxZ = std::numeric_limits<float>::lowest();
-
-    for (const auto& v : corners)
-    {
-        const glm::vec4 trf = lightView * glm::vec4(v, 1.0f);
-        b.minX = glm::min(b.minX, trf.x);
-        b.maxX = glm::max(b.maxX, trf.x);
-        b.minY = glm::min(b.minY, trf.y);
-        b.maxY = glm::max(b.maxY, trf.y);
-        b.minZ = glm::min(b.minZ, trf.z);
-        b.maxZ = glm::max(b.maxZ, trf.z);
-    }
-
-    return b;
 }
 
 glm::mat4 Shadowmap::getLightSpaceMatrix(const glm::mat4& cameraViewProjection)
@@ -185,3 +158,32 @@ std::vector<glm::mat4> Shadowmap::getLightSpaceMatrices(const Camera& camera)
     }
     return ret;
 }
+
+
+// unused
+/*
+static FrustumBounds computeFrustumBounds(const glm::mat4& lightView, const std::vector<glm::vec3>& corners)
+{
+    FrustumBounds b;
+
+    b.minX = std::numeric_limits<float>::max();
+    b.maxX = std::numeric_limits<float>::lowest();
+    b.minY = std::numeric_limits<float>::max();
+    b.maxY = std::numeric_limits<float>::lowest();
+    b.minZ = std::numeric_limits<float>::max();
+    b.maxZ = std::numeric_limits<float>::lowest();
+
+    for (const auto& v : corners)
+    {
+        const glm::vec4 trf = lightView * glm::vec4(v, 1.0f);
+        b.minX = glm::min(b.minX, trf.x);
+        b.maxX = glm::max(b.maxX, trf.x);
+        b.minY = glm::min(b.minY, trf.y);
+        b.maxY = glm::max(b.maxY, trf.y);
+        b.minZ = glm::min(b.minZ, trf.z);
+        b.maxZ = glm::max(b.maxZ, trf.z);
+    }
+
+    return b;
+}
+*/

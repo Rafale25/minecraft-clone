@@ -21,19 +21,15 @@ public:
     Shadowmap(GLsizei shadowmap_size);
 
     glm::mat4 begin(const glm::mat4& projection, const glm::mat4& view, const ShaderProgram &program);
-
     void end();
     void setSunDir(const glm::vec3& sunDir);
+    int32_t getShadowmapSize() const { return _shadowmap_size; }
 
 private:
-    glm::mat4 getLightViewMatrix(const std::vector<glm::vec3>& cameraFrustumCorners, const glm::vec3& lightDir);
-    FrustumBounds computeFrustumBounds(const glm::mat4& lightView, const std::vector<glm::vec3>& corners);
-
     glm::mat4 getLightSpaceMatrix(const glm::mat4& lightViewProjectionMatrix);
     std::vector<glm::mat4> getLightSpaceMatrices(const Camera& camera);
 
-// private:
-public:
+private:
     GLsizei _shadowmap_size;
     GLint _cached_viewport[4];
     Framebuffer _depthFBO{GL_NONE, GL_NONE};
@@ -43,7 +39,7 @@ public:
     static constexpr float camera_far_plane = 300.0f;
     std::array<float, 4> shadowCascadeLevels{ camera_far_plane / 50.0f, camera_far_plane / 25.0f, camera_far_plane / 10.0f, camera_far_plane / 2.0f };
 
-    GLuint _depthTextureArray;
+    GLuint _depthTextureArray = 0;
     GLuint _matricesBuffer;
 
     Texture _depthTexture;
