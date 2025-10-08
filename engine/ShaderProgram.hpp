@@ -25,6 +25,7 @@ public:
     void use() const;
 
     GLint getUniformLocation(const std::string &name) const;
+    std::vector<std::string> getUniformsNames() const;
 
     void setBool(const std::string &name, bool value) const;
     void setInt(const std::string &name, int value) const;

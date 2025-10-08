@@ -88,8 +88,20 @@ void ShaderProgram::load(const char* vertexPath, const char* fragmentPath, const
             exit(-1);
         }
 
-        _uniformsLocations[std::string(name, length)] = glGetUniformLocation(id, name);
-        // logD("Program {} - UNIFORM: {}", id, name);
+        if (size > 1) { // support uniform arrays
+            for (int i = 0 ; i < size ; ++i) {
+                std::string str_name(name, length);
+                str_name.resize(length - 2);
+                str_name += std::to_string(i) + ']';
+
+                _uniformsLocations[str_name] = glGetUniformLocation(id, str_name.c_str());
+                // logD("str uniform: {}", str_name);
+            }
+        } else {
+            _uniformsLocations[std::string(name, length)] = glGetUniformLocation(id, name);
+        }
+
+        // logD("Program {} - UNIFORM: {} - size {}", id, name, size);
     }
 
     // for(const auto& [key, value] : _uniformsLocations) {
@@ -108,11 +120,11 @@ void ShaderProgram::use() const {
 }
 
 GLint ShaderProgram::getUniformLocation(const std::string &name) const {
-    const auto location = _uniformsLocations.find(name);
-    if (location == _uniformsLocations.end()) {
+    const auto it = _uniformsLocations.find(name);
+    if (it == _uniformsLocations.end()) {
         logE("Invalid uniform {} for Program {};\n{};\n{}", name, ID, _vertexPath, _fragmentPath);
     }
-    return location->second;
+    return it->second;
 }
 
 void ShaderProgram::setBool(const std::string &name, bool value) const {
@@ -209,4 +221,12 @@ int ShaderProgram::checkCompileErrors(GLuint shader, const std::string& type, co
         }
     }
     return 1;
+}
+
+std::vector<std::string> ShaderProgram::getUniformsNames() const {
+    std::vector<std::string> names;
+    for (const auto& [key, _] : _uniformsLocations) {
+        names.emplace_back(key);
+    }
+    return names;
 }
