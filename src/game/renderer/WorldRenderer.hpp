@@ -13,6 +13,8 @@
 #include <glm/gtx/euler_angles.hpp>
 #include <unordered_set>
 
+#include "FpsCamera.hpp"
+
 #include "unordered_dense.h"
 
 struct ChunkMesh;
@@ -72,6 +74,10 @@ public:
     float _sun_pitch = glm::radians(20.0f);
     float _sun_yaw = glm::radians(128.0f);
 
+    FPSCamera _shadow_camera; // camera used for shadow calculations
+    bool _is_shadow_camera_freezed = false;
+    bool _debug_draw_shadowmap_frustums = false;
+
     int32_t chunks_drawn;
     bool _wireframe = false;
     bool _ambient_occlusion = true;
@@ -86,6 +92,7 @@ public:
     Texture _depth_texture;
 
     UniformBuffer _ubuffer;
+    GLuint _ubuffer_matrices;
 
     Mesh _quad_fs = Geometry::quad_2d();
     Mesh _skybox_cube = Geometry::cube(glm::vec3(100.0f), glm::vec3(0.0f)); // make it big to avoid clipping with high FOV (>120)

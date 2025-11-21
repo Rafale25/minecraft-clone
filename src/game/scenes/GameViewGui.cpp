@@ -130,6 +130,10 @@ void GameView::gui(float dt)
     ImGui::Checkbox("Tonemapping", &world_renderer._tonemapping);
     ImGui::SliderFloat("Exposure", &world_renderer._exposure, 0.0f, 10.0f, "%.3f");
 
+    ImGui::Checkbox("Freeze shadowmap camera", &world_renderer._is_shadow_camera_freezed);
+    ImGui::Checkbox("Debug draw shadowmap frustums", &world_renderer._debug_draw_shadowmap_frustums);
+
+
     ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 260), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
     for (const auto& msg: tchat) {
         ImGui::TextWrapped("%s", msg.c_str());

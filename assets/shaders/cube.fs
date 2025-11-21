@@ -1,8 +1,6 @@
 #version 460 core
 #extension GL_ARB_bindless_texture : require
 
-float rand(vec2 co){ return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453); }
-
 layout(std430, binding = 0) readonly buffer ssbo_texture_handles {
     sampler2D texture_handles[];
 };
@@ -27,72 +25,16 @@ in VS_OUT {
 } fs_in;
 
 #include "uniforms.glsl"
+#include "shadowmapping.glsl"
+#include "utils/tonemapping.glsl"
+#include "utils/SRGB.glsl"
+#include "utils/fog.glsl"
+#include "skyColor.glsl"
 
 layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec3 gPosition;
 
-// uniform sampler2D shadowMap;
-uniform sampler2DArray shadowMap;
-
-float getSlopeScaledBias(vec3 N, vec3 L)
-{
-    float cosAlpha = clamp(dot(N, L), 0.0, 1.0);
-    float sinAlpha = sqrt(1.0 - cosAlpha * cosAlpha);     // sin(acos(L*N))
-    float tanAlpha = sinAlpha / cosAlpha;            // tan(acos(L*N))
-    return tanAlpha;
-}
-
-float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 viewPosition, vec3 lightDirection)
-{
-    // bias along view vector, wtf?? // cause weird bugs near world origin
-    // fragPosLightSpace.xyz += normalize(viewPosition - fragPosLightSpace.xyz) * 0.00015; // https://c0de517e.blogspot.com/2011/05/shadowmap-bias-notes.html
-
-    // perform perspective divide
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-
-    // transform to [0,1] range
-    projCoords = projCoords * 0.5 + 0.5;
-
-    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    // float closestDepth = texture(shadowMap, projCoords.xy).r;
-    float closestDepth = texture(shadowMap, vec3(projCoords.xy, 0)).r;
-
-    // get depth of current fragment from light's perspective
-    float currentDepth = projCoords.z;
-    if (currentDepth > 1.0) {
-        return 0.0;
-    }
-
-    // calculate bias (based on slope and sunDirection)
-    float bias = uniforms.shadow_bias * getSlopeScaledBias(normal, lightDirection);
-
-    // PCF
-    float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(shadowMap, 0).xy;
-    for (int x = -1; x <= 1; ++x) {
-        for (int y = -1; y <= 1; ++y)
-        {
-            vec2 offset = vec2(0.0);
-            // vec2 offset = vec2(x, y) + rand(projCoords.xy + vec2(x, y)); // smooth out shadows by using random offsets
-            // float pcfDepth = texture(shadowMap, projCoords.xy + offset * texelSize).r;
-            float pcfDepth = texture(shadowMap, vec3(projCoords.xy + offset * texelSize, 0)).r;
-            shadow += (currentDepth - bias) > pcfDepth  ? 1.0 : 0.0;
-        }
-    }
-    shadow /= 9.0;
-
-    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
-    if (projCoords.z > 1.0)
-        shadow = 0.0;
-
-    return shadow;
-}
-
-#include "utils/tonemapping.glsl"
-#include "utils/SRGB.glsl"
-
-#include "utils/fog.glsl"
-#include "skyColor.glsl"
+uniform sampler2DArray u_shadowmap;
 
 void main()
 {
@@ -118,7 +60,7 @@ void main()
     }
 
     // calculate shadow
-    float shadow = ShadowCalculation(fs_in.FragPosLightSpace, normal, uniforms.viewPosition.xyz, normalize(uniforms.sunDirection.xyz));
+    float shadow = ShadowCalculation(u_shadowmap, uniforms.view, fs_in.frag_pos, normal, uniforms.viewPosition.xyz, normalize(uniforms.sunDirection.xyz), uniforms.shadow_bias);
 
     // if cube face is not facing light, then it's in its own shadow
     if (dot(normal, uniforms.sunDirection.xyz) < 0.0
@@ -147,6 +89,23 @@ void main()
         vec3 rd = normalize(worldPos - uniforms.viewPosition.xyz);
         lighting = applyFog(lighting, fragDistance, rd, uniforms.sunDirection.xyz, skyColor, uniforms.fogDensity);
     }
+
+// #define DEBUG_SHADOWMAP_LAYER
+#ifdef DEBUG_SHADOWMAP_LAYER
+    int layer = getShadowMapLayer(uniforms.view, fs_in.frag_pos);
+    vec3 layerColor;
+    if (layer == 0) {
+        layerColor = vec3(1.0, 0.0, 0.0);
+    } else if (layer == 1) {
+        layerColor = vec3(0.0, 1.0, 0.0);
+    } else if (layer == 2) {
+        layerColor = vec3(0.0, 0.0, 1.0);
+    } else if (layer == 3) {
+        layerColor = vec3(1.0, 0.0, 1.0);
+    }
+
+    lighting = mix(lighting, layerColor, 0.4);
+#endif
 
     FragColor = vec4(lighting, color.a);
     // FragColor = vec4(normal, 1.0);

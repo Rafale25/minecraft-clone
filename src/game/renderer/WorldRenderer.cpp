@@ -41,7 +41,7 @@ WorldRenderer::WorldRenderer(int32_t width, int32_t height)
     glUnmapNamedBuffer(ssbo_chunk_element_buffer);
 
     _shaders.at("cube").use();
-    _shaders.at("cube").setInt("shadowMap", 0);
+    _shaders.at("cube").setInt("u_shadowmap", 0);
 
     BlockTextureManager::loadAllTextures();
     ssbo_texture_handles = createBufferStorage(BlockTextureManager::Get().textures_handles.data(), BlockTextureManager::Get().textures_handles.size() * sizeof(GLuint64));
@@ -65,6 +65,9 @@ WorldRenderer::WorldRenderer(int32_t width, int32_t height)
         {"tonemapping_enabled",           sizeof(int)*1},
     });
     _ubuffer.bind(0);
+
+    _ubuffer_matrices = createBufferStorage(nullptr, 4*16 * 4);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 1, _ubuffer_matrices);
 
     // DEBUG strides
     // for (const auto &[name, info] : _ubuffer._uniforms) {
@@ -99,6 +102,9 @@ void WorldRenderer::setDefaultRenderState()
 void WorldRenderer::render(const Camera &camera)
 {
     const glm::mat4 view_projection = camera.getProjection() * camera.getView();
+    if (!_is_shadow_camera_freezed) {
+        _shadow_camera = dynamic_cast<const FPSCamera &>(camera);
+    }
 
     std::vector<DrawElementsIndirectCommand> commands_opaque;
     std::vector<DrawElementsIndirectCommand> commands_translucent;
@@ -129,30 +135,47 @@ void WorldRenderer::render(const Camera &camera)
     setDefaultRenderState();
 
     { // SHADOWMAP //
-        const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, _max_shadow_distance);
-        // const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, 1000.0f);
-
         shadowmap.setSunDir(sunDirection);
-        glm::mat4 light_view_projection = shadowmap.begin(camera_projection_shorter, camera.getView(), _shaders.at("cube_depth_only"));
-        // DebugDraw::instance().drawFrustum(light_view_projection);
 
-        {
-            ScopedTask("shadowmap: generateDrawCommands");
-            generateDrawCommands(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent, light_view_projection, true);
+        const auto lightSpaceMatrices = shadowmap.getLightSpaceMatrices(_shadow_camera);
+
+        glNamedBufferSubData(_ubuffer_matrices, 0, 4*16 * 4, lightSpaceMatrices.data());
+
+        for (int i = 0 ; i < 4 ; ++i) {
+            // const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, 1000.0f);
+            // const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, _max_shadow_distance);
+
+            // const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, shadowmap.shadowCascadeLevels[i]);
+            // glm::mat4 light_space_matrix = shadowmap.begin(lightSpaceMatrices[i], camera.getView(), _shaders.at("cube_depth_only"), i);
+            shadowmap.begin(lightSpaceMatrices[i], _shadow_camera.getView(), _shaders.at("cube_depth_only"), i);
+            _ubuffer.set("lightSpaceMatrix", lightSpaceMatrices[i]);
+
+            if (_debug_draw_shadowmap_frustums) {
+                constexpr glm::vec3 debug_colors[4] = {{1,0,0}, {0,1,0}, {0,0,1}, {1,0,1}};
+                DebugDraw::instance().drawFrustum(lightSpaceMatrices[i], debug_colors[i]);
+            }
+
+            {
+                ScopedTask(std::string("shadowmap: generateDrawCommands ") + std::to_string(i));
+                generateDrawCommands(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent, lightSpaceMatrices[i], true);
+            }
+            glDisable(GL_CULL_FACE);
+            {
+                ScopedTaskGPU(std::string("shadowmap: render ") + std::to_string(i));
+                renderTerrain(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent, false);
+            }
+            glEnable(GL_CULL_FACE);
+
+            commands_opaque.clear();
+            commands_translucent.clear();
+            chunk_positions_opaque.clear();
+            chunk_positions_translucent.clear();
+
+            shadowmap.end();
         }
-        glDisable(GL_CULL_FACE);
-        {
-            ScopedTaskGPU("shadowmap: render");
-            renderTerrain(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent, false);
-        }
-        glEnable(GL_CULL_FACE);
 
-        commands_opaque.clear();
-        commands_translucent.clear();
-        chunk_positions_opaque.clear();
-        chunk_positions_translucent.clear();
-
-        shadowmap.end();
+        _ubuffer.set("lightSpaceMatrix", lightSpaceMatrices[0]);
+        // glNamedFramebufferTextureLayer(shadowmap._depthFBO._framebuffer, GL_DEPTH_ATTACHMENT, shadowmap._depthTextureArray, 0, 0);
     }
 
 
@@ -193,6 +216,11 @@ void WorldRenderer::render(const Camera &camera)
     }
 
     _shaders.at("cube").use();
+
+    _shaders.at("cube").setFloat("u_cascadePlaneDistances[0]", shadowmap.shadowCascadeLevels[0]);
+    _shaders.at("cube").setFloat("u_cascadePlaneDistances[1]", shadowmap.shadowCascadeLevels[1]);
+    _shaders.at("cube").setFloat("u_cascadePlaneDistances[2]", shadowmap.shadowCascadeLevels[2]);
+    _shaders.at("cube").setFloat("u_cascadePlaneDistances[3]", shadowmap.shadowCascadeLevels[3]);
 
     {
         // glDepthFunc(GL_EQUAL); // used for depth prepass

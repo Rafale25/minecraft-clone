@@ -29,24 +29,23 @@ Shadowmap::Shadowmap(GLsizei shadowmap_size):
     constexpr float bordercolor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     glTextureParameterfv(_depthTextureArray, GL_TEXTURE_BORDER_COLOR, borderColor);
 
-    _depthFBO.attachTexture(_depthTextureArray, GL_DEPTH_ATTACHMENT);
+    // _depthFBO.attachTexture(_depthTextureArray, GL_DEPTH_ATTACHMENT);
 
     _matricesBuffer = createBufferStorage(NULL, 4*16 * shadowCascadeLevels.size());
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, _matricesBuffer);
 }
 
-
-
-glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, const ShaderProgram &program)
+glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, const ShaderProgram &program, int32_t layer)
 {
-    _lightSpaceMatrix = getLightSpaceMatrix(projection * view);
-
     // auto corners = extractFrustumCornersWorldSpace(projection * view);
     // glm::mat4 lightViewMatrix = getLighViewMatrix(corners, _sunDir);
     // FrustumBounds bounds = computeFrustumBounds(lightViewMatrix, corners);
     // glm::mat4 lightProjectionMatrix = getLightProjectionMatrix(bounds);
-
     // _lightSpaceMatrix = lightProjectionMatrix * lightViewMatrix;
+
+    // _lightSpaceMatrix = getLightSpaceMatrix(projection );
+
+    glNamedFramebufferTextureLayer(_depthFBO._framebuffer, GL_DEPTH_ATTACHMENT, _depthTextureArray, 0, layer);
 
     program.use();
 
@@ -76,7 +75,7 @@ static glm::mat4 getlightProjectionMatrix(const glm::mat4& cameraViewProjection)
     sphere.radius = glm::ceil(sphere.radius); // fix micro shimmering cause by radius changing by very tiny amount
 
     const float extraBackup = 20.0f;
-    const float nearClip = 1.0f;
+    const float nearClip = -100.0f; // need to be back enough to take mountains
     // float backupDist = extraBackup + nearClip + sphere.radius;
 
     float bounds = sphere.radius * 2.0f;
@@ -102,14 +101,6 @@ static glm::mat4 getLightViewMatrix(const std::vector<glm::vec3>& cameraFrustumC
 
 glm::mat4 Shadowmap::getLightSpaceMatrix(const glm::mat4& cameraViewProjection)
 {
-    // Old lightSpace Matrix
-    // const glm::mat4 proj = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, near_plane, far_plane);
-    // auto corners = extractFrustumCornersWorldSpace(proj * camera.getView());
-    // glm::mat4 lightViewMatrix = getLightViewMatrix(corners, _sunDir);
-    // FrustumBounds bounds = computeFrustumBounds(lightViewMatrix, corners);
-    // glm::mat4 lightProjectionMatrix = getLightProjectionMatrix(bounds);
-
-
     glm::mat4 lightProjectionMatrix = getlightProjectionMatrix(cameraViewProjection);
     auto corners = extractFrustumCornersWorldSpace(cameraViewProjection);
 
@@ -137,22 +128,24 @@ glm::mat4 Shadowmap::getLightSpaceMatrix(const glm::mat4& cameraViewProjection)
 
 std::vector<glm::mat4> Shadowmap::getLightSpaceMatrices(const Camera& camera)
 {
+    const auto viewMatrix = camera.getView();
+
     std::vector<glm::mat4> ret;
     for (size_t i = 0; i < shadowCascadeLevels.size() + 1; ++i)
     {
         if (i == 0)
         {
-            const glm::mat4 m = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, camera.near_plane, shadowCascadeLevels[i]);
+            const glm::mat4 m = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, camera.near_plane, shadowCascadeLevels[i]) * viewMatrix;
             ret.push_back(getLightSpaceMatrix(m));
         }
         else if (i < shadowCascadeLevels.size())
         {
-            const glm::mat4 m = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, shadowCascadeLevels[i - 1], shadowCascadeLevels[i]);
+            const glm::mat4 m = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, shadowCascadeLevels[i - 1], shadowCascadeLevels[i]) * viewMatrix;
             ret.push_back(getLightSpaceMatrix(m));
         }
         else
         {
-            const glm::mat4 m = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, shadowCascadeLevels[i - 1],  camera.far_plane);
+            const glm::mat4 m = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, shadowCascadeLevels[i - 1],  camera.far_plane) * viewMatrix;
             ret.push_back(getLightSpaceMatrix(m));
         }
     }

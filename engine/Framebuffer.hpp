@@ -12,6 +12,6 @@ class Framebuffer {
         void attachTexture(GLuint texture, GLenum attachment);
         void destroy();
 
-    private:
+    // private:
         GLuint _framebuffer;
 };
