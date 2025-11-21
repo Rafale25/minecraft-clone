@@ -3,7 +3,18 @@
 ![minecraft_02](https://github.com/user-attachments/assets/f1ae1527-ca33-4218-a70b-4d029efd5950)
 ![minecraft_03](https://github.com/user-attachments/assets/9169c142-90ef-4fbe-8b11-d8829edd5dfe)
 
-## Installing
+
+# Technical features
+
+- Multiplayer
+- Ambiant occlusion (baked into vertices)
+- Multithreaded chunk meshing
+- Cascaded shadow mapping
+- Vertex packing
+- Frustum culling
+- Indirect rendering + Vertex pulling
+
+# Installing
     git clone https://github.com/Rafale25/minecraft-clone
     git submodule update --init --recursive
 
