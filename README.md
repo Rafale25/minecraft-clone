@@ -16,9 +16,9 @@
 
 # Submodules
 
-- GLFW
-- GLM
-- DearImgui
+- [GLFW](https://github.com/glfw/glfw)
+- [GLM](https://github.com/g-truc/glm)
+- [DearImgui](https://github.com/ocornut/imgui)
 
 # Installing
     git clone https://github.com/Rafale25/minecraft-clone
