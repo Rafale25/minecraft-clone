@@ -4,6 +4,7 @@
 #include "Chunk.hpp"
 #include "Entity.hpp"
 #include "AABB.hpp"
+#include "utils/geometry.hpp"
 #include "command_line_args.h"
 #include "DebugDraw.hpp"
 #include "Profiler.hpp"
@@ -11,12 +12,6 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
-
-bool isInManhattanDistance(const glm::ivec3& a, const glm::ivec3& b, int32_t distance)
-{
-    const glm::ivec3 v = glm::abs(a - b);
-    return v.x <= distance && v.y <= distance && v.z <= distance;
-}
 
 GameView::GameView(Context& ctx): View(ctx)
 {
