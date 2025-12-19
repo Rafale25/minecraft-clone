@@ -14,6 +14,12 @@
 - Frustum culling
 - Indirect rendering + Vertex pulling
 
+# Submodules
+
+- GLFW
+- GLM
+- DearImgui
+
 # Installing
     git clone https://github.com/Rafale25/minecraft-clone
     git submodule update --init --recursive
