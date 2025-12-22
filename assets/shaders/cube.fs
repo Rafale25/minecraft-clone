@@ -60,7 +60,8 @@ void main()
     }
 
     // calculate shadow
-    float shadow = ShadowCalculation(u_shadowmap, uniforms.view, fs_in.frag_pos, normal, uniforms.viewPosition.xyz, normalize(uniforms.sunDirection.xyz), uniforms.shadow_bias);
+    float shadow = ShadowCalculation(u_shadowmap, uniforms.view, fs_in.frag_pos, normal, normalize(uniforms.sunDirection.xyz), uniforms.shadow_bias);
+    // float shadow = float(isInShadow(u_shadowmap, uniforms.view, fs_in.frag_pos)); // non-pcf simple hard shadows
 
     // if cube face is not facing light, then it's in its own shadow
     if (dot(normal, uniforms.sunDirection.xyz) < 0.0

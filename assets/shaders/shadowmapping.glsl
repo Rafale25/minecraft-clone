@@ -39,7 +39,7 @@ int getShadowMapLayer(mat4 viewMatrix, vec3 fragWorldPos)
     return layer;
 }
 
-float ShadowCalculation(sampler2DArray shadowMap, mat4 viewMatrix, vec3 fragWorldPos, vec3 normal, vec3 viewPosition, vec3 lightDirection, float shadowBias)
+float ShadowCalculation(sampler2DArray shadowMap, mat4 viewMatrix, vec3 fragWorldPos, vec3 normal, vec3 lightDirection, float shadowBias)
 {
     int layer = getShadowMapLayer(viewMatrix, fragWorldPos);
 
@@ -52,8 +52,7 @@ float ShadowCalculation(sampler2DArray shadowMap, mat4 viewMatrix, vec3 fragWorl
     projCoords = projCoords * 0.5 + 0.5;
 
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    // float closestDepth = texture(shadowMap, projCoords.xy).r;
-    float closestDepth = texture(shadowMap, vec3(projCoords.xy, 0)).r;
+    // float closestDepth = texture(shadowMap, vec3(projCoords.xy, 0)).r;
 
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
@@ -94,4 +93,33 @@ float ShadowCalculation(sampler2DArray shadowMap, mat4 viewMatrix, vec3 fragWorl
         shadow = 0.0;
 
     return shadow;
+}
+
+bool isInShadow(sampler2DArray shadowMap, mat4 viewMatrix, vec3 fragWorldPos)
+{
+    int layer = getShadowMapLayer(viewMatrix, fragWorldPos);
+
+    vec4 fragPosLightSpace = u_lightSpaceMatrices[layer] * vec4(fragWorldPos, 1.0);
+
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+
+    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+    if (projCoords.z > 1.0)
+        return false;
+
+    float depth = texture(shadowMap, vec3(projCoords.xy, layer)).r;
+    const float bias = 0.001;
+    if (projCoords.z - bias > depth) {
+        return true;
+    }
+
+    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+    if (projCoords.z > 1.0)
+        return false;
+
+    return false;
 }
