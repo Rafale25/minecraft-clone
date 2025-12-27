@@ -4,6 +4,12 @@
 #include <glm/detail/type_mat4x4.hpp>
 #include <glad/gl.h>
 
+#define NO_REPEAT_ERRORS
+
+#ifdef NO_REPEAT_ERRORS
+#include <unordered_set>
+#endif
+
 ShaderProgram::ShaderProgram(const char* vertexPath, const char* fragmentPath, const char* geometryPath):
 _vertexPath(vertexPath), _fragmentPath(fragmentPath), _geometryPath(geometryPath)
 {
@@ -23,7 +29,7 @@ void ShaderProgram::load(const char* vertexPath, const char* fragmentPath, const
     glShaderSource(vertex, 1, &vShaderCode, NULL);
     glCompileShader(vertex);
     if (!checkCompileErrors(vertex, "VERTEX", vertexPath)) {
-        exit(0);
+        // exit(0);
         return;
     };
 
@@ -32,7 +38,7 @@ void ShaderProgram::load(const char* vertexPath, const char* fragmentPath, const
     glShaderSource(fragment, 1, &fShaderCode, NULL);
     glCompileShader(fragment);
     if (!checkCompileErrors(fragment, "FRAGMENT", fragmentPath)) {
-        exit(0);
+        // exit(0);
         return;
     };
 
@@ -46,7 +52,7 @@ void ShaderProgram::load(const char* vertexPath, const char* fragmentPath, const
         glShaderSource(geometry, 1, &gShaderCode, NULL);
         glCompileShader(geometry);
         if (!checkCompileErrors(geometry, "GEOMETRY", geometryPath)) {
-            exit(0);
+            // exit(0);
             return;
         };
     }
@@ -121,8 +127,23 @@ void ShaderProgram::use() const {
 
 GLint ShaderProgram::getUniformLocation(const std::string &name) const {
     const auto it = _uniformsLocations.find(name);
+
+    #ifdef NO_REPEAT_ERRORS
+    static std::unordered_set<std::string> invalid_uniforms;
+    #endif
+
     if (it == _uniformsLocations.end()) {
+
+        #ifdef NO_REPEAT_ERRORS
+        if (!invalid_uniforms.contains(name))
+        #endif
         logE("Invalid uniform {} for Program {};\n{};\n{}", name, ID, _vertexPath, _fragmentPath);
+
+        #ifdef NO_REPEAT_ERRORS
+        invalid_uniforms.insert(name);
+        #endif
+
+        return -1;
     }
     return it->second;
 }
