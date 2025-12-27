@@ -37,7 +37,14 @@ private:
 
 public:
     static constexpr float camera_far_plane = 1000.0f;
-    std::array<float, 4> shadowCascadeLevels{ camera_far_plane / 50.0f, camera_far_plane / 25.0f, camera_far_plane / 10.0f, camera_far_plane / 1.0f };
+
+    std::array<float, 4> shadowCascadeLevels{
+        20, 50, 200, camera_far_plane
+        // camera_far_plane / 50.0f,
+        // camera_far_plane / 25.0f,
+        // camera_far_plane / 10.0f,
+        // camera_far_plane / 1.0f
+    };
 
     GLuint _depthTextureArray = 0;
     GLuint _matricesBuffer;

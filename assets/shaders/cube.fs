@@ -26,7 +26,6 @@ in VS_OUT {
 
 #include "uniforms.glsl"
 #include "shadowmapping.glsl"
-#include "utils/tonemapping.glsl"
 #include "utils/SRGB.glsl"
 #include "utils/fog.glsl"
 #include "skyColor.glsl"
@@ -76,11 +75,6 @@ void main()
 
     gPosition = fs_in.frag_pos;
 
-    if (uniforms.tonemapping_enabled == 1) {
-        lighting = lottes(lighting.rgb * uniforms.exposure);
-    }
-    lighting = fromLinearToSRGB(lighting);// pow(lighting, vec3(1.0/2.2));
-
     { // FOG
         vec3 worldPos = fs_in.frag_pos;
         vec3 delta = worldPos - uniforms.viewPosition.xyz;
@@ -90,6 +84,12 @@ void main()
         vec3 rd = normalize(worldPos - uniforms.viewPosition.xyz);
         lighting = applyFog(lighting, fragDistance, rd, uniforms.sunDirection.xyz, skyColor, uniforms.fogDensity);
     }
+
+    // if (uniforms.tonemapping_enabled == 1) {
+    //     lighting = lottes(lighting.rgb * uniforms.exposure);
+    // }
+    // lighting = fromLinearToSRGB(lighting);// pow(lighting, vec3(1.0/2.2));
+
 
 // #define DEBUG_SHADOWMAP_LAYER
 #ifdef DEBUG_SHADOWMAP_LAYER

@@ -243,14 +243,26 @@ void WorldRenderer::render(const Camera &camera)
     glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 
 
-    _shaders.at("postprocessing").use();
-    _shaders.at("postprocessing").setInt("colorTexture", 0);
-    // _shaders.at("postprocessing").setInt("worldPosTexture", 1);
-    // _shaders.at("postprocessing").setInt("depthTexture", 2);
+    const auto& shader_post_processing = _shaders.at("postprocessing");
+    shader_post_processing.use();
+    shader_post_processing.setInt("colorTexture", 0);
+    shader_post_processing.setInt("worldPosTexture", 1);
+    // shader_post_processing.setInt("depthTexture", 2);
+    shader_post_processing.setInt("u_shadowmap", 3);
 
-    glBindTextureUnit(0, _color_texture._texture);
-    glBindTextureUnit(1, _world_position_texture._texture);
-    glBindTextureUnit(2, _depth_texture._texture);
+    shader_post_processing.setFloat("u_cascadePlaneDistances[0]", shadowmap.shadowCascadeLevels[0]);
+    shader_post_processing.setFloat("u_cascadePlaneDistances[1]", shadowmap.shadowCascadeLevels[1]);
+    shader_post_processing.setFloat("u_cascadePlaneDistances[2]", shadowmap.shadowCascadeLevels[2]);
+    shader_post_processing.setFloat("u_cascadePlaneDistances[3]", shadowmap.shadowCascadeLevels[3]);
+
+    shader_post_processing.setFloat("test_slider_0", test_slider_0);
+    shader_post_processing.setFloat("test_slider_1", test_slider_1);
+    shader_post_processing.setFloat("test_slider_2", test_slider_2);
+
+    glBindTextureUnit(0, _texture_color._texture);
+    glBindTextureUnit(1, _texture_world_position._texture);
+    // glBindTextureUnit(2, _depth_texture._texture);
+    glBindTextureUnit(3, shadowmap._depthTextureArray);
 
     {
         ScopedTaskGPU("postProcessing");
@@ -281,17 +293,17 @@ void WorldRenderer::onResize(int32_t width, int32_t height) {
     _framebuffer_height = height;
 
     _framebuffer.destroy();
-    _color_texture.destroy();
-    _world_position_texture.destroy();
-    _depth_texture.destroy();
+    _texture_color.destroy();
+    _texture_world_position.destroy();
+    _texture_depth.destroy();
 
     _framebuffer = Framebuffer();
-    _color_texture = Texture(width, height, GL_RGB8, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
-    _world_position_texture = Texture(width, height, GL_RGB32F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
-    _depth_texture = Texture(width, height, GL_DEPTH_COMPONENT24, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
-    _framebuffer.attachTexture(_color_texture._texture, GL_COLOR_ATTACHMENT0);
-    _framebuffer.attachTexture(_world_position_texture._texture, GL_COLOR_ATTACHMENT1);
-    _framebuffer.attachTexture(_depth_texture._texture, GL_DEPTH_ATTACHMENT);
+    _texture_color = Texture(width, height, GL_RGB8, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
+    _texture_world_position = Texture(width, height, GL_RGB32F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
+    _texture_depth = Texture(width, height, GL_DEPTH_COMPONENT24, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
+    _framebuffer.attachTexture(_texture_color._texture, GL_COLOR_ATTACHMENT0);
+    _framebuffer.attachTexture(_texture_world_position._texture, GL_COLOR_ATTACHMENT1);
+    _framebuffer.attachTexture(_texture_depth._texture, GL_DEPTH_ATTACHMENT);
 }
 
 void WorldRenderer::update() {
@@ -422,7 +434,7 @@ void WorldRenderer::renderTerrain(
     // glDepthMask(GL_TRUE);
 }
 
-void WorldRenderer::renderEntities(const Camera &camera, const ShaderProgram& program)
+void WorldRenderer::renderEntities(const Camera &camera, const ShaderProgram& program) const
 {
     program.use();
     program.setMat4("u_projectionMatrix", camera.getProjection());

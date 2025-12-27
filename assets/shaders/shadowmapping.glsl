@@ -112,7 +112,7 @@ bool isInShadow(sampler2DArray shadowMap, mat4 viewMatrix, vec3 fragWorldPos)
         return false;
 
     float depth = texture(shadowMap, vec3(projCoords.xy, layer)).r;
-    const float bias = 0.001;
+    const float bias = 0.00005;
     if (projCoords.z - bias > depth) {
         return true;
     }

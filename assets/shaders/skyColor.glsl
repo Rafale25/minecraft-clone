@@ -45,7 +45,7 @@ void mixSunColor(inout vec3 color, vec3 sunColor, vec3 ray, vec3 sunDirection)
 {
     // sun glow (mimics athmosphere scattering)
     float sunAmount = max( dot(ray, sunDirection), 0.0 );
-    color = mix( color, sunColor, pow(sunAmount, 4.0) );
+    // color = mix( color, sunColor, pow(sunAmount, 4.0) );
 
     // sun
     float sun = pow(max(0.0, dot(ray, normalize(sunDirection))), 4096.0) * 1.0;

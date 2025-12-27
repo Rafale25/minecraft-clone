@@ -134,6 +134,16 @@ void GameView::gui(float dt)
     ImGui::Checkbox("Debug draw shadowmap frustums", &world_renderer._debug_draw_shadowmap_frustums);
 
 
+    ImGui::SliderFloat("Shadow Cascade 1", &world_renderer.shadowmap.shadowCascadeLevels[0], 1.0f, 1000.0f, "%.1f");
+    ImGui::SliderFloat("Shadow Cascade 2", &world_renderer.shadowmap.shadowCascadeLevels[1], 1.0f, 1000.0f, "%.1f");
+    ImGui::SliderFloat("Shadow Cascade 3", &world_renderer.shadowmap.shadowCascadeLevels[2], 1.0f, 1000.0f, "%.1f");
+    ImGui::SliderFloat("Shadow Cascade 4", &world_renderer.shadowmap.shadowCascadeLevels[3], 1.0f, 1000.0f, "%.1f");
+
+    ImGui::SliderFloat("test_slider_0 density", &world_renderer.test_slider_0, 0.0f, 1.0f, "%.4f");
+    ImGui::SliderFloat("test_slider_1 g", &world_renderer.test_slider_1, 0.0f, 1.0f, "%.4f");
+    ImGui::SliderFloat("test_slider_2 Weight", &world_renderer.test_slider_2, 0.0f, 10.0f, "%.4f");
+
+
     ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 260), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
     for (const auto& msg: tchat) {
         ImGui::TextWrapped("%s", msg.c_str());

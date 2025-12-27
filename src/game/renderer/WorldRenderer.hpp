@@ -58,10 +58,7 @@ private:
     );
 
     glm::vec3 getSunDirection() const;
-
-    void renderEntities(const Camera &camera, const ShaderProgram& program);
-
-    void renderShadowmap(const Camera &camera);
+    void renderEntities(const Camera &camera, const ShaderProgram& program) const;
 
 private:
     float _framebuffer_width;
@@ -87,15 +84,18 @@ public:
     float _exposure = 1.0f;
 
     Framebuffer _framebuffer;
-    Texture _color_texture;
-    Texture _world_position_texture;
-    Texture _depth_texture;
+    Texture _texture_color;
+    Texture _texture_world_position;
+    Texture _texture_depth;
+
+    // Framebuffer _framebuffer_volumetrics;
+    // Texture _texture_volumetrics;
 
     UniformBuffer _ubuffer;
     GLuint _ubuffer_matrices;
 
     Mesh _quad_fs = Geometry::quad_2d();
-    Mesh _skybox_cube = Geometry::cube(glm::vec3(100.0f), glm::vec3(0.0f)); // make it big to avoid clipping with high FOV (>120)
+    Mesh _skybox_cube = Geometry::cube(glm::vec3(1000.0f), glm::vec3(0.0f)); // make it big to avoid clipping with high FOV (>120)
 
     GLuint ssbo_texture_handles;
 
@@ -126,6 +126,9 @@ public:
     std::vector<std::tuple<glm::ivec3, ChunkRawMesh>> chunks_waiting_bufferslot;
     std::mutex chunks_waiting_bufferslot_mutex;
 
-    // std::unordered_map<glm::ivec3, ChunkMesh> meshes;
     ankerl::unordered_dense::map<glm::ivec3, ChunkMesh> meshes;
+
+    float test_slider_0 = 0.05f;
+    float test_slider_1 = 0.555f;
+    float test_slider_2 = 1.0f;
 };
