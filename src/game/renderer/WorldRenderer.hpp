@@ -78,11 +78,11 @@ public:
 
     int32_t chunks_drawn;
     bool _wireframe = false;
-    bool _ambient_occlusion = true;
-    float _ambient_occlusion_strength = 0.67;
-    float _fog_density = 0.00096f;
-    bool _tonemapping = true;
-    float _exposure = 1.0f;
+    // bool _ambient_occlusion = true;
+    // float _ambient_occlusion_strength = 0.67;
+    // float _fog_density = 0.00096f;
+    // bool _tonemapping = true;
+    // float _exposure = 1.0f;
 
     Framebuffer _framebuffer;
     Texture _texture_color;
@@ -93,7 +93,15 @@ public:
     Texture _texture_volumetrics;
 
     GLuint _buffer_ssbo_uniforms;
-    uniformsParameters uniform_parameters;
+    uniformsParameters uniform_parameters = {
+        .fogDensity = 0.00096f,
+        .ambient_occlusion_strength = 0.67f,
+        .exposure = 1.0,
+        .volumetricDensity = 0.015f,
+        .volumetricHGphasePower = 0.555f,
+        .ambient_occlusion_enabled = 1,
+        .tonemapping_enabled = 1
+    };
 
     // StructGPUBuffer<uniformsParameters> uniform_parameters_buffer;
 

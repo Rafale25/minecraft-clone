@@ -8,7 +8,6 @@
 #include "DebugDraw.hpp"
 #include "VAO.hpp"
 #include "ChunkMesh.hpp"
-#include "UniformBuffer.hpp"
 #include "Profiler.hpp"
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
@@ -84,7 +83,6 @@ void WorldRenderer::render(const Camera &camera)
     std::vector<glm::vec4> chunk_positions_translucent;
 
     const glm::vec3 sunDirection = getSunDirection();
-
     const float sun_dot_angle = glm::dot(glm::normalize(sunDirection), {0.0f, 1.0f, 0.0f});
 
     uniform_parameters.projection = camera.getProjection();
@@ -95,14 +93,14 @@ void WorldRenderer::render(const Camera &camera)
     uniform_parameters.FOV = glm::radians(camera.fov);
     uniform_parameters.sunDirection = glm::vec4(glm::normalize(sunDirection), 0);
     uniform_parameters.viewPosition = glm::vec4(camera.getPosition(), 0);
-    uniform_parameters.fogDensity = _fog_density;
+    // uniform_parameters.fogDensity = _fog_density;
     uniform_parameters.lightSpaceMatrix = shadowmap._lightSpaceMatrix;
     uniform_parameters.shadow_bias = shadowmap._shadow_bias;
-    uniform_parameters.ambient_occlusion_enabled = (int)_ambient_occlusion;
-    uniform_parameters.ambient_occlusion_strength = _ambient_occlusion_strength;
-    uniform_parameters.tonemapping_enabled = (int)_tonemapping;
+    // uniform_parameters.ambient_occlusion_enabled = (int)_ambient_occlusion;
+    // uniform_parameters.ambient_occlusion_strength = _ambient_occlusion_strength;
+    // uniform_parameters.tonemapping_enabled = (int)_tonemapping;
     uniform_parameters.time = (float)glfwGetTime();
-    uniform_parameters.exposure = _exposure;
+    // uniform_parameters.exposure = _exposure;
     uniform_parameters.cascadePlaneDistances = *(glm::vec4*)shadowmap.shadowCascadeLevels.data();
 
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, _buffer_ssbo_uniforms);
@@ -244,9 +242,6 @@ void WorldRenderer::render(const Camera &camera)
         shader_volumetrics.use();
         shader_volumetrics.setInt("worldPosTexture", 1);
         shader_volumetrics.setInt("u_shadowmap", 3);
-
-        shader_volumetrics.setFloat("test_slider_0", test_slider_0);
-        shader_volumetrics.setFloat("test_slider_1", test_slider_1);
 
         _quad_fs.draw();
     }

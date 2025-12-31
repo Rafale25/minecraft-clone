@@ -14,6 +14,8 @@ layout(std430, binding=3) readonly buffer uniformsBuffer {
     float ambient_occlusion_strength;
     float time;
     float exposure;
+    float volumetricDensity;
+    float volumetricHGphasePower;
     int ambient_occlusion_enabled;
     int tonemapping_enabled;
 } uniforms;

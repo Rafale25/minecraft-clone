@@ -43,6 +43,12 @@ void GameView::drawPlayersNames()
     }
 }
 
+static void ImguiCheckboxInt(const char* title, int& value) {
+    bool checked = value != 0;
+    if (ImGui::Checkbox(title, &checked))
+        value = checked ? 1 : 0;
+}
+
 void GameView::gui(float dt)
 {
     // ImGui::ShowDemoWindow();
@@ -120,8 +126,9 @@ void GameView::gui(float dt)
     ImGui::Checkbox("Draw cursor hitpoint", &_draw_hit_point);
 
     ImGui::Checkbox("Delete far chunks", &_delete_far_chunks);
-    ImGui::Checkbox("Ambient occlusion", &world_renderer._ambient_occlusion);
-    ImGui::SliderFloat("AO strength", &world_renderer._ambient_occlusion_strength, 0.0f, 1.0f, "%.2f");
+
+    ImguiCheckboxInt("Ambiant occlusion", world_renderer.uniform_parameters.ambient_occlusion_enabled);
+    ImGui::SliderFloat("AO strength", &world_renderer.uniform_parameters.ambient_occlusion_strength, 0.0f, 1.0f, "%.2f");
 
     if (ImGui::Checkbox("VSync", &_vsync)) {
         ctx.setVsync(_vsync);
@@ -134,22 +141,21 @@ void GameView::gui(float dt)
     // ImGui::DragFloat3("Sun direction", &world_renderer.sunDir.x, 0.01f, -glm::pi<float>()*2, glm::pi<float>()*2, "%.2f");
     ImGui::SliderFloat("Shadow Bias", &world_renderer.shadowmap._shadow_bias, 0.000001f, 0.001f, "%.6f");
     ImGui::SliderFloat("Shadow Distance", &world_renderer._max_shadow_distance, 0.3f, 2000.0f, "%.2f");
-    ImGui::SliderFloat("Fog density", &world_renderer._fog_density, 0.0f, 0.05f, "%.5f");
-    ImGui::Checkbox("Tonemapping", &world_renderer._tonemapping);
-    ImGui::SliderFloat("Exposure", &world_renderer._exposure, 0.0f, 10.0f, "%.3f");
+    ImGui::SliderFloat("Fog density", &world_renderer.uniform_parameters.fogDensity, 0.0f, 0.05f, "%.5f");
+
+    ImguiCheckboxInt("Tonemapping", world_renderer.uniform_parameters.tonemapping_enabled);
+    ImGui::SliderFloat("Exposure", &world_renderer.uniform_parameters.exposure, 0.0f, 10.0f, "%.3f");
 
     ImGui::Checkbox("Freeze shadowmap camera", &world_renderer._is_shadow_camera_freezed);
     ImGui::Checkbox("Debug draw shadowmap frustums", &world_renderer._debug_draw_shadowmap_frustums);
-
 
     ImGui::SliderFloat("Shadow Cascade 1", &world_renderer.shadowmap.shadowCascadeLevels[0], 1.0f, 1000.0f, "%.1f");
     ImGui::SliderFloat("Shadow Cascade 2", &world_renderer.shadowmap.shadowCascadeLevels[1], 1.0f, 1000.0f, "%.1f");
     ImGui::SliderFloat("Shadow Cascade 3", &world_renderer.shadowmap.shadowCascadeLevels[2], 1.0f, 1000.0f, "%.1f");
     ImGui::SliderFloat("Shadow Cascade 4", &world_renderer.shadowmap.shadowCascadeLevels[3], 1.0f, 1000.0f, "%.1f");
 
-    ImGui::SliderFloat("test_slider_0 density", &world_renderer.test_slider_0, 0.0f, 1.0f, "%.4f");
-    ImGui::SliderFloat("test_slider_1 g", &world_renderer.test_slider_1, 0.0f, 1.0f, "%.4f");
-
+    ImGui::SliderFloat("Volumetric Density", &world_renderer.uniform_parameters.volumetricDensity, 0.0f, 1.0f, "%.4f");
+    ImGui::SliderFloat("Volumetric HGphase Power", &world_renderer.uniform_parameters.volumetricHGphasePower, 0.0f, 1.0f, "%.4f");
 
     ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 260), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
     for (const auto& msg: tchat) {
