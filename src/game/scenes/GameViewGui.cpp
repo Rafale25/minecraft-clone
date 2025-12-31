@@ -66,6 +66,14 @@ void GameView::gui(float dt)
         ImGui::End();
     }
 
+    static bool _volumetric_texture = false;
+    ImGui::Checkbox("Volumetric texture", &_volumetric_texture);
+    if (_volumetric_texture) {
+        ImGui::Begin("Volumetric texture");
+        ImGui::Image((ImTextureID)(intptr_t) world_renderer._texture_volumetrics._texture, ImVec2(world_renderer._texture_volumetrics._width/1, world_renderer._texture_volumetrics._height/1), ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::End();
+    }
+
     ImGui::Checkbox("Profiler", &_show_profiler_gui);
 
     ImGui::Text("%s", SimpleProfiler::instance().dump().c_str());
@@ -141,7 +149,6 @@ void GameView::gui(float dt)
 
     ImGui::SliderFloat("test_slider_0 density", &world_renderer.test_slider_0, 0.0f, 1.0f, "%.4f");
     ImGui::SliderFloat("test_slider_1 g", &world_renderer.test_slider_1, 0.0f, 1.0f, "%.4f");
-    ImGui::SliderFloat("test_slider_2 Weight", &world_renderer.test_slider_2, 0.0f, 10.0f, "%.4f");
 
 
     ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 260), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);

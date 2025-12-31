@@ -24,6 +24,7 @@ GLuint createTextureFromPath(const char *path, int32_t format, int32_t min_filte
     {
         const int32_t MAX_LEVELS = 4;
         glTextureStorage2D(texture, MAX_LEVELS, GL_RGBA8, width, height);
+        // glTextureStorage2D(texture, MAX_LEVELS, GL_SRGB8_ALPHA8, width, height);
         glTextureSubImage2D(texture, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE, data);
         glGenerateTextureMipmap(texture);
     }

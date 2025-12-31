@@ -85,11 +85,6 @@ void main()
         lighting = applyFog(lighting, fragDistance, rd, uniforms.sunDirection.xyz, skyColor, uniforms.fogDensity);
     }
 
-    // if (uniforms.tonemapping_enabled == 1) {
-    //     lighting = lottes(lighting.rgb * uniforms.exposure);
-    // }
-    // lighting = fromLinearToSRGB(lighting);// pow(lighting, vec3(1.0/2.2));
-
 
 // #define DEBUG_SHADOWMAP_LAYER
 #ifdef DEBUG_SHADOWMAP_LAYER

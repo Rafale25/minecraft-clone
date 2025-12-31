@@ -126,8 +126,7 @@ void DebugDraw::drawFrustum(const glm::mat4 &view_projection, const glm::vec3& c
     drawLine(points[7], points[6], color);
 }
 
-void DebugDraw::drawAndFlush(const glm::mat4& view_projection)
-{
+void DebugDraw::draw(const glm::mat4& view_projection) {
     const int32_t vertex_count = _vertices.size() / 4; // x y z packedColor
     const int32_t vertices_size_bytes = _vertices.size() * sizeof(float);
 
@@ -151,6 +150,14 @@ void DebugDraw::drawAndFlush(const glm::mat4& view_projection)
     glDrawArrays(GL_LINES, 0, vertex_count);
 
     glLineWidth(line_width);
+}
 
+void DebugDraw::flush() {
     _vertices.clear();
+}
+
+void DebugDraw::drawAndFlush(const glm::mat4& view_projection)
+{
+    draw(view_projection);
+    flush();
 }

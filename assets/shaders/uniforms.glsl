@@ -1,10 +1,11 @@
-layout(std140, binding = 0) uniform uniformBuffer {
+layout(std430, binding=3) readonly buffer uniformsBuffer {
     mat4 projection;
     mat4 view;
     mat4 projection_view;
     mat4 lightSpaceMatrix;
     vec4 sunDirection;
     vec4 viewPosition;
+    float cascadePlaneDistances[4];
     vec2 resolution;
     float sunDotAngle;
     float FOV;

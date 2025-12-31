@@ -106,5 +106,5 @@ void main() {
     vs_out.ambient_occlusion = ao_factor;
     vs_out.isTranslucent = isTranslucent;
 
-    gl_Position = uniforms.projection_view * vec4(world_pos, 1.0);
+    gl_Position = uniforms.projection_view  * vec4(world_pos, 1.0);
 }

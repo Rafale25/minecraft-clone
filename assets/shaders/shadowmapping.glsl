@@ -4,7 +4,7 @@ layout(std140, binding = 1) uniform uniformBufferMatrices {
     mat4 u_lightSpaceMatrices[4]; // 16
 };
 
-uniform float u_cascadePlaneDistances[4];
+// uniform float u_cascadePlaneDistances[4];
 const int cascadeCount = 4;
 
 float getSlopeScaledBias(vec3 N, vec3 L)
@@ -25,7 +25,7 @@ int getShadowMapLayer(mat4 viewMatrix, vec3 fragWorldPos)
     int layer = -1;
     for (int i = 0; i < cascadeCount; ++i)
     {
-        if (depthValue < u_cascadePlaneDistances[i])
+        if (depthValue < uniforms.cascadePlaneDistances[i])
         {
             layer = i;
             break;

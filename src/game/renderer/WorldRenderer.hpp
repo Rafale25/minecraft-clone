@@ -8,14 +8,15 @@
 #include "BufferAllocator.hpp"
 #include "ThreadPool.hpp"
 #include "UniformBuffer.hpp"
+#include "FpsCamera.hpp"
+#include "uniforms_struct.hpp"
+#include "unordered_dense.h"
 #include <glad/gl.h>
 #include <glm/gtx/hash.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include <unordered_set>
 
-#include "FpsCamera.hpp"
-
-#include "unordered_dense.h"
+// #include "StructGPUBuffer.hpp"
 
 struct ChunkMesh;
 struct ChunkRawMesh;
@@ -88,11 +89,17 @@ public:
     Texture _texture_world_position;
     Texture _texture_depth;
 
-    // Framebuffer _framebuffer_volumetrics;
-    // Texture _texture_volumetrics;
+    Framebuffer _framebuffer_volumetrics;
+    Texture _texture_volumetrics;
+
+    GLuint _buffer_ssbo_uniforms;
+    uniformsParameters uniform_parameters;
+
+    // StructGPUBuffer<uniformsParameters> uniform_parameters_buffer;
 
     UniformBuffer _ubuffer;
     GLuint _ubuffer_matrices;
+
 
     Mesh _quad_fs = Geometry::quad_2d();
     Mesh _skybox_cube = Geometry::cube(glm::vec3(1000.0f), glm::vec3(0.0f)); // make it big to avoid clipping with high FOV (>120)
@@ -103,8 +110,10 @@ public:
         {"cube",                {RESSOURCE_PATH "shaders/cube.vs",              RESSOURCE_PATH "shaders/cube.fs"            }},
         {"cube_depth_only",     {RESSOURCE_PATH "shaders/cube_depth_only.vs",   RESSOURCE_PATH "shaders/cube_depth_only.fs" }},
         {"mesh",                {RESSOURCE_PATH "shaders/mesh.vs",              RESSOURCE_PATH "shaders/mesh.fs"            }},
-        {"postprocessing",      {RESSOURCE_PATH "shaders/postprocess.vs",       RESSOURCE_PATH "shaders/postprocess.fs"     }},
+        {"postprocessing",      {RESSOURCE_PATH "shaders/texcoords.vs",         RESSOURCE_PATH "shaders/postprocess.fs"     }},
         {"skybox",              {RESSOURCE_PATH "shaders/skybox.vs",            RESSOURCE_PATH "shaders/skybox.fs"          }},
+        {"volumetrics",         {RESSOURCE_PATH "shaders/texcoords.vs",         RESSOURCE_PATH "shaders/volumetrics.fs"     }},
+        {"bloom_combine",       {RESSOURCE_PATH "shaders/texcoords.vs",         RESSOURCE_PATH "shaders/bloom_combine.fs"   }},
     };
 
     const int32_t CHUNK_DELETE_DISTANCE_OFFSET = 2;
@@ -128,7 +137,6 @@ public:
 
     ankerl::unordered_dense::map<glm::ivec3, ChunkMesh> meshes;
 
-    float test_slider_0 = 0.05f;
+    float test_slider_0 = 0.015f;
     float test_slider_1 = 0.555f;
-    float test_slider_2 = 1.0f;
 };

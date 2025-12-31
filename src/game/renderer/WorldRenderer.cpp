@@ -13,6 +13,7 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
+
 inline double nsToMs(int64_t ns) {
     return double(ns) / 1e6;
 }
@@ -46,39 +47,10 @@ WorldRenderer::WorldRenderer(int32_t width, int32_t height)
     BlockTextureManager::loadAllTextures();
     ssbo_texture_handles = createBufferStorage(BlockTextureManager::Get().textures_handles.data(), BlockTextureManager::Get().textures_handles.size() * sizeof(GLuint64));
 
-    _ubuffer.makeBufferDef({
-        {"projection",                    sizeof(float)*16},
-        {"view",                          sizeof(float)*16},
-        {"projection_view",               sizeof(float)*16},
-        {"lightSpaceMatrix",              sizeof(float)*16},
-        {"sunDirection",                  sizeof(float)*4},
-        {"viewPosition",                  sizeof(float)*4},
-        {"resolution",                    sizeof(float)*2},
-        {"sunDotAngle",                   sizeof(float)*1},
-        {"FOV",                           sizeof(float)*1},
-        {"fogDensity",                    sizeof(float)*1},
-        {"shadow_bias",                   sizeof(float)*1},
-        {"ambient_occlusion_strength",    sizeof(float)*1},
-        {"time",                          sizeof(float)*1},
-        {"exposure",                      sizeof(float)*1},
-        {"ambient_occlusion_enabled",     sizeof(int)*1},
-        {"tonemapping_enabled",           sizeof(int)*1},
-    });
-    _ubuffer.bind(0);
+    _buffer_ssbo_uniforms = createBufferStorage(nullptr, sizeof(uniformsParameters));
 
     _ubuffer_matrices = createBufferStorage(nullptr, 4*16 * 4);
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, _ubuffer_matrices);
-
-    // DEBUG strides
-    // for (const auto &[name, info] : _ubuffer._uniforms) {
-    //     auto ix = glGetProgramResourceIndex(cube_shader.ID, GL_UNIFORM, (std::string("uniformBuffer.") + name).c_str());
-    //     GLenum props[] = {GL_ARRAY_STRIDE, GL_OFFSET};
-    //     GLint values[2] = {};
-    //     glGetProgramResourceiv(cube_shader.ID, GL_UNIFORM, ix, 2, props, 2, NULL, values);
-
-    //     logD("{}: {} {}", name, values[0], values[1]);
-    //     auto byteOffset = values[1] + (3 * values[0]);
-    // }
 
     onResize(width, height);
 }
@@ -115,22 +87,45 @@ void WorldRenderer::render(const Camera &camera)
 
     const float sun_dot_angle = glm::dot(glm::normalize(sunDirection), {0.0f, 1.0f, 0.0f});
 
-    _ubuffer.set("projection", camera.getProjection());
-    _ubuffer.set("view", camera.getView());
-    _ubuffer.set("projection_view", view_projection);
-    _ubuffer.set("resolution", glm::vec2(_framebuffer_width, _framebuffer_height));
-    _ubuffer.set("sunDotAngle", sun_dot_angle);
-    _ubuffer.set("FOV", glm::radians(camera.fov));
-    _ubuffer.set("sunDirection", glm::vec4(glm::normalize(sunDirection), 0));
-    _ubuffer.set("viewPosition", glm::vec4(camera.getPosition(), 0));
-    _ubuffer.set("fogDensity", _fog_density);
-    _ubuffer.set("lightSpaceMatrix", shadowmap._lightSpaceMatrix);
-    _ubuffer.set("shadow_bias", shadowmap._shadow_bias);
-    _ubuffer.set("ambient_occlusion_enabled", (int)_ambient_occlusion);
-    _ubuffer.set("ambient_occlusion_strength", _ambient_occlusion_strength);
-    _ubuffer.set("tonemapping_enabled", (int)_tonemapping);
-    _ubuffer.set("time", (float)glfwGetTime());
-    _ubuffer.set("exposure", _exposure);
+    uniform_parameters.projection = camera.getProjection();
+    uniform_parameters.view = camera.getView();
+    uniform_parameters.projection_view = view_projection;
+    uniform_parameters.resolution = glm::vec2(_framebuffer_width, _framebuffer_height);
+    uniform_parameters.sunDotAngle = sun_dot_angle;
+    uniform_parameters.FOV = glm::radians(camera.fov);
+    uniform_parameters.sunDirection = glm::vec4(glm::normalize(sunDirection), 0);
+    uniform_parameters.viewPosition = glm::vec4(camera.getPosition(), 0);
+    uniform_parameters.fogDensity = _fog_density;
+    uniform_parameters.lightSpaceMatrix = shadowmap._lightSpaceMatrix;
+    uniform_parameters.shadow_bias = shadowmap._shadow_bias;
+    uniform_parameters.ambient_occlusion_enabled = (int)_ambient_occlusion;
+    uniform_parameters.ambient_occlusion_strength = _ambient_occlusion_strength;
+    uniform_parameters.tonemapping_enabled = (int)_tonemapping;
+    uniform_parameters.time = (float)glfwGetTime();
+    uniform_parameters.exposure = _exposure;
+    uniform_parameters.cascadePlaneDistances = *(glm::vec4*)shadowmap.shadowCascadeLevels.data();
+
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, _buffer_ssbo_uniforms);
+
+    // uniform_parameters_buffer.set(&uniformsParameters::projection, camera.getProjection());
+    // uniform_parameters_buffer.set(&uniformsParameters::view, camera.getView());
+    // uniform_parameters_buffer.set(&uniformsParameters::projection_view, view_projection);
+    // uniform_parameters_buffer.set(&uniformsParameters::resolution, glm::vec2(_framebuffer_width, _framebuffer_height));
+    // uniform_parameters_buffer.set(&uniformsParameters::sunDotAngle, sun_dot_angle);
+    // uniform_parameters_buffer.set(&uniformsParameters::FOV, glm::radians(camera.fov));
+    // uniform_parameters_buffer.set(&uniformsParameters::sunDirection, glm::vec4(glm::normalize(sunDirection), 0));
+    // uniform_parameters_buffer.set(&uniformsParameters::viewPosition, glm::vec4(camera.getPosition(), 0));
+    // uniform_parameters_buffer.set(&uniformsParameters::fogDensity, _fog_density);
+    // uniform_parameters_buffer.set(&uniformsParameters::lightSpaceMatrix, shadowmap._lightSpaceMatrix);
+    // uniform_parameters_buffer.set(&uniformsParameters::shadow_bias, shadowmap._shadow_bias);
+    // uniform_parameters_buffer.set(&uniformsParameters::ambient_occlusion_enabled, (int)_ambient_occlusion);
+    // uniform_parameters_buffer.set(&uniformsParameters::ambient_occlusion_strength, _ambient_occlusion_strength);
+    // uniform_parameters_buffer.set(&uniformsParameters::tonemapping_enabled, (int)_tonemapping);
+    // uniform_parameters_buffer.set(&uniformsParameters::time, (float)glfwGetTime());
+    // uniform_parameters_buffer.set(&uniformsParameters::exposure, _exposure);
+    // uniform_parameters_buffer.bind(3);
+
+    glNamedBufferSubData(_buffer_ssbo_uniforms, 0, sizeof(uniformsParameters), &uniform_parameters);
 
     setDefaultRenderState();
 
@@ -148,7 +143,9 @@ void WorldRenderer::render(const Camera &camera)
             // const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, shadowmap.shadowCascadeLevels[i]);
             // glm::mat4 light_space_matrix = shadowmap.begin(lightSpaceMatrices[i], camera.getView(), _shaders.at("cube_depth_only"), i);
             shadowmap.begin(lightSpaceMatrices[i], _shadow_camera.getView(), _shaders.at("cube_depth_only"), i);
-            _ubuffer.set("lightSpaceMatrix", lightSpaceMatrices[i]);
+            // _ubuffer.set("lightSpaceMatrix", lightSpaceMatrices[i]);
+            uniform_parameters.lightSpaceMatrix = lightSpaceMatrices[i];
+            glNamedBufferSubData(_buffer_ssbo_uniforms, 0, sizeof(uniformsParameters), &uniform_parameters);
 
             if (_debug_draw_shadowmap_frustums) {
                 constexpr glm::vec3 debug_colors[4] = {{1,0,0}, {0,1,0}, {0,0,1}, {1,0,1}};
@@ -174,10 +171,12 @@ void WorldRenderer::render(const Camera &camera)
             shadowmap.end();
         }
 
-        _ubuffer.set("lightSpaceMatrix", lightSpaceMatrices[0]);
+        // _ubuffer.set("lightSpaceMatrix", lightSpaceMatrices[0]);
+        uniform_parameters.lightSpaceMatrix = lightSpaceMatrices[0];
+        glNamedBufferSubData(_buffer_ssbo_uniforms, 0, sizeof(uniformsParameters), &uniform_parameters);
+
         // glNamedFramebufferTextureLayer(shadowmap._depthFBO._framebuffer, GL_DEPTH_ATTACHMENT, shadowmap._depthTextureArray, 0, 0);
     }
-
 
     _framebuffer.bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -202,8 +201,6 @@ void WorldRenderer::render(const Camera &camera)
         glDepthMask(GL_FALSE);
 
         _shaders.at("skybox").use();
-        _shaders.at("skybox").setMat4("u_view", glm::mat4(glm::mat3(camera.getView())));
-        _shaders.at("skybox").setMat4("u_projection", camera.getProjection());
         _skybox_cube.draw();
 
         glDepthMask(GL_TRUE);
@@ -217,11 +214,6 @@ void WorldRenderer::render(const Camera &camera)
 
     _shaders.at("cube").use();
 
-    _shaders.at("cube").setFloat("u_cascadePlaneDistances[0]", shadowmap.shadowCascadeLevels[0]);
-    _shaders.at("cube").setFloat("u_cascadePlaneDistances[1]", shadowmap.shadowCascadeLevels[1]);
-    _shaders.at("cube").setFloat("u_cascadePlaneDistances[2]", shadowmap.shadowCascadeLevels[2]);
-    _shaders.at("cube").setFloat("u_cascadePlaneDistances[3]", shadowmap.shadowCascadeLevels[3]);
-
     {
         // glDepthFunc(GL_EQUAL); // used for depth prepass
         ScopedTaskGPU("terrain: render");
@@ -229,44 +221,78 @@ void WorldRenderer::render(const Camera &camera)
         // glDepthFunc(GL_LESS); // used for depth prepass
     }
 
-
     {
         ScopedTaskGPU("entities");
         renderEntities(camera, _shaders.at("mesh"));
     }
 
-
     DebugDraw::instance().drawAndFlush(view_projection);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // disable wires mode
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
-
-
-    const auto& shader_post_processing = _shaders.at("postprocessing");
-    shader_post_processing.use();
-    shader_post_processing.setInt("colorTexture", 0);
-    shader_post_processing.setInt("worldPosTexture", 1);
-    // shader_post_processing.setInt("depthTexture", 2);
-    shader_post_processing.setInt("u_shadowmap", 3);
-
-    shader_post_processing.setFloat("u_cascadePlaneDistances[0]", shadowmap.shadowCascadeLevels[0]);
-    shader_post_processing.setFloat("u_cascadePlaneDistances[1]", shadowmap.shadowCascadeLevels[1]);
-    shader_post_processing.setFloat("u_cascadePlaneDistances[2]", shadowmap.shadowCascadeLevels[2]);
-    shader_post_processing.setFloat("u_cascadePlaneDistances[3]", shadowmap.shadowCascadeLevels[3]);
-
-    shader_post_processing.setFloat("test_slider_0", test_slider_0);
-    shader_post_processing.setFloat("test_slider_1", test_slider_1);
-    shader_post_processing.setFloat("test_slider_2", test_slider_2);
-
-    glBindTextureUnit(0, _texture_color._texture);
-    glBindTextureUnit(1, _texture_world_position._texture);
-    // glBindTextureUnit(2, _depth_texture._texture);
-    glBindTextureUnit(3, shadowmap._depthTextureArray);
-
+    // Raymarch volumetric lighting at low res
     {
-        ScopedTaskGPU("postProcessing");
+        ScopedTaskGPU("Volumetrics");
+
+        _framebuffer_volumetrics.bind();
+        glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+        glClear(GL_COLOR_BUFFER_BIT);
+        glViewport(0, 0, _texture_volumetrics._width, _texture_volumetrics._height);
+
+        glBindTextureUnit(1, _texture_world_position._texture);
+        glBindTextureUnit(3, shadowmap._depthTextureArray);
+
+        const auto& shader_volumetrics = _shaders.at("volumetrics");
+        shader_volumetrics.use();
+        shader_volumetrics.setInt("worldPosTexture", 1);
+        shader_volumetrics.setInt("u_shadowmap", 3);
+
+        shader_volumetrics.setFloat("test_slider_0", test_slider_0);
+        shader_volumetrics.setFloat("test_slider_1", test_slider_1);
+
         _quad_fs.draw();
+    }
+
+    glViewport(0, 0, _framebuffer_width, _framebuffer_height);
+
+    // - Extract bright areas
+    // - Combine bright areas with volumetrics
+    // - Apply bloom
+
+    // Combine Volumetrics with scene
+    {
+        ScopedTaskGPU("Combine Volumetrics");
+
+        _framebuffer.bind();
+
+        const auto& shader_combine = _shaders.at("bloom_combine");
+        shader_combine.use();
+        shader_combine.setInt("u_scene", 0);
+        shader_combine.setInt("u_bloomBlur", 1);
+
+        glBindTextureUnit(0, _texture_color._texture);
+        glBindTextureUnit(1, _texture_volumetrics._texture);
+
+        _quad_fs.draw();
+    }
+
+
+    // Post Processing
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // disable wires mode
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+
+        const auto& shader_post_processing = _shaders.at("postprocessing");
+        shader_post_processing.use();
+        shader_post_processing.setInt("colorTexture", 0);
+        // shader_post_processing.setInt("depthTexture", 2);
+
+        glBindTextureUnit(0, _texture_color._texture);
+        // glBindTextureUnit(2, _depth_texture._texture);
+
+        {
+            ScopedTaskGPU("postProcessing");
+            _quad_fs.draw();
+        }
     }
 }
 
@@ -289,6 +315,9 @@ void WorldRenderer::onAddedChunk(const glm::ivec3 &chunk_pos) {
 }
 
 void WorldRenderer::onResize(int32_t width, int32_t height) {
+    width = glm::max(8, width);
+    height = glm::max(8, height);
+
     _framebuffer_width = width;
     _framebuffer_height = height;
 
@@ -297,13 +326,20 @@ void WorldRenderer::onResize(int32_t width, int32_t height) {
     _texture_world_position.destroy();
     _texture_depth.destroy();
 
+    _framebuffer_volumetrics.destroy();
+    _texture_volumetrics.destroy();
+
     _framebuffer = Framebuffer();
-    _texture_color = Texture(width, height, GL_RGB8, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
+    _texture_color = Texture(width, height, GL_RGB16F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
     _texture_world_position = Texture(width, height, GL_RGB32F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
     _texture_depth = Texture(width, height, GL_DEPTH_COMPONENT24, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
     _framebuffer.attachTexture(_texture_color._texture, GL_COLOR_ATTACHMENT0);
     _framebuffer.attachTexture(_texture_world_position._texture, GL_COLOR_ATTACHMENT1);
     _framebuffer.attachTexture(_texture_depth._texture, GL_DEPTH_ATTACHMENT);
+
+    _framebuffer_volumetrics = Framebuffer();
+    _texture_volumetrics = Texture(width/4, height/4, GL_RGB16F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
+    _framebuffer_volumetrics.attachTexture(_texture_volumetrics._texture, GL_COLOR_ATTACHMENT0);
 }
 
 void WorldRenderer::update() {
