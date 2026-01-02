@@ -78,11 +78,6 @@ public:
 
     int32_t chunks_drawn;
     bool _wireframe = false;
-    // bool _ambient_occlusion = true;
-    // float _ambient_occlusion_strength = 0.67;
-    // float _fog_density = 0.00096f;
-    // bool _tonemapping = true;
-    // float _exposure = 1.0f;
 
     Framebuffer _framebuffer;
     Texture _texture_color;
@@ -93,6 +88,7 @@ public:
     Texture _texture_volumetrics;
 
     GLuint _buffer_ssbo_uniforms;
+    // StructGPUBuffer<uniformsParameters> uniform_parameters_buffer;
     uniformsParameters uniform_parameters = {
         .fogDensity = 0.00096f,
         .ambient_occlusion_strength = 0.67f,
@@ -100,14 +96,9 @@ public:
         .volumetricDensity = 0.015f,
         .volumetricHGphasePower = 0.555f,
         .ambient_occlusion_enabled = 1,
-        .tonemapping_enabled = 1
+        .tonemapping_enabled = 1,
+        .cascadeCount = 4,
     };
-
-    // StructGPUBuffer<uniformsParameters> uniform_parameters_buffer;
-
-    UniformBuffer _ubuffer;
-    GLuint _ubuffer_matrices;
-
 
     Mesh _quad_fs = Geometry::quad_2d();
     Mesh _skybox_cube = Geometry::cube(glm::vec3(1000.0f), glm::vec3(0.0f)); // make it big to avoid clipping with high FOV (>120)

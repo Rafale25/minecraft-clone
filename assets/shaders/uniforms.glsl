@@ -3,6 +3,7 @@ layout(std430, binding=3) readonly buffer uniformsBuffer {
     mat4 view;
     mat4 projection_view;
     mat4 lightSpaceMatrix;
+    mat4 lightSpaceMatrices[4]; // cascaded shadowmapping
     vec4 sunDirection;
     vec4 viewPosition;
     float cascadePlaneDistances[4];
@@ -18,4 +19,5 @@ layout(std430, binding=3) readonly buffer uniformsBuffer {
     float volumetricHGphasePower;
     int ambient_occlusion_enabled;
     int tonemapping_enabled;
+    int cascadeCount;
 } uniforms;

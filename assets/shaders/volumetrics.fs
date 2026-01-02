@@ -17,9 +17,6 @@ layout (location = 3) uniform sampler2DArray u_shadowmap;
 #include "utils/SRGB.glsl"
 #include "raymarching.glsl"
 
-uniform float test_slider_0 = 0.0;
-uniform float test_slider_1 = 0.0;
-
 void main()
 {
     vec2 res = uniforms.resolution / 4.0;
@@ -29,7 +26,7 @@ void main()
     float dist = distance(uniforms.viewPosition.xyz, worldPos);
 
     float volumetric_light = raymarchVolumetricLighting(worldPos, uniforms.volumetricDensity, uniforms.volumetricHGphasePower);
-    // bool is_in_shadow = isInShadow(u_shadowmap, uniforms.view, worldPos);
+    // bool is_in_shadow = isInShadow(u_shadowmap, uniforms.view, worldPos, uniforms.cascadeCount);
     // if (volumetric_light > 0.0) {
     //     finalColor = vec3(1.0, 0.0, 0.0);
     // }

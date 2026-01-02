@@ -1,12 +1,5 @@
 #include "utils/random.glsl"
 
-layout(std140, binding = 1) uniform uniformBufferMatrices {
-    mat4 u_lightSpaceMatrices[4]; // 16
-};
-
-// uniform float u_cascadePlaneDistances[4];
-const int cascadeCount = 4;
-
 float getSlopeScaledBias(vec3 N, vec3 L)
 {
     float cosAlpha = clamp(dot(N, L), 0.0, 1.0);
@@ -16,7 +9,7 @@ float getSlopeScaledBias(vec3 N, vec3 L)
 }
 
 
-int getShadowMapLayer(mat4 viewMatrix, vec3 fragWorldPos)
+int getShadowMapLayer(mat4 viewMatrix, vec3 fragWorldPos, int cascadeCount)
 {
     vec4 fragPosViewSpace = viewMatrix * vec4(fragWorldPos, 1.0);
     float depthValue = abs(fragPosViewSpace.z);
@@ -39,11 +32,11 @@ int getShadowMapLayer(mat4 viewMatrix, vec3 fragWorldPos)
     return layer;
 }
 
-float ShadowCalculation(sampler2DArray shadowMap, mat4 viewMatrix, vec3 fragWorldPos, vec3 normal, vec3 lightDirection, float shadowBias)
+float ShadowCalculation(sampler2DArray shadowMap, mat4 viewMatrix, vec3 fragWorldPos, vec3 normal, vec3 lightDirection, float shadowBias, int cascadeCount)
 {
-    int layer = getShadowMapLayer(viewMatrix, fragWorldPos);
+    int layer = getShadowMapLayer(viewMatrix, fragWorldPos, cascadeCount);
 
-    vec4 fragPosLightSpace = u_lightSpaceMatrices[layer] * vec4(fragWorldPos, 1.0);
+    vec4 fragPosLightSpace = uniforms.lightSpaceMatrices[layer] * vec4(fragWorldPos, 1.0);
 
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
@@ -95,11 +88,11 @@ float ShadowCalculation(sampler2DArray shadowMap, mat4 viewMatrix, vec3 fragWorl
     return shadow;
 }
 
-bool isInShadow(sampler2DArray shadowMap, mat4 viewMatrix, vec3 fragWorldPos)
+bool isInShadow(sampler2DArray shadowMap, mat4 viewMatrix, vec3 fragWorldPos, int cascadeCount)
 {
-    int layer = getShadowMapLayer(viewMatrix, fragWorldPos);
+    int layer = getShadowMapLayer(viewMatrix, fragWorldPos, cascadeCount);
 
-    vec4 fragPosLightSpace = u_lightSpaceMatrices[layer] * vec4(fragWorldPos, 1.0);
+    vec4 fragPosLightSpace = uniforms.lightSpaceMatrices[layer] * vec4(fragWorldPos, 1.0);
 
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;

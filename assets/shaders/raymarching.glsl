@@ -38,7 +38,7 @@ float raymarchVolumetricLighting(vec3 end, float density=0.05, float g=0.555, fl
     for (int i = 0 ; i < steps - 1; ++i) {
         float stepTransmittance = exp(-density * stepSize);
 
-        bool lit = !isInShadow(u_shadowmap, uniforms.view, currentPos);
+        bool lit = !isInShadow(u_shadowmap, uniforms.view, currentPos, uniforms.cascadeCount);
         // accumulatedLight += float(lit);
 
         if (lit) {

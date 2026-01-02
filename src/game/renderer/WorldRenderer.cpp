@@ -48,9 +48,6 @@ WorldRenderer::WorldRenderer(int32_t width, int32_t height)
 
     _buffer_ssbo_uniforms = createBufferStorage(nullptr, sizeof(uniformsParameters));
 
-    _ubuffer_matrices = createBufferStorage(nullptr, 4*16 * 4);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 1, _ubuffer_matrices);
-
     onResize(width, height);
 }
 
@@ -132,7 +129,8 @@ void WorldRenderer::render(const Camera &camera)
 
         const auto lightSpaceMatrices = shadowmap.getLightSpaceMatrices(_shadow_camera);
 
-        glNamedBufferSubData(_ubuffer_matrices, 0, 4*16 * 4, lightSpaceMatrices.data());
+        std::memcpy(uniform_parameters.lightSpaceMatrices, lightSpaceMatrices.data(), sizeof(uniform_parameters.lightSpaceMatrices));
+        glNamedBufferSubData(_buffer_ssbo_uniforms, 0, sizeof(uniformsParameters), &uniform_parameters);
 
         for (int i = 0 ; i < 4 ; ++i) {
             // const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, 1000.0f);
@@ -186,7 +184,6 @@ void WorldRenderer::render(const Camera &camera)
     // cube_shader_depth_only.setMat4("u_lightSpaceMatrix", view_projection);
     // renderTerrain(camera.getProjection() * camera.getView(), true);
 
-    // glBindTextureUnit(0, shadowmap._depthTexture._texture);
     glBindTextureUnit(0, shadowmap._depthTextureArray);
 
     uint32_t attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };

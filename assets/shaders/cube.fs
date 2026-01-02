@@ -59,7 +59,7 @@ void main()
     }
 
     // calculate shadow
-    float shadow = ShadowCalculation(u_shadowmap, uniforms.view, fs_in.frag_pos, normal, normalize(uniforms.sunDirection.xyz), uniforms.shadow_bias);
+    float shadow = ShadowCalculation(u_shadowmap, uniforms.view, fs_in.frag_pos, normal, normalize(uniforms.sunDirection.xyz), uniforms.shadow_bias, uniforms.cascadeCount);
     // float shadow = float(isInShadow(u_shadowmap, uniforms.view, fs_in.frag_pos)); // non-pcf simple hard shadows
 
     // if cube face is not facing light, then it's in its own shadow
@@ -88,7 +88,7 @@ void main()
 
 // #define DEBUG_SHADOWMAP_LAYER
 #ifdef DEBUG_SHADOWMAP_LAYER
-    int layer = getShadowMapLayer(uniforms.view, fs_in.frag_pos);
+    int layer = getShadowMapLayer(uniforms.view, fs_in.frag_pos, uniforms.cascadeCount);
     vec3 layerColor;
     if (layer == 0) {
         layerColor = vec3(1.0, 0.0, 0.0);
