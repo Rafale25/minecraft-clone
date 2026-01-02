@@ -194,9 +194,8 @@ void WorldRenderer::render(const Camera &camera)
         generateDrawCommands(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent, view_projection, true);
     }
 
-    _shaders.at("cube").use();
-
     {
+        _shaders.at("cube").use();
         // glDepthFunc(GL_EQUAL); // used for depth prepass
         ScopedTaskGPU("terrain: render");
         renderTerrain(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent);
@@ -452,8 +451,6 @@ void WorldRenderer::renderTerrain(
 void WorldRenderer::renderEntities(const Camera &camera, const ShaderProgram& program) const
 {
     program.use();
-    program.setMat4("u_projectionMatrix", camera.getProjection());
-    program.setMat4("u_viewMatrix", camera.getView());
 
     for (const auto& entity : World::instance().entities) {
         program.setMat4("u_modelMatrix", entity.smooth_transform.getMatrix());

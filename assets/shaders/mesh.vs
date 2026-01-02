@@ -2,16 +2,16 @@
 
 in vec3 a_position;
 
-uniform mat4 u_projectionMatrix;
-uniform mat4 u_viewMatrix;
+out vec3 f_worldPosition;
+
 uniform mat4 u_modelMatrix;
 
-out vec3 v_worldPosition;
+#include "uniforms.glsl"
 
 void main()
 {
     vec4 worldPosition = u_modelMatrix * vec4(a_position, 1.0);
-    vec4 position = u_projectionMatrix * u_viewMatrix * worldPosition;
+    vec4 position = uniforms.projection_view * worldPosition;
     gl_Position = position;
-    v_worldPosition = worldPosition.xyz;
+    f_worldPosition = worldPosition.xyz;
 }
