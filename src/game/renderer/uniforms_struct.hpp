@@ -26,4 +26,5 @@ struct uniformsParameters {
     int ambient_occlusion_enabled = 0;
     int tonemapping_enabled = 0;
     int cascadeCount = 0;
+    float TEST_SLIDER = 0.0f;
 };

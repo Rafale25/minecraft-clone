@@ -157,6 +157,8 @@ void GameView::gui(float dt)
     ImGui::SliderFloat("Volumetric Density", &world_renderer.uniform_parameters.volumetricDensity, 0.0f, 1.0f, "%.4f");
     ImGui::SliderFloat("Volumetric HGphase Power", &world_renderer.uniform_parameters.volumetricHGphasePower, 0.0f, 1.0f, "%.4f");
 
+    ImGui::SliderFloat("TEST_SLIDER", &world_renderer.uniform_parameters.TEST_SLIDER, 0.0f, 0.005f, "%.6f");
+
     ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 260), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
     for (const auto& msg: tchat) {
         ImGui::TextWrapped("%s", msg.c_str());
