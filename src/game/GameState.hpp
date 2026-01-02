@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-constexpr int32_t MIN_RENDER_DISTANCE = 2;
+constexpr int32_t MIN_RENDER_DISTANCE = 1;
 constexpr int32_t MAX_RENDER_DISTANCE = 64;
 
 struct _GameState {
