@@ -4,10 +4,8 @@ in vec2 TexCoords;
 
 out vec4 FragColor;
 
-// layout (location = 0) uniform sampler2D colorTexture;
-layout (location = 1) uniform sampler2D worldPosTexture;
-// layout (location = 2) uniform sampler2D depthTexture;
-layout (location = 3) uniform sampler2DArray u_shadowmap;
+uniform sampler2D worldPosTexture;
+uniform sampler2DArray u_shadowmap;
 
 #include "uniforms.glsl"
 #include "skyColor.glsl"
