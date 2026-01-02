@@ -4,10 +4,9 @@ float getSlopeScaledBias(vec3 N, vec3 L)
 {
     float cosAlpha = clamp(dot(N, L), 0.0, 1.0);
     float sinAlpha = sqrt(1.0 - cosAlpha * cosAlpha);     // sin(acos(L*N))
-    float tanAlpha = sinAlpha / cosAlpha;            // tan(acos(L*N))
-    return tanAlpha;
+    float tanAlpha = sinAlpha / cosAlpha;                 // tan(acos(L*N))
+    return max(0.0001, tanAlpha);
 }
-
 
 int getShadowMapLayer(mat4 viewMatrix, vec3 fragWorldPos, int cascadeCount)
 {

@@ -460,8 +460,11 @@ void WorldRenderer::renderEntities(const Camera &camera, const ShaderProgram& pr
 
 glm::vec3 WorldRenderer::getSunDirection() const
 {
-    return glm::normalize(
-        glm::yawPitchRoll(_sun_yaw, _sun_pitch, _sun_rotation)
-        * glm::vec4{1.0f, 0.0f, 0.0f, 1.0f}
+    glm::vec3 v = glm::normalize(
+        glm::vec3(
+            glm::yawPitchRoll(_sun_yaw, _sun_pitch, _sun_rotation) * glm::vec4{1.0f, 0.0f, 0.0f, 1.0f}
+        )
     );
+
+    return v;
 }
