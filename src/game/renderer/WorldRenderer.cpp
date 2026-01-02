@@ -90,14 +90,9 @@ void WorldRenderer::render(const Camera &camera)
     uniform_parameters.FOV = glm::radians(camera.fov);
     uniform_parameters.sunDirection = glm::vec4(glm::normalize(sunDirection), 0);
     uniform_parameters.viewPosition = glm::vec4(camera.getPosition(), 0);
-    // uniform_parameters.fogDensity = _fog_density;
     uniform_parameters.lightSpaceMatrix = shadowmap._lightSpaceMatrix;
     uniform_parameters.shadow_bias = shadowmap._shadow_bias;
-    // uniform_parameters.ambient_occlusion_enabled = (int)_ambient_occlusion;
-    // uniform_parameters.ambient_occlusion_strength = _ambient_occlusion_strength;
-    // uniform_parameters.tonemapping_enabled = (int)_tonemapping;
     uniform_parameters.time = (float)glfwGetTime();
-    // uniform_parameters.exposure = _exposure;
     uniform_parameters.cascadePlaneDistances = *(glm::vec4*)shadowmap.shadowCascadeLevels.data();
 
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, _buffer_ssbo_uniforms);
@@ -133,13 +128,8 @@ void WorldRenderer::render(const Camera &camera)
         glNamedBufferSubData(_buffer_ssbo_uniforms, 0, sizeof(uniformsParameters), &uniform_parameters);
 
         for (int i = 0 ; i < 4 ; ++i) {
-            // const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, 1000.0f);
-            // const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, _max_shadow_distance);
-
-            // const glm::mat4 camera_projection_shorter = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, 0.1f, shadowmap.shadowCascadeLevels[i]);
-            // glm::mat4 light_space_matrix = shadowmap.begin(lightSpaceMatrices[i], camera.getView(), _shaders.at("cube_depth_only"), i);
             shadowmap.begin(lightSpaceMatrices[i], _shadow_camera.getView(), _shaders.at("cube_depth_only"), i);
-            // _ubuffer.set("lightSpaceMatrix", lightSpaceMatrices[i]);
+
             uniform_parameters.lightSpaceMatrix = lightSpaceMatrices[i];
             glNamedBufferSubData(_buffer_ssbo_uniforms, 0, sizeof(uniformsParameters), &uniform_parameters);
 
@@ -167,11 +157,8 @@ void WorldRenderer::render(const Camera &camera)
             shadowmap.end();
         }
 
-        // _ubuffer.set("lightSpaceMatrix", lightSpaceMatrices[0]);
         uniform_parameters.lightSpaceMatrix = lightSpaceMatrices[0];
         glNamedBufferSubData(_buffer_ssbo_uniforms, 0, sizeof(uniformsParameters), &uniform_parameters);
-
-        // glNamedFramebufferTextureLayer(shadowmap._depthFBO._framebuffer, GL_DEPTH_ATTACHMENT, shadowmap._depthTextureArray, 0, 0);
     }
 
     _framebuffer.bind();
