@@ -95,7 +95,7 @@ static glm::mat4 getLightViewMatrix(const std::vector<glm::vec3>& cameraFrustumC
     return glm::lookAt(
         center + lightDir,
         center,
-        glm::dot(lightDir, glm::vec3(0.0f, 1.0f, 0.0f)) > 0.999f ?
+        glm::dot(lightDir, glm::vec3(0.0f, 1.0f, 0.0f)) < 0.999f ?
             glm::vec3(0.0f, 1.0f, 0.0f)
             : glm::vec3{0.0f, 0.0f, 1.0f}
     );
