@@ -154,10 +154,13 @@ void GameView::gui(float dt)
     ImGui::SliderFloat("Shadow Cascade 3", &world_renderer.shadowmap.shadowCascadeLevels[2], 1.0f, 1000.0f, "%.1f");
     ImGui::SliderFloat("Shadow Cascade 4", &world_renderer.shadowmap.shadowCascadeLevels[3], 1.0f, 1000.0f, "%.1f");
 
-    ImGui::SliderFloat("Volumetric Density", &world_renderer.uniform_parameters.volumetricDensity, 0.0f, 1.0f, "%.4f");
-    ImGui::SliderFloat("Volumetric HGphase Power", &world_renderer.uniform_parameters.volumetricHGphasePower, 0.0f, 1.0f, "%.4f");
+    ImGui::SliderFloat("Volumetric Density", &world_renderer.uniform_parameters.volumetricDensity, 0.0f, 0.05f, "%.5f");
+    ImGui::SliderFloat("Volumetric HGphase Front", &world_renderer.uniform_parameters.volumetricHGphaseFront, 0.0f, 1.0f, "%.4f");
+    ImGui::SliderFloat("Volumetric HGphase Back", &world_renderer.uniform_parameters.volumetricHGphaseBack, -1.0f, 0.0f, "%.4f");
+    ImGui::SliderFloat("Volumetric Ambient light", &world_renderer.uniform_parameters.volumetricAmbiantLight, 0.0f, 1.0f, "%.3f");
 
-    ImGui::SliderFloat("TEST_SLIDER", &world_renderer.uniform_parameters.TEST_SLIDER, 0.0f, 0.005f, "%.6f");
+    ImGui::SliderFloat("TEST_SLIDER_0", &world_renderer.uniform_parameters.TEST_SLIDER_0, -1.0f, 1.0f, "%.6f");
+    ImGui::SliderFloat("TEST_SLIDER_1", &world_renderer.uniform_parameters.TEST_SLIDER_1, -1.0f, 1.0f, "%.6f");
 
     ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 260), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
     for (const auto& msg: tchat) {

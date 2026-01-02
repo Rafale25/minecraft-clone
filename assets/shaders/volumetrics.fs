@@ -23,7 +23,14 @@ void main()
     vec3 worldPos = texture(worldPosTexture, TexCoords).rgb;
     float dist = distance(uniforms.viewPosition.xyz, worldPos);
 
-    float volumetric_light = raymarchVolumetricLighting(worldPos, uniforms.volumetricDensity, uniforms.volumetricHGphasePower);
+    float volumetric_light = raymarchVolumetricLighting(
+        worldPos,
+        uniforms.volumetricDensity,
+        uniforms.volumetricHGphaseFront,
+        uniforms.volumetricHGphaseBack,
+        uniforms.volumetricAmbiantLight
+    );
+
     // bool is_in_shadow = isInShadow(u_shadowmap, uniforms.view, worldPos, uniforms.cascadeCount);
     // if (volumetric_light > 0.0) {
     //     finalColor = vec3(1.0, 0.0, 0.0);

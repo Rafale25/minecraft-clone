@@ -22,9 +22,12 @@ struct uniformsParameters {
     float time = 0.0f;
     float exposure = 0.0f;
     float volumetricDensity = 0.0f;
-    float volumetricHGphasePower = 0.0f;
+    float volumetricHGphaseFront = 0.0f;
+    float volumetricHGphaseBack = 0.0f;
+    float volumetricAmbiantLight = 0.0f;
     int ambient_occlusion_enabled = 0;
     int tonemapping_enabled = 0;
     int cascadeCount = 0;
-    float TEST_SLIDER = 0.0f;
+    float TEST_SLIDER_0 = 0.0f;
+    float TEST_SLIDER_1 = 0.0f;
 };

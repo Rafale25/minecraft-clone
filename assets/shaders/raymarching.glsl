@@ -1,25 +1,21 @@
 #include "shadowmapping.glsl"
 
-// https://blog.maximeheckel.com/posts/shaping-light-volumetric-lighting-with-post-processing-and-raymarching/
+// https://github.com/HigashiSan/CDC-High-Quality-Realtime-Cloud
 // Henyey-Greenstein function
-float hgPhase(float mu, float g) {
-      float _g = g;//SCATTERING_ANISO;
-      float _gg = g * g;
-
-    float denom = 1.0 + _gg - 2.0 * _g * mu;
-    denom = max(denom, 0.0001);
-
-    float scatter = (1.0 - _gg) / pow(denom, 1.5);
-    return scatter;
+float HenyeyGreensteinPhase(float angle, float g)
+{
+    float gg = g * g;
+    return (1.0 - gg) / (4.0 * 3.14159 * pow(1.0 + gg - 2.0 * g * angle, 1.5));
 }
 
-float raymarchVolumetricLighting(vec3 end, float density=0.05, float g=0.555, float maxDistance=100.0)//, float depth)
+float beersLaw(float dist, float absorption) {
+    return exp(-dist * absorption);
+}
+
+float raymarchVolumetricLighting(vec3 end, float density=0.05, float volumetricHGphaseFront=0.65, float volumetricHGphaseBack=-0.36, float ambiantLight=0.01, float maxDistance=100.0)
 {
     vec3 startPos = uniforms.viewPosition.xyz;
     vec3 endPos = end;
-    // if (depth == 1.0) {
-    //     endPos = uniforms.viewPosition
-    // }
 
     vec3 ray = endPos - startPos;
     vec3 rayDirection = normalize(ray);
@@ -31,35 +27,27 @@ float raymarchVolumetricLighting(vec3 end, float density=0.05, float g=0.555, fl
 
     vec3 currentPos = startPos + rayDirection * rand(gl_FragCoord.xy * 0.01) * (stepSize*2);
 
-    float L = 0.0;
-    float T = 1.0;
+    float accumulatedLight = 0.0;
+    float transmittance = 1.0;
 
-    // float accumulatedLight = 0.0;
+    const float cosTheta = dot(-uniforms.sunDirection.xyz, -rayDirection);
+    const float scatterPhaseFront = HenyeyGreensteinPhase(cosTheta, volumetricHGphaseFront); // 0.65
+    const float scatterPhaseBack = HenyeyGreensteinPhase(cosTheta, volumetricHGphaseBack); // -0.36
+    const float scatterPhase = mix(scatterPhaseFront, scatterPhaseBack, 0.5);
+
     for (int i = 0 ; i < steps - 1; ++i) {
-        float stepTransmittance = exp(-density * stepSize);
+        transmittance *= beersLaw(density * stepSize, 1.0);
 
         bool lit = !isInShadow(u_shadowmap, uniforms.view, currentPos, uniforms.cascadeCount);
-        // accumulatedLight += float(lit);
+        float light = max(ambiantLight, float(lit));
 
-        if (lit) {
-            float cosTheta = dot(-uniforms.sunDirection.xyz, -rayDirection);
-            // float phase = hgPhase(cosTheta, 0.6);
-            float phase = hgPhase(cosTheta, g);
+        float luminance = light * scatterPhase * density;
+        accumulatedLight += transmittance * luminance * stepSize;
 
-            float scatteredLight = 1.0 * phase * density;
-
-            // Only the light that survives so far contributes
-            L += T * scatteredLight * (1.0 - stepTransmittance);
-        }
-
-        // T *= stepTransmittance;
-
-        if (T < 0.01) break;
+        if (transmittance < 0.01) break;
 
         currentPos += stepVec;
     }
 
-    // accumulatedLight /= steps;
-
-    return L;
+    return accumulatedLight;
 }
