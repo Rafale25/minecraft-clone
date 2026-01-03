@@ -22,6 +22,7 @@ layout(std430, binding=3) readonly buffer uniformsBuffer {
     int ambient_occlusion_enabled;
     int tonemapping_enabled;
     int cascadeCount;
+    int shadows_enabled;
     float TEST_SLIDER_0;
     float TEST_SLIDER_1;
 } uniforms;

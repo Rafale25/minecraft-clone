@@ -124,6 +124,7 @@ void WorldRenderer::render(const Camera &camera)
 
     setDefaultRenderState();
 
+    if (uniform_parameters.shadows_enabled)
     { // SHADOWMAP //
         glClearDepth(1.0f);
         glClipControl(GL_LOWER_LEFT, GL_NEGATIVE_ONE_TO_ONE );

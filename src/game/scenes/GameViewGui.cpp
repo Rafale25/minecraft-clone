@@ -149,6 +149,8 @@ void GameView::gui(float dt)
     ImGui::Checkbox("Freeze shadowmap camera", &world_renderer._is_shadow_camera_freezed);
     ImGui::Checkbox("Debug draw shadowmap frustums", &world_renderer._debug_draw_shadowmap_frustums);
 
+    ImguiCheckboxInt("Shadows Enabled", world_renderer.uniform_parameters.shadows_enabled);
+
     ImGui::SliderFloat("Shadow Cascade 1", &world_renderer.shadowmap.shadowCascadeLevels[0], 1.0f, 1000.0f, "%.1f");
     ImGui::SliderFloat("Shadow Cascade 2", &world_renderer.shadowmap.shadowCascadeLevels[1], 1.0f, 1000.0f, "%.1f");
     ImGui::SliderFloat("Shadow Cascade 3", &world_renderer.shadowmap.shadowCascadeLevels[2], 1.0f, 1000.0f, "%.1f");

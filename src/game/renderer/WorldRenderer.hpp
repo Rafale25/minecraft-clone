@@ -99,6 +99,7 @@ public:
         .ambient_occlusion_enabled = 1,
         .tonemapping_enabled = 1,
         .cascadeCount = 4,
+        .shadows_enabled = 1,
     };
 
     Mesh _quad_fs = Geometry::quad_2d();

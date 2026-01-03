@@ -59,15 +59,18 @@ void main()
     }
 
     // calculate shadow
-    float shadow = ShadowCalculation(u_shadowmap, uniforms.view, fs_in.frag_pos, normal, normalize(uniforms.sunDirection.xyz), uniforms.shadow_bias, uniforms.cascadeCount);
-    // float shadow = float(isInShadow(u_shadowmap, uniforms.view, fs_in.frag_pos)); // non-pcf simple hard shadows
+    float shadow = 0.0;
+    if (uniforms.shadows_enabled == 1) {
+        shadow = ShadowCalculation(u_shadowmap, uniforms.view, fs_in.frag_pos, normal, normalize(uniforms.sunDirection.xyz), uniforms.shadow_bias, uniforms.cascadeCount);
+        // shadow = float(isInShadow(u_shadowmap, uniforms.view, fs_in.frag_pos)); // non-pcf simple hard shadows
+    }
 
     // if cube face is not facing light, then it's in its own shadow
     if (dot(normal, uniforms.sunDirection.xyz) < 0.0
     || uniforms.sunDirection.y < 0.0) // if sun is under the ground (points up)
         shadow = 1.0;
 
-    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse)) * color.rgb;
+    vec3 lighting = (ambient + (1.0 - shadow) * diffuse) * color.rgb;
 
     if (uniforms.ambient_occlusion_enabled == 1) {
         lighting = mix(lighting * (1.0 - uniforms.ambient_occlusion_strength), lighting, fs_in.ambient_occlusion);
