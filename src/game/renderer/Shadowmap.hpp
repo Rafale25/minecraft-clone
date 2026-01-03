@@ -47,8 +47,6 @@ public:
     };
 
     GLuint _depthTextureArray = 0;
-    GLuint _matricesBuffer;
-
     Texture _depthTexture;
     glm::mat4 _lightSpaceMatrix;
     float _shadow_bias = 0.0005; // 0.0005 looks good for 4096

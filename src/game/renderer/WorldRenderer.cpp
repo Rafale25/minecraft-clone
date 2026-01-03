@@ -58,13 +58,18 @@ void WorldRenderer::setDefaultRenderState()
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
+    // glDepthFunc(GL_LESS);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
     // glEnable(GL_FRAMEBUFFER_SRGB);
+
+    /* reversed-Z */
+    glClearDepth(0.0f);
+    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+    glDepthFunc(GL_GEQUAL);
 }
 
 void WorldRenderer::render(const Camera &camera)
@@ -120,6 +125,10 @@ void WorldRenderer::render(const Camera &camera)
     setDefaultRenderState();
 
     { // SHADOWMAP //
+        glClearDepth(1.0f);
+        glClipControl(GL_LOWER_LEFT, GL_NEGATIVE_ONE_TO_ONE );
+        glDepthFunc(GL_LESS);
+
         shadowmap.setSunDir(sunDirection);
 
         const auto lightSpaceMatrices = shadowmap.getLightSpaceMatrices(_shadow_camera);
@@ -162,6 +171,11 @@ void WorldRenderer::render(const Camera &camera)
     }
 
     _framebuffer.bind();
+
+    glClearDepth(0.0f);
+    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+    glDepthFunc(GL_GEQUAL);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glPolygonMode(GL_FRONT_AND_BACK, _wireframe ? GL_LINE : GL_FILL);
 
@@ -169,7 +183,7 @@ void WorldRenderer::render(const Camera &camera)
     // TODO: should use a framebuffer with glDrawBuffer(GL_NONE) to completely disable fragment stage
     // cube_shader_depth_only.use();
     // cube_shader_depth_only.setMat4("u_lightSpaceMatrix", view_projection);
-    // renderTerrain(camera.getProjection() * camera.getView(), true);
+    // renderTerrain();
 
     glBindTextureUnit(0, shadowmap._depthTextureArray);
 
@@ -310,7 +324,7 @@ void WorldRenderer::onResize(int32_t width, int32_t height) {
     _framebuffer = Framebuffer();
     _texture_color = Texture(width, height, GL_RGB16F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
     _texture_world_position = Texture(width, height, GL_RGB32F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
-    _texture_depth = Texture(width, height, GL_DEPTH_COMPONENT24, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
+    _texture_depth = Texture(width, height, GL_DEPTH_COMPONENT32F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER); // floating point buffer needed for reversed depth
     _framebuffer.attachTexture(_texture_color._texture, GL_COLOR_ATTACHMENT0);
     _framebuffer.attachTexture(_texture_world_position._texture, GL_COLOR_ATTACHMENT1);
     _framebuffer.attachTexture(_texture_depth._texture, GL_DEPTH_ATTACHMENT);

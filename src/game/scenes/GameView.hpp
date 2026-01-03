@@ -37,7 +37,6 @@ public:
 private:
     WorldRenderer world_renderer{ctx.width, ctx.height};
 
-    // GLuint _texture_view = 0;
     GLuint _texture_view[4]{};
 
     float network_timer = 1.0f;
@@ -55,7 +54,8 @@ private:
 
     FPSCamera camera = {
         glm::vec3(0.0f, 0.0, 0.0f), 0.0f, 0.0f,
-        60.0f, (float)ctx.width / (float)ctx.height, 0.1f, 1000.0f
+        60.0f, (float)ctx.width / (float)ctx.height, 0.1f, 5000.0f,
+        true
     };
 
     BlockType block_in_hand = BlockType::Grass;

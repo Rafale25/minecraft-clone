@@ -12,11 +12,7 @@ static const float borderColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 Shadowmap::Shadowmap(GLsizei shadowmap_size):
     _shadowmap_size(shadowmap_size)
-    // ,_depthTexture(Texture(shadowmap_size, shadowmap_size, GL_DEPTH_COMPONENT24, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_BORDER, borderColor))
 {
-    // _depthTexture.setSwizzle({ GL_RED, GL_RED, GL_RED, GL_ONE });
-    // _depthFBO.attachTexture(_depthTexture._texture, GL_DEPTH_ATTACHMENT);
-
     glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &_depthTextureArray);
 
     glTextureParameteri(_depthTextureArray, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -28,11 +24,6 @@ Shadowmap::Shadowmap(GLsizei shadowmap_size):
 
     constexpr float bordercolor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     glTextureParameterfv(_depthTextureArray, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-    // _depthFBO.attachTexture(_depthTextureArray, GL_DEPTH_ATTACHMENT);
-
-    _matricesBuffer = createBufferStorage(NULL, 4*16 * shadowCascadeLevels.size());
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, _matricesBuffer);
 }
 
 glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, const ShaderProgram &program, int32_t layer)
@@ -153,32 +144,3 @@ std::vector<glm::mat4> Shadowmap::getLightSpaceMatrices(const Camera& camera)
     }
     return ret;
 }
-
-
-// unused
-/*
-static FrustumBounds computeFrustumBounds(const glm::mat4& lightView, const std::vector<glm::vec3>& corners)
-{
-    FrustumBounds b;
-
-    b.minX = std::numeric_limits<float>::max();
-    b.maxX = std::numeric_limits<float>::lowest();
-    b.minY = std::numeric_limits<float>::max();
-    b.maxY = std::numeric_limits<float>::lowest();
-    b.minZ = std::numeric_limits<float>::max();
-    b.maxZ = std::numeric_limits<float>::lowest();
-
-    for (const auto& v : corners)
-    {
-        const glm::vec4 trf = lightView * glm::vec4(v, 1.0f);
-        b.minX = glm::min(b.minX, trf.x);
-        b.maxX = glm::max(b.maxX, trf.x);
-        b.minY = glm::min(b.minY, trf.y);
-        b.maxY = glm::max(b.maxY, trf.y);
-        b.minZ = glm::min(b.minZ, trf.z);
-        b.maxZ = glm::max(b.maxZ, trf.z);
-    }
-
-    return b;
-}
-*/

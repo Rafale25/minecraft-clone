@@ -136,7 +136,4 @@ public:
     std::mutex chunks_waiting_bufferslot_mutex;
 
     ankerl::unordered_dense::map<glm::ivec3, ChunkMesh> meshes;
-
-    float test_slider_0 = 0.015f;
-    float test_slider_1 = 0.555f;
 };

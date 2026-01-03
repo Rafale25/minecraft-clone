@@ -6,8 +6,8 @@ class FPSCamera: public Camera {
     public:
         FPSCamera()
         {}
-        FPSCamera(const glm::vec3& position, float yaw, float pitch, float fov, float aspect_ratio, float near_plane, float far_plane):
-            Camera(fov, aspect_ratio, near_plane, far_plane),
+        FPSCamera(const glm::vec3& position, float yaw, float pitch, float fov, float aspect_ratio, float near_plane, float far_plane, bool reversedZ_enabled=false):
+            Camera(fov, aspect_ratio, near_plane, far_plane, reversedZ_enabled),
             _position(position),
             _yaw(yaw),
             _pitch(pitch)

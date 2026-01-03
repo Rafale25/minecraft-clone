@@ -5,8 +5,8 @@
 class Camera {
     public:
         Camera() {}
-        Camera(float fov, float aspect_ratio, float near_plane, float far_plane):
-            fov(fov), aspect_ratio(aspect_ratio), near_plane(near_plane), far_plane(far_plane)
+        Camera(float fov, float aspect_ratio, float near_plane, float far_plane, bool reversedZ_enabled=false):
+            fov(fov), aspect_ratio(aspect_ratio), near_plane(near_plane), far_plane(far_plane), reversedZ_enabled(reversedZ_enabled)
         {}
 
         glm::mat4 getProjection() const;
@@ -23,4 +23,5 @@ class Camera {
         float aspect_ratio = 16.0f / 9.0f;
         float near_plane = 0.1f;
         float far_plane = 1000.0f;
+        bool reversedZ_enabled = false;
 };
