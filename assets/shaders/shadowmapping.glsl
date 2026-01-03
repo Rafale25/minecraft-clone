@@ -23,10 +23,8 @@ int getShadowMapLayer(mat4 viewMatrix, vec3 fragWorldPos, int cascadeCount)
             break;
         }
     }
-    if (layer == -1)
-    {
-        layer = cascadeCount;
-    }
+    // if (layer == -1)
+    //     layer = cascadeCount;
 
     return layer;
 }
@@ -34,6 +32,7 @@ int getShadowMapLayer(mat4 viewMatrix, vec3 fragWorldPos, int cascadeCount)
 float ShadowCalculation(sampler2DArray shadowMap, mat4 viewMatrix, vec3 fragWorldPos, vec3 normal, vec3 lightDirection, float shadowBias, int cascadeCount)
 {
     int layer = getShadowMapLayer(viewMatrix, fragWorldPos, cascadeCount);
+    if (layer == -1) return 0.0;
 
     vec4 fragPosLightSpace = uniforms.lightSpaceMatrices[layer] * vec4(fragWorldPos, 1.0);
 
