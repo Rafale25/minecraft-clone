@@ -34,7 +34,7 @@ void BlockTextureManager::_loadAllTextures()
 {
     const std::string textures_path = RESSOURCE_PATH "textures/";
 
-    for (int32_t i = 0 ; i < (int32_t)BlockType::INVALID ; ++i) {
+    for (int32_t i = 0 ; i <= (int32_t)BlockType::INVALID ; ++i) {
         const auto& [lz, hz, lx, hx, ly, hy] = blocks_info[i].textures;
 
         std::string filepath_lz = (textures_path + textures_name[lz]);
