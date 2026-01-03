@@ -12,6 +12,7 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
+#include <glm/gtc/random.hpp>
 
 GameView::GameView(Context& ctx): View(ctx)
 {
@@ -23,21 +24,6 @@ GameView::GameView(Context& ctx): View(ctx)
 
     Client::instance().init(tchat, global_argv[1], std::atoi(global_argv[2]));
     Client::instance().Start();
-
-
-    glGenTextures(4, _texture_view);
-
-    for (int i = 0 ; i < 4 ; ++i) {
-        glTextureView(
-            _texture_view[i], GL_TEXTURE_2D,
-            world_renderer.shadowmap._depthTextureArray, GL_DEPTH_COMPONENT32F,
-            0, 1, i, 1
-        );
-
-        constexpr GLint rgba[4] = { GL_RED, GL_RED, GL_RED, GL_ONE };
-        glTextureParameteriv(_texture_view[i], GL_TEXTURE_SWIZZLE_RGBA, (GLint*)&rgba); // to make the texture grayscale in imgui
-    }
-
 }
 
 void GameView::onHideView()
@@ -49,6 +35,21 @@ void GameView::onHideView()
 void GameView::onUpdate(double time_since_start, float dt)
 {
     legit::Profiler::setEnable(_show_profiler_gui);
+
+    { // projectiles
+        for (int i = _projectiles.size() - 1 ; i > 0 ; --i) {
+            auto& p = _projectiles[i];
+            p.pos += p.vel;
+
+            DebugDraw::instance().drawCube(p.pos, 0.1f, glm::vec3(0.0f, 1.0f, 0.0f));
+
+            if (World::instance().getBlock(p.pos) != BlockType::Air) {
+                placeSphere(p.pos, p.power, BlockType::Air);
+                _projectiles.erase(_projectiles.begin() + i);
+            }
+        }
+    }
+
 
     {
         ScopedTask("player");
@@ -415,6 +416,20 @@ void GameView::onKeyPress(int key)
         // const GLFWvidmode* mode = glfwGetVideoMode(monitor);
         // glfwSetWindowMonitor(ctx.window, monitor, 0, 0, mode->width, mode->height, 0);
     }
+
+    if (key == GLFW_KEY_F) {
+        Projectile p{camera.getPosition(), camera.forward(), 4.2f};
+        _projectiles.push_back(p);
+    }
+    if (key == GLFW_KEY_U) {
+        for (int i = 0 ; i < 1000 ; ++i) {
+            float power = glm::linearRand(4.0f, 8.0f);
+            glm::vec3 offset = camera.forward() * glm::linearRand(0.7f, 1.3f) + glm::ballRand(0.4f);
+            Projectile p{camera.getPosition(), camera.forward() + offset, power};
+            _projectiles.push_back(p);
+        }
+    }
+
 
     if (!ImGui::GetIO().WantCaptureKeyboard) {
         if (key == GLFW_KEY_P) {

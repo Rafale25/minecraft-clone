@@ -30,7 +30,6 @@ BufferAllocator::BufferAllocator(const char* name, uint32_t max_memory):
 
 BufferSlot BufferAllocator::allocate(int32_t size, const void * data) {
     // SimpleProfiler::instance().start("BufferAllocator::allocate");
-    // defer SimpleProfiler::instance().stop("BufferAllocator::allocate");
 
     const auto it = _free_slot_of_size.equal_range(size).first;
 

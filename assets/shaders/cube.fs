@@ -32,6 +32,7 @@ in VS_OUT {
 
 layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec3 gPosition;
+layout (location = 2) out vec3 gNormals;
 
 uniform sampler2DArray u_shadowmap;
 
@@ -70,13 +71,17 @@ void main()
     || uniforms.sunDirection.y < 0.0) // if sun is under the ground (points up)
         shadow = 1.0;
 
+    /*
+    */
+
+    // vec3 lighting = (ambient + diffuse) * color.rgb;
     vec3 lighting = (ambient + (1.0 - shadow) * diffuse) * color.rgb;
+
 
     if (uniforms.ambient_occlusion_enabled == 1) {
         lighting = mix(lighting * (1.0 - uniforms.ambient_occlusion_strength), lighting, fs_in.ambient_occlusion);
     }
 
-    gPosition = fs_in.frag_pos;
 
     { // FOG
         vec3 worldPos = fs_in.frag_pos;
@@ -87,6 +92,7 @@ void main()
         vec3 rd = normalize(worldPos - uniforms.viewPosition.xyz);
         lighting = applyFog(lighting, fragDistance, rd, uniforms.sunDirection.xyz, skyColor, uniforms.fogDensity);
     }
+
 
 
 // #define DEBUG_SHADOWMAP_LAYER
@@ -106,7 +112,8 @@ void main()
     lighting = mix(lighting, layerColor, 0.4);
 #endif
 
+
     FragColor = vec4(lighting, color.a);
-    // FragColor = vec4(normal, 1.0);
-    // FragColor = vec4(fs_in.frag_pos, 1.0);
+    gPosition = fs_in.frag_pos;
+    gNormals = normal;
 }

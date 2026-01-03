@@ -35,6 +35,7 @@ public:
 
     void render(const Camera &camera) override;
     void update() override;
+    void imguiRender() override;
 
 private:
     void processChunksToMesh();
@@ -67,6 +68,9 @@ private:
 
 public:
     Shadowmap shadowmap{4096};
+    GLuint _texture_view[4]{};
+
+
     float _max_shadow_distance = 350.0f;
     float _sun_rotation = glm::radians(90.0f);
     float _sun_pitch = glm::radians(20.0f);
@@ -82,6 +86,7 @@ public:
     Framebuffer _framebuffer;
     Texture _texture_color;
     Texture _texture_world_position;
+    Texture _texture_normals;
     Texture _texture_depth;
 
     Framebuffer _framebuffer_volumetrics;

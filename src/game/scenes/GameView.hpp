@@ -6,6 +6,13 @@
 #include "WorldRenderer.hpp"
 #include "BlockRaycastHit.hpp"
 
+struct Projectile {
+    glm::vec3 pos;
+    glm::vec3 vel;
+    float power;
+    // glm::vec3 color;
+};
+
 class GameView: public View {
 public:
     GameView(Context& ctx);
@@ -36,8 +43,6 @@ public:
 
 private:
     WorldRenderer world_renderer{ctx.width, ctx.height};
-
-    GLuint _texture_view[4]{};
 
     float network_timer = 1.0f;
 
@@ -80,4 +85,6 @@ private:
 
     char input_text_buffer[4096] = {};
     std::vector<std::string> tchat;
+
+    std::vector<Projectile> _projectiles;
 };

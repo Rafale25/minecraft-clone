@@ -12,7 +12,6 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
-
 inline double nsToMs(int64_t ns) {
     return double(ns) / 1e6;
 }
@@ -48,6 +47,17 @@ WorldRenderer::WorldRenderer(int32_t width, int32_t height)
 
     _buffer_ssbo_uniforms = createBufferStorage(nullptr, sizeof(uniformsParameters));
 
+    glGenTextures(uniform_parameters.cascadeCount, _texture_view);
+    for (int i = 0 ; i < uniform_parameters.cascadeCount ; ++i) {
+        glTextureView(
+            _texture_view[i], GL_TEXTURE_2D,
+            shadowmap._depthTextureArray, GL_DEPTH_COMPONENT32F,
+            0, 1, i, 1
+        );
+        constexpr GLint rgba[4] = { GL_RED, GL_RED, GL_RED, GL_ONE };
+        glTextureParameteriv(_texture_view[i], GL_TEXTURE_SWIZZLE_RGBA, (GLint*)&rgba); // to make the texture grayscale in imgui
+    }
+
     onResize(width, height);
 }
 
@@ -74,7 +84,10 @@ void WorldRenderer::setDefaultRenderState()
 
 void WorldRenderer::render(const Camera &camera)
 {
-    const glm::mat4 view_projection = camera.getProjection() * camera.getView();
+    const glm::mat4 camera_projection = camera.getProjection();
+    const glm::mat4 camera_view = camera.getView();
+    const glm::mat4 view_projection = camera_projection * camera_view;
+
     if (!_is_shadow_camera_freezed) {
         _shadow_camera = dynamic_cast<const FPSCamera &>(camera);
     }
@@ -87,10 +100,12 @@ void WorldRenderer::render(const Camera &camera)
     const glm::vec3 sunDirection = getSunDirection();
     const float sun_dot_angle = glm::dot(glm::normalize(sunDirection), {0.0f, 1.0f, 0.0f});
 
-    uniform_parameters.projection = camera.getProjection();
-    uniform_parameters.view = camera.getView();
+    uniform_parameters.projection = camera_projection;
+    uniform_parameters.view = camera_view;
     uniform_parameters.projection_view = view_projection;
+    uniform_parameters.projection_view_noviewtranslate = camera_projection * glm::mat4(glm::mat3(camera_view));
     uniform_parameters.resolution = glm::vec2(_framebuffer_width, _framebuffer_height);
+    uniform_parameters.aspectRatio = _framebuffer_width / _framebuffer_height;
     uniform_parameters.sunDotAngle = sun_dot_angle;
     uniform_parameters.FOV = glm::radians(camera.fov);
     uniform_parameters.sunDirection = glm::vec4(glm::normalize(sunDirection), 0);
@@ -172,6 +187,8 @@ void WorldRenderer::render(const Camera &camera)
     }
 
     _framebuffer.bind();
+    uint32_t attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+    _framebuffer.drawBuffers(3, attachments); // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
 
     glClearDepth(0.0f);
     glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
@@ -188,25 +205,18 @@ void WorldRenderer::render(const Camera &camera)
 
     glBindTextureUnit(0, shadowmap._depthTextureArray);
 
-    uint32_t attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-    glDrawBuffers(2, attachments); // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
-
-    { // skybox
-        ScopedTaskGPU("skybox: render");
-
-        glDisable(GL_CULL_FACE); // because cube mesh if facing outside
-        glDepthMask(GL_FALSE);
-
-        _shaders.at("skybox").use();
-        _skybox_cube.draw();
-
-        glDepthMask(GL_TRUE);
-        glEnable(GL_CULL_FACE);
-    }
-
     {
         ScopedTask("terrain: generateDrawCommands");
         generateDrawCommands(commands_opaque, commands_translucent, chunk_positions_opaque, chunk_positions_translucent, view_projection, true);
+    }
+
+    { // skybox (render before terrain for transparent geometry)
+        ScopedTaskGPU("skybox: render");
+
+        glDisable(GL_CULL_FACE); // because cube mesh if facing outside
+        _shaders.at("skybox").use();
+        _skybox_cube.draw();
+        glEnable(GL_CULL_FACE);
     }
 
     {
@@ -255,6 +265,7 @@ void WorldRenderer::render(const Camera &camera)
         ScopedTaskGPU("Combine Volumetrics");
 
         _framebuffer.bind();
+        _framebuffer.drawBuffers(1, attachments);
 
         const auto& shader_combine = _shaders.at("bloom_combine");
         shader_combine.use();
@@ -317,17 +328,19 @@ void WorldRenderer::onResize(int32_t width, int32_t height) {
     _framebuffer.destroy();
     _texture_color.destroy();
     _texture_world_position.destroy();
+    _texture_normals.destroy();
     _texture_depth.destroy();
-
     _framebuffer_volumetrics.destroy();
     _texture_volumetrics.destroy();
 
     _framebuffer = Framebuffer();
     _texture_color = Texture(width, height, GL_RGB16F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
     _texture_world_position = Texture(width, height, GL_RGB32F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
+    _texture_normals = Texture(width, height, GL_RGB32F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
     _texture_depth = Texture(width, height, GL_DEPTH_COMPONENT32F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER); // floating point buffer needed for reversed depth
     _framebuffer.attachTexture(_texture_color._texture, GL_COLOR_ATTACHMENT0);
     _framebuffer.attachTexture(_texture_world_position._texture, GL_COLOR_ATTACHMENT1);
+    _framebuffer.attachTexture(_texture_normals._texture, GL_COLOR_ATTACHMENT2);
     _framebuffer.attachTexture(_texture_depth._texture, GL_DEPTH_ATTACHMENT);
 
     _framebuffer_volumetrics = Framebuffer();
@@ -483,3 +496,26 @@ glm::vec3 WorldRenderer::getSunDirection() const
 
     return v;
 }
+
+// void WorldRenderer::imguiRender()
+// {
+//     static bool _gbuffer_window = false;
+//     ImGui::Checkbox("G-Buffer window", &_gbuffer_window);
+//     if (_gbuffer_window) {
+//         ImGui::Begin("G-buffer");
+//             ImGui::BeginGroup();
+//                 ImGui::Text("Volumetrics");
+//                 ImGui::Image((ImTextureID)(intptr_t) world_renderer._texture_volumetrics._texture, ImVec2(world_renderer._texture_volumetrics._width/1, world_renderer._texture_volumetrics._height/1), ImVec2(0, 1), ImVec2(1, 0));
+//             ImGui::EndGroup();
+//             ImGui::SameLine();
+//             ImGui::BeginGroup();
+//                 ImGui::Text("World Position");
+//                 ImGui::Image((ImTextureID)(intptr_t) world_renderer._texture_world_position._texture, ImVec2(world_renderer._texture_world_position._width/4, world_renderer._texture_world_position._height/4), ImVec2(0, 1), ImVec2(1, 0));
+//             ImGui::EndGroup();
+//             ImGui::BeginGroup();
+//                 ImGui::Text("Normals");
+//                 ImGui::Image((ImTextureID)(intptr_t) world_renderer._texture_normals._texture, ImVec2(world_renderer._texture_normals._width/4, world_renderer._texture_normals._height/4), ImVec2(0, 1), ImVec2(1, 0));
+//             ImGui::EndGroup();
+//         ImGui::End();
+//     }
+// }

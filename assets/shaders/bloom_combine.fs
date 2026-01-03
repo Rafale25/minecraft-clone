@@ -57,7 +57,7 @@ vec3 upsample(sampler2D samplerTexture, vec2 texcoords, float aspectRatio, float
 vec3 bloom()
 {
     vec3 hdrColor = texture(u_scene, TexCoords).rgb;
-    vec3 bloomColor = upsample(u_bloomBlur, TexCoords, uniforms.resolution.x / uniforms.resolution.y);//, uniforms.TEST_SLIDER);
+    vec3 bloomColor = upsample(u_bloomBlur, TexCoords, uniforms.aspectRatio);
 
     // vec3 bloomColor = texture(u_bloomBlur, TexCoords).rgb;
     return hdrColor + bloomColor;// * u_bloomStrength; // additive blending

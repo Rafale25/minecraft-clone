@@ -10,5 +10,5 @@ out vec3 fragPosWorld;
 void main() {
     fragPosLocal = aPos;
     fragPosWorld = aPos + uniforms.viewPosition.xyz;
-    gl_Position = uniforms.projection * mat4(mat3(uniforms.view)) * vec4(aPos, 1.0);
+    gl_Position = uniforms.projection_view_noviewtranslate * vec4(aPos, 1.0);
 }

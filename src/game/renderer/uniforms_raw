@@ -1,6 +1,7 @@
 MAT4 projection                             INIT(1.0f);
 MAT4 view                                   INIT(1.0f);
 MAT4 projection_view                        INIT(1.0f);
+MAT4 projection_view_noviewtranslate        INIT(1.0f);
 MAT4 lightSpaceMatrix                       INIT(1.0f);
 MAT4 lightSpaceMatrices[4]                  INIT({});   // cascaded shadowmapping
 VEC4 sunDirection                           INIT(0.0f);
@@ -8,6 +9,7 @@ VEC4 viewPosition                           INIT(0.0f);
 VEC4 cascadePlaneDistances                  INIT(0.0f);
 VEC2 resolution                             INIT(0.0f);
 // VEC2 resolutionInverse;
+float aspectRatio                           INIT(0.0f);
 float sunDotAngle                           INIT(0.0f);
 float FOV                                   INIT(0.0f);
 float fogDensity                            INIT(0.0f);

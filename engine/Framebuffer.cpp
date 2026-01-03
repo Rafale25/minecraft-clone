@@ -16,6 +16,10 @@ void Framebuffer::bind() {
     glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
 }
 
+void Framebuffer::drawBuffers(int n, const GLenum *bufs) {
+    glNamedFramebufferDrawBuffers(_framebuffer, n, bufs);
+}
+
 void Framebuffer::attachTexture(GLuint texture, GLenum attachment) {
     glNamedFramebufferTexture(_framebuffer, attachment, texture, 0);
 }
