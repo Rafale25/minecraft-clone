@@ -93,7 +93,7 @@ void GameView::gui(float dt)
     ImGui::Text("%.4f secs", dt);
     ImGui::Text("%.2f fps", 1.0f / dt);
 
-    ImGui::SliderFloat("FOV", &camera.fov, 20.0f, 179.0f, "%.0f");
+    ImGui::SliderFloat("FOV", &camera.fov, 1.0f, 179.0f, "%.0f");
     glm::vec3 camera_pos = camera.getPosition();
     ImGui::Text("position: %.2f, %.2f, %.2f", camera_pos.x, camera_pos.y, camera_pos.z);
     ImGui::Text("forward: %.2f, %.2f, %.2f", camera.forward().x, camera.forward().y, camera.forward().z);
@@ -141,7 +141,7 @@ void GameView::gui(float dt)
     // ImGui::DragFloat3("Sun direction", &world_renderer.sunDir.x, 0.01f, -glm::pi<float>()*2, glm::pi<float>()*2, "%.2f");
     ImGui::SliderFloat("Shadow Bias", &world_renderer.shadowmap._shadow_bias, 0.000001f, 0.001f, "%.6f");
     ImGui::SliderFloat("Shadow Distance", &world_renderer._max_shadow_distance, 0.3f, 2000.0f, "%.2f");
-    ImGui::SliderFloat("Fog density", &world_renderer.uniform_parameters.fogDensity, 0.0f, 0.05f, "%.5f");
+    ImGui::SliderFloat("Fog density", &world_renderer.uniform_parameters.fogDensity, 0.0f, 0.05f, "%.6f", ImGuiSliderFlags_Logarithmic);
 
     ImguiCheckboxInt("Tonemapping", world_renderer.uniform_parameters.tonemapping_enabled);
     ImGui::SliderFloat("Exposure", &world_renderer.uniform_parameters.exposure, 0.0f, 10.0f, "%.3f");
@@ -154,7 +154,7 @@ void GameView::gui(float dt)
     ImGui::SliderFloat("Shadow Cascade 1", &world_renderer.shadowmap.shadowCascadeLevels[0], 1.0f, 1000.0f, "%.1f");
     ImGui::SliderFloat("Shadow Cascade 2", &world_renderer.shadowmap.shadowCascadeLevels[1], 1.0f, 1000.0f, "%.1f");
     ImGui::SliderFloat("Shadow Cascade 3", &world_renderer.shadowmap.shadowCascadeLevels[2], 1.0f, 1000.0f, "%.1f");
-    ImGui::SliderFloat("Shadow Cascade 4", &world_renderer.shadowmap.shadowCascadeLevels[3], 1.0f, 1000.0f, "%.1f");
+    ImGui::SliderFloat("Shadow Cascade 4", &world_renderer.shadowmap.shadowCascadeLevels[3], 1.0f, 10'000.0f, "%.1f");
 
     ImGui::SliderFloat("Volumetric Density", &world_renderer.uniform_parameters.volumetricDensity, 0.0f, 0.05f, "%.5f");
     ImGui::SliderFloat("Volumetric HGphase Front", &world_renderer.uniform_parameters.volumetricHGphaseFront, 0.0f, 1.0f, "%.4f");

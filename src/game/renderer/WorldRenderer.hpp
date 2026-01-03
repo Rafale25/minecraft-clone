@@ -7,7 +7,7 @@
 #include "Geometry.hpp"
 #include "BufferAllocator.hpp"
 #include "ThreadPool.hpp"
-#include "UniformBuffer.hpp"
+// #include "UniformBuffer.hpp"
 #include "FpsCamera.hpp"
 #include "uniforms_struct.hpp"
 #include "unordered_dense.h"
@@ -90,7 +90,7 @@ public:
     GLuint _buffer_ssbo_uniforms;
     // StructGPUBuffer<uniformsParameters> uniform_parameters_buffer;
     uniformsParameters uniform_parameters = {
-        .fogDensity = 0.00096f,
+        .fogDensity = 0.0005f,
         .ambient_occlusion_strength = 0.67f,
         .exposure = 1.0,
         .volumetricDensity = 0.004f,
