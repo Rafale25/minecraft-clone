@@ -1,0 +1,27 @@
+MAT4 projection                             INIT(1.0f);
+MAT4 view                                   INIT(1.0f);
+MAT4 projection_view                        INIT(1.0f);
+MAT4 lightSpaceMatrix                       INIT(1.0f);
+MAT4 lightSpaceMatrices[4]                  INIT({});   // cascaded shadowmapping
+VEC4 sunDirection                           INIT(0.0f);
+VEC4 viewPosition                           INIT(0.0f);
+VEC4 cascadePlaneDistances                  INIT(0.0f);
+VEC2 resolution                             INIT(0.0f);
+// VEC2 resolutionInverse;
+float sunDotAngle                           INIT(0.0f);
+float FOV                                   INIT(0.0f);
+float fogDensity                            INIT(0.0f);
+float shadow_bias                           INIT(0.0f);
+float ambient_occlusion_strength            INIT(0.0f);
+float time                                  INIT(0.0f);
+float exposure                              INIT(0.0f);
+float volumetricDensity                     INIT(0.0f);
+float volumetricHGphaseFront                INIT(0.0f);
+float volumetricHGphaseBack                 INIT(0.0f);
+float volumetricAmbiantLight                INIT(0.0f);
+int ambient_occlusion_enabled               INIT(0);
+int tonemapping_enabled                     INIT(0);
+int cascadeCount                            INIT(0);
+int shadows_enabled                         INIT(0);
+float TEST_SLIDER_0                         INIT(0.0f);
+float TEST_SLIDER_1                         INIT(0.0f);
