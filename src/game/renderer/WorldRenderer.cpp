@@ -214,9 +214,11 @@ void WorldRenderer::render(const Camera &camera)
         ScopedTaskGPU("skybox: render");
 
         glDisable(GL_CULL_FACE); // because cube mesh if facing outside
+        glDepthMask(GL_FALSE);
         _shaders.at("skybox").use();
         _skybox_cube.draw();
         glEnable(GL_CULL_FACE);
+        glDepthMask(GL_TRUE);
     }
 
     {
