@@ -24,6 +24,10 @@ GameView::GameView(Context& ctx): View(ctx)
 
     Client::instance().init(tchat, global_argv[1], std::atoi(global_argv[2]));
     Client::instance().Start();
+
+    script_manager.registerScript(SCRIPTS_PATH "gun.lua");
+
+    script_manager.init();
 }
 
 void GameView::onHideView()
@@ -50,6 +54,7 @@ void GameView::onUpdate(double time_since_start, float dt)
         }
     }
 
+    script_manager.update(time_since_start, dt);
 
     {
         ScopedTask("player");

@@ -13,6 +13,10 @@ file(GLOB_RECURSE SRC_CPP CONFIGURE_DEPENDS ./src/*.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_CPP} ${SRC_C})
 
+set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/)
+set(LUA_DIR ${THIRD_PARTY_DIR}/lua)
+add_subdirectory(${LUA_DIR})
+
 # target_compile_options(${PROJECT_NAME} PRIVATE
 # -fsanitize=address
 # -fsanitize=leak
@@ -28,16 +32,18 @@ target_include_directories(${PROJECT_NAME}
         ./src/game/scenes/
         ./src/game/network/Client/
         ./src/game/network/Client/Packets
+        ${CMAKE_CURRENT_SOURCE_DIR}/submodules/sol2/include/
 )
 
 add_subdirectory(engine)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     myEngine
+    lua_static
 )
-
 target_compile_definitions(myEngine PUBLIC
     RESSOURCE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/assets/"
+    SCRIPTS_PATH="${CMAKE_CURRENT_SOURCE_DIR}/src/game/scripts/"
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

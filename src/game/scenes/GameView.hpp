@@ -5,6 +5,7 @@
 #include "camera/FpsCamera.hpp"
 #include "WorldRenderer.hpp"
 #include "BlockRaycastHit.hpp"
+#include "ScriptsManager.hpp"
 
 struct Projectile {
     glm::vec3 pos;
@@ -43,6 +44,7 @@ public:
 
 private:
     WorldRenderer world_renderer{ctx.width, ctx.height};
+    ScriptsManager script_manager;
 
     float network_timer = 1.0f;
 
