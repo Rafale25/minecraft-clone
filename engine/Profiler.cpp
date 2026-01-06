@@ -1,4 +1,4 @@
-#include "profiler.hpp"
+#include "Profiler.hpp"
 #include "LegitProfiler/ImGuiProfilerRenderer.h"
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>

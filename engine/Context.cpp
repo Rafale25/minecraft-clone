@@ -1,6 +1,6 @@
 #include "Context.hpp"
 #include "Logger.hpp"
-#include "profiler.hpp"
+#include "Profiler.hpp"
 
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
