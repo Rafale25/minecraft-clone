@@ -10,7 +10,9 @@ layout (location = 1) out vec3 gPosition;
 
 void main()
 {
-    gl_FragDepth = gl_FragCoord.z - 0.00001; // Make sure debug geometry gets renderer on top of other geometry if drawn at the same place
+    // Make sure debug geometry gets renderer on top of other geometry if drawn at the same place
+    gl_FragDepth = gl_FragCoord.z + 0.00001; // positive offset because of reversed-Z-buffer
+
     FragColor = vec4(unpackColor(v_color), 1.0);
     gPosition = v_worldPosition;
 }
