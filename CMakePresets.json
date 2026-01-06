@@ -13,7 +13,9 @@
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": true
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+                "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+                "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
             },
             "environment": {
                 "BASE_CMAKE_CXX_FLAGS": "-W -Wall -Wextra -Wpedantic -Wno-unused-variable -Wno-unused-parameter -Wno-strict-aliasing -fdiagnostics-color"
