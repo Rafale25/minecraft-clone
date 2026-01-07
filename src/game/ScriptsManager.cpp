@@ -164,6 +164,7 @@ void ScriptsManager::refresh() {
             callbacks.onInit = env[std::string("onInit")];
             callbacks.onRefresh = env[std::string("onRefresh")];
             callbacks.onUpdate = env[std::string("onUpdate")];
+            callbacks.onKeyPress = env[std::string("onKeyPress")];
 
             logI("Successfully refreshed script: {}", path);
         }
@@ -208,6 +209,19 @@ void ScriptsManager::update(float timeSinceStart, float deltaTime) {
         if (!callbacks.onUpdate) continue;
 
         sol::protected_function_result result = callbacks.onUpdate.value()(timeSinceStart, deltaTime);
+        if (!result.valid()) {
+            sol::error err = result;
+            logE("{}", err.what());
+        }
+    }
+}
+
+void ScriptsManager::onKeyPress(int key) {
+    for (const auto& [path, env, valid, callbacks] : m_scripts) {
+        if (!valid) continue;
+        if (!callbacks.onKeyPress) continue;
+
+        sol::protected_function_result result = callbacks.onKeyPress.value()(key);
         if (!result.valid()) {
             sol::error err = result;
             logE("{}", err.what());

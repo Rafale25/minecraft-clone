@@ -422,10 +422,13 @@ void GameView::onKeyPress(int key)
         // glfwSetWindowMonitor(ctx.window, monitor, 0, 0, mode->width, mode->height, 0);
     }
 
-    if (key == GLFW_KEY_F) {
-        Projectile p{camera.getPosition(), camera.forward(), 4.2f};
-        _projectiles.push_back(p);
-    }
+    // if (key == GLFW_KEY_F) {
+    //     Projectile p{camera.getPosition(), camera.forward(), 4.2f};
+    //     _projectiles.push_back(p);
+    // }
+
+    script_manager.onKeyPress(key);
+
     if (key == GLFW_KEY_U) {
         for (int i = 0 ; i < 1000 ; ++i) {
             float power = glm::linearRand(4.0f, 8.0f);

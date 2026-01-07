@@ -8,6 +8,7 @@ struct ScriptCallbacks {
     sol::optional<sol::protected_function> onInit;
     sol::optional<sol::protected_function> onRefresh;
     sol::optional<sol::protected_function> onUpdate;
+    sol::optional<sol::protected_function> onKeyPress;
 };
 
 struct Script {
@@ -57,6 +58,7 @@ public:
     void init(const Camera& camer, const GameView& gameview);
     // void updateVariables(const Camera& camera);
     void update(float timeSinceStart, float deltaTime);
+    void onKeyPress(int key);
 
 private:
     sol::state m_lua;
