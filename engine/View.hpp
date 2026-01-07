@@ -8,6 +8,7 @@ class View {
 
     public:
         View(Context& ctx): ctx(ctx) {};
+        virtual ~View() = default;
 
         virtual void onHideView() {}
         virtual void onShowView() {}
