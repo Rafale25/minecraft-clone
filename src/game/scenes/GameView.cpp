@@ -26,8 +26,9 @@ GameView::GameView(Context& ctx): View(ctx)
     Client::instance().Start();
 
     script_manager.registerScript(SCRIPTS_PATH "gun.lua");
+    script_manager.refresh();
 
-    script_manager.init();
+    script_manager.init(camera);
 }
 
 void GameView::onHideView()
@@ -54,6 +55,7 @@ void GameView::onUpdate(double time_since_start, float dt)
         }
     }
 
+    // script_manager.updateVariables(camera);
     script_manager.update(time_since_start, dt);
 
     {

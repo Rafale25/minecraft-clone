@@ -2,8 +2,6 @@
 #include "Client.hpp"
 #include "World.hpp"
 #include "world_to_screen_space.hpp"
-#include "clock.hpp"
-#include "string_helpers.hpp"
 #include "mem_info.h"
 #include <imgui.h>
 
@@ -55,6 +53,10 @@ void GameView::gui(float dt)
 
     ImGui::Begin("Debug", nullptr, !_cursor_enabled ? ImGuiWindowFlags_NoInputs : 0);
 
+    if (ImGui::Button("Refresh Scripts")) {
+        script_manager.refresh();
+    }
+
     if (ImGui::Checkbox("VSync", &_vsync)) {
         ctx.setVsync(_vsync);
     }
@@ -84,7 +86,7 @@ void GameView::gui(float dt)
 
     ImGui::Text("ClientId: %d", Client::instance().client_id);
 
-    if (ImGui::TreeNode(SC("Entities: " << World::instance().entities.size()))) {
+    if (ImGui::TreeNode(std::format("Entities: {}", World::instance().entities.size()).c_str())) {
         for (auto& entity : World::instance().entities) {
             ImGui::PushID(entity.id);
             ImGui::Text("id:%d: x:%.2f y:%.2f z:%.2f", entity.id, entity.transform.position.x, entity.transform.position.y, entity.transform.position.z);

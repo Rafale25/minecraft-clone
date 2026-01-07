@@ -2,13 +2,21 @@
 #include <sol/sol.hpp>
 #include <vector>
 
+struct ScriptCallbacks {
+    sol::optional<sol::protected_function> onInit;
+    sol::optional<sol::protected_function> onRefresh;
+    sol::optional<sol::protected_function> onUpdate;
+};
+
 struct Script {
     std::string path;
     sol::environment env;
+    bool valid;
+
+    ScriptCallbacks callbacks = {};
 };
 
 /*
-
 Callbacks
     onInit
     onFixedUpdate
@@ -20,8 +28,7 @@ Callbacks
     onMessage
 
 Global Variables
-    Camera
-    ...?
+    x Camera
 
 API
     all DebugDraws
@@ -30,19 +37,26 @@ API
     World::setCube(pos)
     World::setSphere(pos, radius)
     World::setCuboid(pos, width)
-    World::
 */
+
+// global variables
+// events
+// World API
+
+class Camera;
 
 class ScriptsManager {
 public:
     ScriptsManager();
 
     void registerScript(const char* path);
-    void init();
+    void refresh();
+    void init(const Camera& camera);
+    // void updateVariables(const Camera& camera);
     void update(float timeSinceStart, float deltaTime);
-    // void initialize() {}
+
 
 private:
-    sol::state lua;
+    sol::state m_lua;
     std::vector<Script> m_scripts;
 };
