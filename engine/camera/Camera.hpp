@@ -9,6 +9,8 @@ class Camera {
             fov(fov), aspect_ratio(aspect_ratio), near_plane(near_plane), far_plane(far_plane), reversedZ_enabled(reversedZ_enabled)
         {}
 
+        virtual ~Camera() = default;
+
         glm::mat4 getProjection() const;
 
         virtual glm::mat4 getView() const = 0;
