@@ -16,11 +16,11 @@ function onUpdate(timeSinceStart, deltaTime)
     x = x + deltaTime;
 
     local p = Camera:getPosition()
-    -- local pos = vec3(-x, 35+offset.y, 0)
     local pos = vec3(-x, offset.y, 0) + p
 
     DebugDraw:drawCube(pos, 1.0, vec3(1, 0, 0));
     DebugDraw:drawSphere(pos, 0.5, vec3(1, 0, 0));
 
+    GameView:placeSphere(ivec3(pos), 1.0, 0)
     -- print(string.format("Lua: onUpdate %.2f %.5f", timeSinceStart, deltaTime))
 end

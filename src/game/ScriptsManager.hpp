@@ -1,3 +1,5 @@
+#pragma once
+
 #define SOL_ALL_SAFETIES_ON 1
 #include <sol/sol.hpp>
 #include <vector>
@@ -44,6 +46,7 @@ API
 // World API
 
 class Camera;
+class GameView;
 
 class ScriptsManager {
 public:
@@ -51,10 +54,9 @@ public:
 
     void registerScript(const char* path);
     void refresh();
-    void init(const Camera& camera);
+    void init(const Camera& camer, const GameView& gameview);
     // void updateVariables(const Camera& camera);
     void update(float timeSinceStart, float deltaTime);
-
 
 private:
     sol::state m_lua;

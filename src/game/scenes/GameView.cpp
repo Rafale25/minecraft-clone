@@ -28,7 +28,7 @@ GameView::GameView(Context& ctx): View(ctx)
     script_manager.registerScript(SCRIPTS_PATH "gun.lua");
     script_manager.refresh();
 
-    script_manager.init(camera);
+    script_manager.init(camera, *this);
 }
 
 void GameView::onHideView()
@@ -381,9 +381,7 @@ void GameView::placeSphere(const glm::ivec3& center, float radius, BlockType blo
         glm::ivec3 p = center + glm::ivec3{x, y, z};
         if (glm::distance2(glm::vec3(center), glm::vec3(p)) > radius*radius) continue;
         positions.push_back(p);
-    }
-    }
-    }
+    }}}
     Client::instance().sendBlockBulkEditPacketMonotype(positions, blocktype);
 }
 

@@ -7,6 +7,8 @@
 #include <glm/detail/type_vec3.hpp>
 #include <glm/detail/type_vec4.hpp>
 
+#include "GameView.hpp"
+
 ScriptsManager::ScriptsManager() {
     m_lua.open_libraries(
         sol::lib::base,
@@ -62,6 +64,33 @@ ScriptsManager::ScriptsManager() {
         // sol::meta_function::modulus,        sol::resolve<glm::vec3(const glm::vec3&, const glm::vec3&)>(&glm::mod)
     );
 
+    m_lua.new_usertype<glm::ivec3>("ivec3",
+        sol::call_constructor,
+        sol::constructors<
+            glm::ivec3(),
+            glm::ivec3(glm::vec3),
+            glm::ivec3(int32_t, int32_t, int32_t),
+            glm::ivec3(float, float, float)
+        >(),
+        "x", &glm::ivec3::x,
+        "y", &glm::ivec3::y,
+        "z", &glm::ivec3::z,
+
+        "r", &glm::ivec3::x,
+        "g", &glm::ivec3::y,
+        "b", &glm::ivec3::z,
+
+        sol::meta_function::less_than,              sol::resolve<glm::bvec3(const glm::ivec3&, const glm::ivec3&)>(&glm::lessThan),
+        sol::meta_function::less_than_or_equal_to,  sol::resolve<glm::bvec3(const glm::ivec3&, const glm::ivec3&)>(&glm::lessThanEqual),
+        sol::meta_function::equal_to,               sol::resolve<bool      (const glm::ivec3&, const glm::ivec3&)>(&glm::operator==),
+        sol::meta_function::subtraction,            sol::resolve<glm::ivec3 (const glm::ivec3&, const glm::ivec3&)>(glm::operator-),
+        sol::meta_function::addition,               sol::resolve<glm::ivec3 (const glm::ivec3&, const glm::ivec3&)>(&glm::operator+),
+        sol::meta_function::division,               sol::resolve<glm::ivec3 (const glm::ivec3&, const glm::ivec3&)>(&glm::operator/),
+        sol::meta_function::multiplication,         sol::resolve<glm::ivec3 (const glm::ivec3&, const glm::ivec3&)>(&glm::operator*),
+        sol::meta_function::unary_minus,            sol::resolve<glm::ivec3 (const glm::ivec3&)                  >(&glm::operator-)
+        // sol::meta_function::modulus,        sol::resolve<glm::ivec3(const glm::ivec3&, const glm::ivec3&)>(&glm::mod)
+    );
+
     m_lua.new_usertype<glm::vec4>("vec4",
         sol::call_constructor,
         sol::constructors<
@@ -105,6 +134,12 @@ ScriptsManager::ScriptsManager() {
         "drawCuboidMinMax", &DebugDraw::drawCuboidMinMax,
         "drawSphere", &DebugDraw::drawSphere
     );
+
+    // temporary code for accessing placeSphere()
+    m_lua.new_usertype<GameView>("GameView",
+        sol::no_constructor,
+        "placeSphere", &GameView::placeSphere
+    );
 };
 
 void ScriptsManager::registerScript(const char* path) {
@@ -135,10 +170,19 @@ void ScriptsManager::refresh() {
     }
 }
 
-void ScriptsManager::init(const Camera& camera) {
+void ScriptsManager::init(const Camera& camera, const GameView& gameview) {
     /* Set global variables references */
     m_lua["Camera"] = &camera;
     m_lua["DebugDraw"] = &DebugDraw::instance();
+    m_lua["GameView"] = &gameview;
+
+    // void GameView::placeSphere(const glm::ivec3& center, float radius, BlockType blocktype)
+
+    // sol::table table_debugDraw = m_lua.create_named_table("World");
+    // table_debugDraw.set_function("placeSphere",
+    //     [&](const glm::vec3& pos, float size, int blocktype) {
+    //         // placeSphere(const glm::ivec3& center, float radius, BlockType blocktype)
+    //     });
 
     // sol::table table_debugDraw = m_lua.create_named_table("DebugDraw");
     // table_debugDraw.set_function("drawCube",
