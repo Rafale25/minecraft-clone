@@ -11,28 +11,38 @@ enum Orientation : int32_t {
     Right = 5,
 };
 
+#define BLOCKTYPES \
+    X(Air, 0) \
+    X(Grass, 1) \
+    X(Dirt, 2) \
+    X(Stone, 3) \
+    X(OakLog, 4) \
+    X(OakLeaves, 5) \
+    X(Glass, 6) \
+    X(Water, 7) \
+    X(Sand, 8) \
+    X(Snow, 9) \
+    X(OakPlank, 10) \
+    X(StoneBrick, 11) \
+    X(Netherrack, 12) \
+    X(Gold, 13) \
+    X(PackedIce, 14) \
+    X(Lava, 15) \
+    X(Barrel, 16) \
+    X(Bookshelf, 17) \
+    X(INVALID, 18)
+
 // https://stackoverflow.com/questions/45860069/enum-with-struct-as-values
 enum class BlockType : uint8_t {
-    Air = 0,
-    Grass = 1,
-    Dirt = 2,
-    Stone = 3,
-    OakLog = 4,
-    OakLeaves = 5,
-    Glass = 6,
-    Water = 7,
-    Sand = 8,
-    Snow = 9,
-    OakPlank = 10,
-    StoneBrick = 11,
-    Netherrack = 12,
-    Gold = 13,
-    PackedIce = 14,
-    Lava = 15,
-    Barrel = 16,
-    Bookshelf = 17,
+    #define X(name, value) name = value,
+    BLOCKTYPES
+    #undef X
+};
 
-    INVALID,
+inline constexpr BlockType g_blocktypes[] = {
+    #define X(name, value) BlockType::name,
+    BLOCKTYPES
+    #undef X
 };
 
 bool operator==(const BlockType&, const int32_t&);
@@ -51,22 +61,18 @@ enum class TextureName : int32_t {
     Water,
     Sand,
     Snow,
-
     OakPlank,
     StoneBrick,
     Netherrack,
     Gold,
     PackedIce,
     Lava,
-
     BarrelTop,
     BarrelSide,
     BarrelBottom,
-
     BookshelfTop,
     BookshelfSide,
     BookshelfBottom,
-
     INVALID,
 };
 
@@ -85,7 +91,7 @@ struct BlockInfo {
 
 #define T TextureName
 
-constexpr BlockInfo blocks_info[] = {
+constexpr BlockInfo g_blocksInfo[] = {
     // Air = 0
     { true, false, false, false, {T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID} },
 
