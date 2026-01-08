@@ -2,6 +2,9 @@
 ![minecraft_01](https://github.com/user-attachments/assets/f7678698-494a-4145-8fef-843b9e357d24)
 ![minecraft_02](https://github.com/user-attachments/assets/f1ae1527-ca33-4218-a70b-4d029efd5950)
 ![minecraft_03](https://github.com/user-attachments/assets/9169c142-90ef-4fbe-8b11-d8829edd5dfe)
+![minecraft_04](https://github.com/user-attachments/assets/f269405e-5c6d-4790-9979-f9efd8931fa8)
+![minecraft_05](https://github.com/user-attachments/assets/9c771417-ea83-4bca-bd0a-b8883b56a517)
+![minecraft_06](https://github.com/user-attachments/assets/ca8ba186-0853-4dc7-a85c-6fcbc2af95b9)
 
 
 # Technical features
@@ -13,12 +16,17 @@
 - Vertex packing
 - Frustum culling
 - Indirect rendering + Vertex pulling
+- Reversed Z-buffer (infinite view distance, aka no far-plane)
+- Lua scripting
+- Volumetrics Lighting (godrays)
 
 # Submodules
 
 - [GLFW](https://github.com/glfw/glfw)
 - [GLM](https://github.com/g-truc/glm)
 - [DearImgui](https://github.com/ocornut/imgui)
+- [Lua](https://github.com/walterschell/Lua)
+- [Sol2](https://github.com/ThePhD/sol2)
 
 # Installing
     git clone https://github.com/Rafale25/minecraft-clone
@@ -45,4 +53,4 @@
     gcc-release   - GCC Release
     clang-debug   - Clang Debug
     clang-release - Clang Release
-    windows"      - MSVC
+    windows       - MSVC
