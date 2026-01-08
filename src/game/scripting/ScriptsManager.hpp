@@ -56,6 +56,9 @@ public:
     void registerScript(const char* path);
     void refresh();
     void init(const Camera& camer, const GameView& gameview);
+
+    void GLMBindings();
+
     // void updateVariables(const Camera& camera);
     void update(float timeSinceStart, float deltaTime);
     void onKeyPress(int key);

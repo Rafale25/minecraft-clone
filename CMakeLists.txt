@@ -27,11 +27,12 @@ add_subdirectory(${LUA_DIR})
 target_include_directories(${PROJECT_NAME}
     PRIVATE
         ./src/game/
-        ./src/game/renderer
+        ./src/game/scripting/
+        ./src/game/renderer/
         ./src/game/world/
         ./src/game/scenes/
         ./src/game/network/Client/
-        ./src/game/network/Client/Packets
+        ./src/game/network/Client/Packets/
         ${CMAKE_CURRENT_SOURCE_DIR}/submodules/sol2/include/
 )
 
