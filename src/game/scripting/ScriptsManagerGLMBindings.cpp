@@ -1,9 +1,8 @@
 #include "ScriptsManager.hpp"
-#include <glm/detail/type_vec2.hpp>
-#include <glm/detail/type_vec3.hpp>
-#include <glm/detail/type_vec4.hpp>
-
-#include <glm/glm.hpp>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/gtc/random.hpp>
 
 void ScriptsManager::GLMBindings() {
     sol::table table_glm = m_lua.create_named_table("glm");
@@ -366,4 +365,28 @@ void ScriptsManager::GLMBindings() {
         sol::resolve<glm::vec4(const glm::vec4&, const glm::vec4&, float)>(&glm::refract)
     ));
 
+    /* GLM_GTC_random */
+
+    table_glm.set_function("ballRand", sol::overload(
+        sol::resolve<glm::vec3(float)>(&glm::ballRand)
+    ));
+
+    table_glm.set_function("circularRand", sol::overload(
+        sol::resolve<glm::vec2(float)>(&glm::circularRand),
+        sol::resolve<glm::ivec2(int32_t)>(&glm::circularRand)
+    ));
+
+    table_glm.set_function("diskRand", sol::overload(
+        sol::resolve<glm::vec2(float)>(&glm::diskRand)
+    ));
+
+    table_glm.set_function("linearRand", sol::overload(
+        sol::resolve<float(float, float)>(&glm::linearRand),
+        sol::resolve<int32_t(int32_t, int32_t)>(&glm::linearRand)
+    ));
+
+    table_glm.set_function("sphericalRand", sol::overload(
+        sol::resolve<glm::vec3(float)>(&glm::sphericalRand),
+        sol::resolve<glm::ivec3(int32_t)>(&glm::sphericalRand)
+    ));
 }

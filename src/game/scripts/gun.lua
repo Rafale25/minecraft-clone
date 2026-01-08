@@ -1,7 +1,6 @@
 local offset = vec3()
 
 -- x = x or 0
-x = 0
 
 function onInit()
     print("Lua: onInit()")
@@ -11,30 +10,55 @@ function onRefresh()
     print("Lua: onRefresh()")
 end
 
-local pos = vec3(0, 0, 0)
-
--- local projectiles = {}
+local projectiles = {}
 
 function onUpdate(timeSinceStart, deltaTime)
-    -- pos = Camera:getPosition() + Camera:forward() * vec3(5.0, 5.0, 5.0)
-    pos = Camera:getPosition() + Camera:forward() * 5.0
-    -- offset.y = math.sin(timeSinceStart * 2)
-    -- x = x + deltaTime
-    -- local p = Camera:getPosition()
-    -- local pos = vec3(-x, offset.y, 0) + p
+    local camPos = Camera:getPosition()
+    local camForward = Camera:forward()
+
+    local raycastHit = World:blockRaycast(camPos, camForward, 10.0)
 
     -- DebugDraw:drawCube(pos, 1.0, vec3(1, 0, 0))
-    DebugDraw:drawSphere(pos, 0.5, vec3(1, 0, 0))
+    -- DebugDraw:drawSphere(pos, 0.5, vec3(1, 0, 0))
 
-    -- GameView:placeSphere(ivec3(pos), 1.0, 0)
-    -- print(string.format("Lua: onUpdate %.2f %.5f", timeSinceStart, deltaTime))
+    for i=#projectiles, 1, -1 do
+        proj = projectiles[i]
+        proj.pos = proj.pos + proj.vel
+
+        local block = World:getBlock(ivec3(glm.floor(proj.pos)))
+
+        if block ~= 0 then
+            table.remove(projectiles, i)
+            GameView:placeSphere(ivec3(proj.pos), 3.3, 0)
+        end
+
+        DebugDraw:drawCube(proj.pos, 0.1, vec3(0, 1, 0))
+    end
+
 end
 
--- GLFW_KEY_F = 70
-
 function onKeyPress(key)
+    -- GLFW_KEY_F = 70
     if (key == 70) then
-        -- local test = floor(pos)
-        GameView:placeSphere(ivec3(glm.floor(pos)), 2.7, 0)
+        FireMultiple(Camera:getPosition(), Camera:forward(), 1000)
     end
+end
+
+function FireMultiple(position, direction, count)
+    for i=0, count do
+        Fire(position, direction)
+    end
+end
+
+function Fire(position, direction)
+    local offset = glm.ballRand(0.5)
+    offset = direction + offset
+    local vel = (direction + offset) * glm.linearRand(0.4, 0.8)
+
+    local proj = {}
+    proj.pos = position
+    proj.vel = vel
+    proj.power = glm.linearRand(4.0, 8.0)
+
+    table.insert(projectiles, proj)
 end

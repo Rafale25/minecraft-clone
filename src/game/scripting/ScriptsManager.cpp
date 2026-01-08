@@ -17,7 +17,9 @@ ScriptsManager::ScriptsManager() {
         sol::lib::base,
         sol::lib::io,
         sol::lib::string,
-        sol::lib::math
+        sol::lib::math,
+        sol::lib::table
+        // sol::lib::jit
     );
 
 
@@ -45,19 +47,25 @@ ScriptsManager::ScriptsManager() {
     //     "Air", BlockType::Air
     // );
 
-
     // temporary code for accessing placeSphere()
     m_lua.new_usertype<GameView>("GameView",
         sol::no_constructor,
         "placeSphere", &GameView::placeSphere
     );
 
+    m_lua.new_usertype<BlockRaycastHit>("BlockRaycastHit",
+        sol::no_constructor,
+        "hit", &BlockRaycastHit::hit,
+        "blocktype", &BlockRaycastHit::blocktype,
+        "block_pos", &BlockRaycastHit::block_pos,
+        "world_pos", &BlockRaycastHit::world_pos,
+        "normal", &BlockRaycastHit::normal
+    );
+
     m_lua.new_usertype<World>("World",
         sol::no_constructor,
-        // "blockRaycast"
-
+        "blockRaycast", sol::resolve<BlockRaycastHit (const glm::vec3&, const glm::vec3&, float) const>(&World::blockRaycast),
         "getBlock", sol::resolve<BlockType (const glm::ivec3&) const>(&World::getBlock)
-        // "getBlock", static_cast<BlockType (World::*)(const glm::ivec3&) const>(&World::getBlock)
     );
 };
 

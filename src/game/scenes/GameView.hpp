@@ -7,13 +7,6 @@
 #include "BlockRaycastHit.hpp"
 #include "ScriptsManager.hpp"
 
-struct Projectile {
-    glm::vec3 pos;
-    glm::vec3 vel;
-    float power;
-    // glm::vec3 color;
-};
-
 class GameView: public View {
 public:
     GameView(Context& ctx);
@@ -87,6 +80,4 @@ private:
 
     char input_text_buffer[4096] = {};
     std::vector<std::string> tchat;
-
-    std::vector<Projectile> _projectiles;
 };

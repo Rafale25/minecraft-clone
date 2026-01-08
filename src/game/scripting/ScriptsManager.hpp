@@ -15,16 +15,15 @@ struct Script {
     std::string path;
     sol::environment env;
     bool valid;
-
     ScriptCallbacks callbacks = {};
 };
 
 /*
 Callbacks
-    onInit
-    onFixedUpdate
-    onUpdate
-    onRefresh
+    x onInit
+    x onFixedUpdate
+    x onUpdate
+    x onRefresh
     onEvent
     onEntityCreated
     onEntityDestroyed
@@ -34,17 +33,9 @@ Global Variables
     x Camera
 
 API
-    all DebugDraws
-    // setSphere
-    // setCube
-    World::setCube(pos)
-    World::setSphere(pos, radius)
-    World::setCuboid(pos, width)
+    DebugDraws
+    World
 */
-
-// global variables
-// events
-// World API
 
 class Camera;
 class GameView;
@@ -55,11 +46,10 @@ public:
 
     void registerScript(const char* path);
     void refresh();
-    void init(const Camera& camer, const GameView& gameview);
+    void init(const Camera& camera, const GameView& gameview);
 
     void GLMBindings();
 
-    // void updateVariables(const Camera& camera);
     void update(float timeSinceStart, float deltaTime);
     void onKeyPress(int key);
 

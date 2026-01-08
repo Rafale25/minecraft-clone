@@ -41,21 +41,6 @@ void GameView::onUpdate(double time_since_start, float dt)
 {
     legit::Profiler::setEnable(_show_profiler_gui);
 
-    { // projectiles
-        for (int i = _projectiles.size() - 1 ; i > 0 ; --i) {
-            auto& p = _projectiles[i];
-            p.pos += p.vel;
-
-            DebugDraw::instance().drawCube(p.pos, 0.1f, glm::vec3(0.0f, 1.0f, 0.0f));
-
-            if (World::instance().getBlock(p.pos) != BlockType::Air) {
-                placeSphere(p.pos, p.power, BlockType::Air);
-                _projectiles.erase(_projectiles.begin() + i);
-            }
-        }
-    }
-
-    // script_manager.updateVariables(camera);
     script_manager.update(time_since_start, dt);
 
     {
@@ -422,22 +407,7 @@ void GameView::onKeyPress(int key)
         // glfwSetWindowMonitor(ctx.window, monitor, 0, 0, mode->width, mode->height, 0);
     }
 
-    // if (key == GLFW_KEY_F) {
-    //     Projectile p{camera.getPosition(), camera.forward(), 4.2f};
-    //     _projectiles.push_back(p);
-    // }
-
     script_manager.onKeyPress(key);
-
-    if (key == GLFW_KEY_U) {
-        for (int i = 0 ; i < 1000 ; ++i) {
-            float power = glm::linearRand(4.0f, 8.0f);
-            glm::vec3 offset = camera.forward() * glm::linearRand(0.7f, 1.3f) + glm::ballRand(0.4f);
-            Projectile p{camera.getPosition(), camera.forward() + offset, power};
-            _projectiles.push_back(p);
-        }
-    }
-
 
     if (!ImGui::GetIO().WantCaptureKeyboard) {
         if (key == GLFW_KEY_P) {
