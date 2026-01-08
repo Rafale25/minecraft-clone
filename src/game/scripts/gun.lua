@@ -16,7 +16,8 @@ function onUpdate(timeSinceStart, deltaTime)
     local camPos = Camera:getPosition()
     local camForward = Camera:forward()
 
-    local raycastHit = World:blockRaycast(camPos, camForward, 10.0)
+    local pos = camPos + camForward * 4.0
+    -- local raycastHit = World:blockRaycast(camPos, camForward, 10.0)
 
     -- DebugDraw:drawCube(pos, 1.0, vec3(1, 0, 0))
     -- DebugDraw:drawSphere(pos, 0.5, vec3(1, 0, 0))
@@ -29,10 +30,10 @@ function onUpdate(timeSinceStart, deltaTime)
 
         if block ~= 0 then
             table.remove(projectiles, i)
-            GameView:placeSphere(ivec3(proj.pos), 3.3, 0)
+            GameView:placeSphere(ivec3(proj.pos), proj.power, 0)
         end
 
-        DebugDraw:drawCube(proj.pos, 0.1, vec3(0, 1, 0))
+        DebugDraw:drawCube(proj.pos, 0.1, vec3(1, 1, 0))
     end
 
 end
@@ -58,7 +59,7 @@ function Fire(position, direction)
     local proj = {}
     proj.pos = position
     proj.vel = vel
-    proj.power = glm.linearRand(4.0, 8.0)
+    proj.power = glm.linearRand(2.3, 5.2)
 
     table.insert(projectiles, proj)
 end
