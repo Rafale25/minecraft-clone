@@ -176,7 +176,7 @@ ChunkRawMesh computeVertexBuffer(const glm::ivec3& chunk_pos)
     ChunkExtra chunkextra = ChunkExtra::get(chunk_pos);
     ChunkRawMesh chunk_raw_mesh;
 
-    const auto& block_textures_ids = BlockTextureManager::Get().block_textures_ids;
+    const auto& block_textures_ids = BlockTextureManager::Get().m_blockTexturesIds;
 
     for (int32_t z = 0 ; z < CHUNK_SIZE ; ++z) {
     for (int32_t y = 0 ; y < CHUNK_SIZE ; ++y) {

@@ -23,8 +23,8 @@ void World::updateEntities()
     const float smoothness = 0.2f;
     for (auto& entity : m_entities)
     {
-        entity.smooth_transform.position = glm::mix(entity.smooth_transform.position, entity.transform.position, smoothness);
-        entity.smooth_transform.rotation = glm::slerp(entity.smooth_transform.rotation, entity.transform.rotation, smoothness);
+        entity.smoothTransform.position = glm::mix(entity.smoothTransform.position, entity.transform.position, smoothness);
+        entity.smoothTransform.rotation = glm::slerp(entity.smoothTransform.rotation, entity.transform.rotation, smoothness);
     }
 }
 

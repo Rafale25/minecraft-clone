@@ -13,17 +13,17 @@ static const float borderColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 Shadowmap::Shadowmap(GLsizei shadowmap_size):
     _shadowmap_size(shadowmap_size)
 {
-    glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &_depthTextureArray);
+    glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &m_depthTextureArray);
 
-    glTextureParameteri(_depthTextureArray, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTextureParameteri(_depthTextureArray, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(_depthTextureArray, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTextureParameteri(_depthTextureArray, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTextureParameteri(m_depthTextureArray, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTextureParameteri(m_depthTextureArray, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(m_depthTextureArray, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTextureParameteri(m_depthTextureArray, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
-    glTextureStorage3D(_depthTextureArray, 1, GL_DEPTH_COMPONENT32F, shadowmap_size, shadowmap_size, shadowCascadeLevels.size() + 1);
+    glTextureStorage3D(m_depthTextureArray, 1, GL_DEPTH_COMPONENT32F, shadowmap_size, shadowmap_size, shadowCascadeLevels.size() + 1);
 
     constexpr float bordercolor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    glTextureParameterfv(_depthTextureArray, GL_TEXTURE_BORDER_COLOR, borderColor);
+    glTextureParameterfv(m_depthTextureArray, GL_TEXTURE_BORDER_COLOR, borderColor);
 }
 
 glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, const ShaderProgram &program, int32_t layer)
@@ -36,7 +36,7 @@ glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, c
 
     // _lightSpaceMatrix = getLightSpaceMatrix(projection );
 
-    glNamedFramebufferTextureLayer(_depthFBO._framebuffer, GL_DEPTH_ATTACHMENT, _depthTextureArray, 0, layer);
+    glNamedFramebufferTextureLayer(_depthFBO.m_framebuffer, GL_DEPTH_ATTACHMENT, m_depthTextureArray, 0, layer);
 
     program.use();
 
@@ -46,7 +46,7 @@ glm::mat4 Shadowmap::begin(const glm::mat4& projection, const glm::mat4& view, c
     _depthFBO.bind();
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    return _lightSpaceMatrix;
+    return m_lightSpaceMatrix;
 }
 
 void Shadowmap::end()
@@ -128,17 +128,17 @@ std::vector<glm::mat4> Shadowmap::getLightSpaceMatrices(const Camera& camera)
     {
         if (i == 0)
         {
-            const glm::mat4 m = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, camera.near_plane, shadowCascadeLevels[i]) * viewMatrix;
+            const glm::mat4 m = glm::perspective(glm::radians(camera.fov), camera.aspectRatio, camera.nearPlane, shadowCascadeLevels[i]) * viewMatrix;
             ret.push_back(getLightSpaceMatrix(m));
         }
         else if (i < shadowCascadeLevels.size())
         {
-            const glm::mat4 m = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, shadowCascadeLevels[i - 1], shadowCascadeLevels[i]) * viewMatrix;
+            const glm::mat4 m = glm::perspective(glm::radians(camera.fov), camera.aspectRatio, shadowCascadeLevels[i - 1], shadowCascadeLevels[i]) * viewMatrix;
             ret.push_back(getLightSpaceMatrix(m));
         }
         else
         {
-            const glm::mat4 m = glm::perspective(glm::radians(camera.fov), camera.aspect_ratio, shadowCascadeLevels[i - 1],  camera.far_plane) * viewMatrix;
+            const glm::mat4 m = glm::perspective(glm::radians(camera.fov), camera.aspectRatio, shadowCascadeLevels[i - 1],  camera.farPlane) * viewMatrix;
             ret.push_back(getLightSpaceMatrix(m));
         }
     }

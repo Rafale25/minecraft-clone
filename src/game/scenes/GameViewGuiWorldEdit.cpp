@@ -29,8 +29,8 @@ void GameView::guiWorldEdit()
     }
 
     if (ImGui::Button("Save Selection as Blueprint")) {
-        const glm::ivec3 min = glm::min(blockA, blockB);
-        const glm::ivec3 max = glm::max(blockA, blockB);
+        const glm::ivec3 min = glm::min(m_blockA, m_blockB);
+        const glm::ivec3 max = glm::max(m_blockA, m_blockB);
         bp = createBlueprintFromSelection(min, max);
 
         ImGui::OpenPopup("SaveBlueprint");

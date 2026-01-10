@@ -84,7 +84,7 @@ Packet::Server::UpdateEntityMetadata readUpdateEntityMetadata(ByteBuffer buffer)
 
 void Client::decodePacketIdentification(ByteBuffer buffer)
 {
-    Client::instance().client_id = buffer.getInt();
+    Client::instance().m_clientId = buffer.getInt();
 }
 
 void Client::decodePacketAddEntity(ByteBuffer buffer)
@@ -93,7 +93,7 @@ void Client::decodePacketAddEntity(ByteBuffer buffer)
 
     Packet::Server::AddEntity packet = readAddEntityPacket(buffer);
 
-    client.task_queue.push_safe([=]() {
+    client.m_taskQueue.push_safe([=]() {
         Entity e{packet.id, packet.position};
         // e.transform.rotation.y = yaw;
         // e.transform.rotation.x = pitch;
@@ -107,7 +107,7 @@ void Client::decodePacketRemoveEntity(ByteBuffer buffer)
     Client& client = Client::instance();
 
     int32_t entity_id = buffer.getInt();
-    client.task_queue.push_safe([=]() {
+    client.m_taskQueue.push_safe([=]() {
         World::instance().removeEntity(entity_id);
     });
 }
@@ -118,7 +118,7 @@ void Client::decodePacketUpdateEntity(ByteBuffer buffer)
 
     Packet::Server::UpdateEntity packet = readUpdateEntityPacket(buffer);
 
-    client.task_queue.push_safe([=]() {
+    client.m_taskQueue.push_safe([=]() {
         World::instance().setEntityTransform(packet.entity_id, packet.position, packet.yaw, packet.pitch);
     } );
 }
@@ -129,15 +129,15 @@ void Client::decodePacketChunk(ByteBuffer buffer)
 
     auto* chunk_data = readChunkPacket(buffer);
 
-    const std::lock_guard<std::mutex> lock(client.new_chunks_mutex);
+    const std::lock_guard<std::mutex> lock(client.m_newChunksMutex);
 
     // Replace chunk if already in new chunk list to reduce charge on mainthread //
-    auto it = std::find_if(client.new_chunks.begin(), client.new_chunks.end(), [&](const auto& chunk){ return chunk->pos == chunk_data->pos; });
-    if (it != client.new_chunks.end()) {
+    auto it = std::find_if(client.m_newChunks.begin(), client.m_newChunks.end(), [&](const auto& chunk){ return chunk->pos == chunk_data->pos; });
+    if (it != client.m_newChunks.end()) {
         delete *it;
         *it = chunk_data;
     } else {
-        client.new_chunks.push_front(chunk_data);
+        client.m_newChunks.push_front(chunk_data);
     }
 }
 
@@ -146,8 +146,8 @@ void Client::decodePacketMonotypeChunk(ByteBuffer buffer)
     Client& client = Client::instance();
 
     auto* chunk_data = readFullMonoChunkPacket(buffer);
-    const std::lock_guard<std::mutex> lock(client.new_chunks_mutex);
-    client.new_chunks.push_front(chunk_data);
+    const std::lock_guard<std::mutex> lock(client.m_newChunksMutex);
+    client.m_newChunks.push_front(chunk_data);
 }
 
 void Client::decodePacketEntityMetadata(ByteBuffer buffer)
@@ -156,7 +156,7 @@ void Client::decodePacketEntityMetadata(ByteBuffer buffer)
 
     Packet::Server::UpdateEntityMetadata packet = readUpdateEntityMetadata(buffer);
 
-    client.task_queue.push_safe([=]() {
+    client.m_taskQueue.push_safe([=]() {
         World::instance().setEntityName(packet.entity_id, std::string(packet.name));
     });
 }
@@ -177,5 +177,5 @@ void Client::decodePacketChatMessage(ByteBuffer buffer)
     }
     // --
 
-    client._tchat->push_back(str);
+    client.m_tchat->push_back(str);
 }

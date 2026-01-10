@@ -21,8 +21,8 @@ private:
 public:
     int32_t id;
     std::string name;
-    Transform transform, smooth_transform;
+    Transform transform, smoothTransform;
 
     GLuint VAO, VBO, EBO;
-    int32_t indices_count;
+    int32_t indicesCount;
 };

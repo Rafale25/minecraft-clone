@@ -48,7 +48,7 @@ void WorldRenderer::imguiRender()
     ImGui::SliderAngle("Sun Rotation", &m_sunRotation, 0.0f, 360.0f);
     ImGui::SliderAngle("Sun Pitch", &m_sunPitch, 0.0f, 90.0f);
     ImGui::SliderAngle("Sun Yaw", &m_sunYaw, 0.0f, 360.0f);
-    ImGui::SliderFloat("Shadow Bias", &m_shadowmap._shadow_bias, 0.000001f, 0.001f, "%.6f");
+    ImGui::SliderFloat("Shadow Bias", &m_shadowmap.m_shadowBias, 0.000001f, 0.001f, "%.6f");
     ImGui::SliderFloat("Shadow Distance", &m_maxShadowDistance, 0.3f, 2000.0f, "%.2f");
     ImGui::SliderFloat("Fog density", &m_uniformParameters.fogDensity, 0.0f, 0.05f, "%.6f", ImGuiSliderFlags_Logarithmic);
     ImguiCheckboxInt("Ambiant occlusion", m_uniformParameters.ambient_occlusion_enabled);

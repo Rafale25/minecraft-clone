@@ -46,8 +46,8 @@ public:
         // camera_far_plane / 1.0f
     };
 
-    GLuint _depthTextureArray = 0;
-    Texture _depthTexture;
-    glm::mat4 _lightSpaceMatrix;
-    float _shadow_bias = 0.0005; // 0.0005 looks good for 4096
+    GLuint m_depthTextureArray = 0;
+    Texture m_depthTexture;
+    glm::mat4 m_lightSpaceMatrix;
+    float m_shadowBias = 0.0005; // 0.0005 looks good for 4096
 };

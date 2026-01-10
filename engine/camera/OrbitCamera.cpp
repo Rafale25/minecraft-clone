@@ -4,13 +4,13 @@
 glm::mat4 OrbitCamera::getView() const {
     glm::vec3 eye = glm::vec3(1.0f, 0.0f, 0.0f);
 
-    eye = glm::rotateZ(eye, _pitch);
-    eye = glm::rotateY(eye, _yaw);
-    eye *= _distance;
+    eye = glm::rotateZ(eye, m_pitch);
+    eye = glm::rotateY(eye, m_yaw);
+    eye *= m_distance;
 
     glm::mat4 view = glm::lookAt(
         eye,
-        _center,
+        m_center,
         glm::vec3(0.f, 1.f, 0.f)
     );
     return view;
@@ -19,23 +19,23 @@ glm::mat4 OrbitCamera::getView() const {
 glm::vec3 OrbitCamera::getPosition() const {
     glm::vec3 eye = glm::vec3(1.0f, 0.0f, 0.0f);
 
-    eye = glm::rotateZ(eye, _pitch);
-    eye = glm::rotateY(eye, _yaw);
-    eye *= _distance;
+    eye = glm::rotateZ(eye, m_pitch);
+    eye = glm::rotateY(eye, m_yaw);
+    eye *= m_distance;
 
     return eye;
 }
 
 float OrbitCamera::getYaw() const {
-    return _yaw;
+    return m_yaw;
 }
 
 float OrbitCamera::getPitch() const {
-    return _pitch;
+    return m_pitch;
 }
 
 void OrbitCamera::setYaw(float value) {
-    _yaw = value;
+    m_yaw = value;
 }
 
 void OrbitCamera::setPitch(float value) {
@@ -44,11 +44,11 @@ void OrbitCamera::setPitch(float value) {
     if (value < -(glm::pi<float>() / 2.0))
         value = -(glm::pi<float>() / 2.0) + 0.01f;
 
-    _pitch = value;
+    m_pitch = value;
 }
 
 float OrbitCamera::getDistance() const {
-    return _distance;
+    return m_distance;
 }
 
 void OrbitCamera::setDistance(float value) {
@@ -57,7 +57,7 @@ void OrbitCamera::setDistance(float value) {
     if (value > 1000.0f)
         value = 1000.0f;
 
-    _distance = value;
+    m_distance = value;
 }
 
 void OrbitCamera::onMouseDrag(int x, int y, int dx, int dy)

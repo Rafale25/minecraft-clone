@@ -4,7 +4,7 @@
 ThreadPool::ThreadPool(size_t num_threads) {
     logI("[ThreadPool] thread count: {}", num_threads);
     for (size_t i = 0; i < num_threads; ++i) {
-        _workers.emplace_back([this] {
+        m_workers.emplace_back([this] {
             while (true) {
                 std::function<void()> task;
                 // The reason for putting the below code here is to unlock the queue before
@@ -12,23 +12,23 @@ ThreadPool::ThreadPool(size_t num_threads) {
                 {
                     // Locking the queue so that data
                     // can be shared safely
-                    std::unique_lock<std::mutex> lock(_task_queue_mutex);
+                    std::unique_lock<std::mutex> lock(m_taskQueueMutex);
 
                     // Waiting until there is a task to
                     // execute or the pool is stopped
-                    _cv.wait(lock, [this] {
-                        return !_task_queue.empty() || _stop;
+                    m_cv.wait(lock, [this] {
+                        return !m_taskQueue.empty() || m_stop;
                     });
 
                     // exit the thread in case the pool
                     // is stopped and there are no tasks
-                    if (_stop) { // && _task_queue.empty()) {
+                    if (m_stop) { // && _task_queue.empty()) {
                         return;
                     }
 
                     // Get the next task from the queue
-                    task = std::move(_task_queue.front());
-                    _task_queue.pop();
+                    task = std::move(m_taskQueue.front());
+                    m_taskQueue.pop();
                 }
 
                 task();
@@ -45,15 +45,15 @@ void ThreadPool::stop()
 {
     {
         // Lock the queue to update the stop flag safely
-        std::unique_lock<std::mutex> lock(_task_queue_mutex);
-        _stop = true;
+        std::unique_lock<std::mutex> lock(m_taskQueueMutex);
+        m_stop = true;
     }
 
     // Notify all threads
-    _cv.notify_all();
+    m_cv.notify_all();
 
     // Joining all worker threads to ensure they have completed their tasks
-    for (auto& thread : _workers) {
+    for (auto& thread : m_workers) {
         if (thread.joinable())
             thread.join();
     }
@@ -62,8 +62,8 @@ void ThreadPool::stop()
 void ThreadPool::enqueue(std::function<void()> task)
 {
     {
-        std::unique_lock<std::mutex> lock(_task_queue_mutex);
-        _task_queue.emplace(std::move(task));
+        std::unique_lock<std::mutex> lock(m_taskQueueMutex);
+        m_taskQueue.emplace(std::move(task));
     }
-    _cv.notify_one();
+    m_cv.notify_one();
 }

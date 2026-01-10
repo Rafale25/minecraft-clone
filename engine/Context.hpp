@@ -32,7 +32,7 @@ class Context {
         int width = 0, height = 0;
 
     private:
-        DefaultView _default_view{*this};
-        View* _current_view = &_default_view;
-        int _mouse_x = 0, _mouse_y = 0;
+        DefaultView m_defaultView{*this};
+        View* m_currentView = &m_defaultView;
+        int m_mouseX = 0, m_mouseY = 0;
 };

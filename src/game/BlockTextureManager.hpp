@@ -59,7 +59,7 @@ private:
     };
 
 public:
-    std::unordered_map<BlockType, std::array<GLuint64, 6>> block_textures_handles;
-    mutable std::unordered_map<BlockType, std::array<GLuint, 6>> block_textures_ids; // map blocktype to ids
-    std::vector<GLuint64> textures_handles; // index is texture id and value is the texture handle
+    std::unordered_map<BlockType, std::array<GLuint64, 6>> m_blockTexturesHandles;
+    mutable std::unordered_map<BlockType, std::array<GLuint, 6>> m_blockTexturesIds; // map blocktype to ids
+    std::vector<GLuint64> m_texturesHandles; // index is texture id and value is the texture handle
 };

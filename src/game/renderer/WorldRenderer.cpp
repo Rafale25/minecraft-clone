@@ -43,7 +43,7 @@ WorldRenderer::WorldRenderer(int32_t width, int32_t height)
     _shaders.at("cube").setInt("u_shadowmap", 0);
 
     BlockTextureManager::loadAllTextures();
-    ssbo_texture_handles = createBufferStorage(BlockTextureManager::Get().textures_handles.data(), BlockTextureManager::Get().textures_handles.size() * sizeof(GLuint64));
+    ssbo_texture_handles = createBufferStorage(BlockTextureManager::Get().m_texturesHandles.data(), BlockTextureManager::Get().m_texturesHandles.size() * sizeof(GLuint64));
 
     m_bufferUniformsSSBO = createBufferStorage(nullptr, sizeof(uniformsParameters));
 
@@ -51,7 +51,7 @@ WorldRenderer::WorldRenderer(int32_t width, int32_t height)
     for (int i = 0 ; i < m_uniformParameters.cascadeCount ; ++i) {
         glTextureView(
             m_textureView[i], GL_TEXTURE_2D,
-            m_shadowmap._depthTextureArray, GL_DEPTH_COMPONENT32F,
+            m_shadowmap.m_depthTextureArray, GL_DEPTH_COMPONENT32F,
             0, 1, i, 1
         );
         constexpr GLint rgba[4] = { GL_RED, GL_RED, GL_RED, GL_ONE };
@@ -110,8 +110,8 @@ void WorldRenderer::render(const Camera &camera)
     m_uniformParameters.FOV = glm::radians(camera.fov);
     m_uniformParameters.sunDirection = glm::vec4(glm::normalize(sunDirection), 0);
     m_uniformParameters.viewPosition = glm::vec4(camera.getPosition(), 0);
-    m_uniformParameters.lightSpaceMatrix = m_shadowmap._lightSpaceMatrix;
-    m_uniformParameters.shadow_bias = m_shadowmap._shadow_bias;
+    m_uniformParameters.lightSpaceMatrix = m_shadowmap.m_lightSpaceMatrix;
+    m_uniformParameters.shadow_bias = m_shadowmap.m_shadowBias;
     m_uniformParameters.time = (float)glfwGetTime();
     m_uniformParameters.cascadePlaneDistances = *(glm::vec4*)m_shadowmap.shadowCascadeLevels.data();
 
@@ -203,7 +203,7 @@ void WorldRenderer::render(const Camera &camera)
     // cube_shader_depth_only.setMat4("u_lightSpaceMatrix", view_projection);
     // renderTerrain();
 
-    glBindTextureUnit(0, m_shadowmap._depthTextureArray);
+    glBindTextureUnit(0, m_shadowmap.m_depthTextureArray);
 
     {
         ScopedTask("terrain: generateDrawCommands");
@@ -246,7 +246,7 @@ void WorldRenderer::render(const Camera &camera)
         glViewport(0, 0, m_textureVolumetrics._width, m_textureVolumetrics._height);
 
         glBindTextureUnit(1, m_textureWorldPosition._texture);
-        glBindTextureUnit(3, m_shadowmap._depthTextureArray);
+        glBindTextureUnit(3, m_shadowmap.m_depthTextureArray);
 
         const auto& shader_volumetrics = _shaders.at("volumetrics");
         shader_volumetrics.use();
@@ -303,12 +303,12 @@ void WorldRenderer::render(const Camera &camera)
 }
 
 void WorldRenderer::onDeletedChunk(const glm::ivec3 &chunk_pos) {
-    const auto& it = meshes.find(chunk_pos);
-    if (it == meshes.end()) return;
+    const auto& it = m_meshes.find(chunk_pos);
+    if (it == m_meshes.end()) return;
 
-    buffer_allocator_vertices.deallocate(it->second.slot_vertices);
-    buffer_allocator_vertices.deallocate(it->second.slot_vertices_translucent);
-    meshes.erase(it);
+    m_bufferAllocatorVertices.deallocate(it->second.slot_vertices);
+    m_bufferAllocatorVertices.deallocate(it->second.slot_vertices_translucent);
+    m_meshes.erase(it);
 }
 
 void WorldRenderer::onAddedChunk(const glm::ivec3 &chunk_pos) {
@@ -379,15 +379,15 @@ void WorldRenderer::allocateVAOforWaitingChunks() {
         if (c == nullptr) continue;
 
         // find old chunk and delete its vertices
-        const auto& it = meshes.find(chunk_pos);
-        if (it != meshes.end()) {
-            buffer_allocator_vertices.deallocate(it->second.slot_vertices);
-            buffer_allocator_vertices.deallocate(it->second.slot_vertices_translucent);
+        const auto& it = m_meshes.find(chunk_pos);
+        if (it != m_meshes.end()) {
+            m_bufferAllocatorVertices.deallocate(it->second.slot_vertices);
+            m_bufferAllocatorVertices.deallocate(it->second.slot_vertices_translucent);
         }
 
         ChunkMesh new_mesh;
-        new_mesh.updateVAO(buffer_allocator_vertices, chunk_raw_mesh);
-        meshes[chunk_pos] = new_mesh;
+        new_mesh.updateVAO(m_bufferAllocatorVertices, chunk_raw_mesh);
+        m_meshes[chunk_pos] = new_mesh;
     }
 
     m_chunksWaitingBufferslot.clear();
@@ -405,7 +405,7 @@ void WorldRenderer::generateDrawCommands(
 
     m_chunksDrawn = 0;
 
-    for (const auto& [chunk_pos, mesh] : meshes)
+    for (const auto& [chunk_pos, mesh] : m_meshes)
     {
         if (mesh.slot_vertices.start == -1 && mesh.slot_vertices_translucent.start == -1) continue;
 
@@ -448,12 +448,12 @@ void WorldRenderer::renderTerrain(
     bool drawTranslucent
 ) {
     glBindVertexArray(m_chunkVao);
-    glVertexArrayVertexBuffer(m_chunkVao, 0, buffer_allocator_vertices.getBufferObject(), 0, 1 * VERTEX_SIZE); // Not needed anymore but crashes without
+    glVertexArrayVertexBuffer(m_chunkVao, 0, m_bufferAllocatorVertices.getBufferObject(), 0, 1 * VERTEX_SIZE); // Not needed anymore but crashes without
     glVertexArrayElementBuffer(m_chunkVao, m_ssboChunkElementBuffer);
 
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_texture_handles);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_ssboChunkPositions);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, buffer_allocator_vertices.getBufferObject());
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_bufferAllocatorVertices.getBufferObject());
 
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_drawCommandBuffer);
 
@@ -483,7 +483,7 @@ void WorldRenderer::renderEntities(const Camera &camera, const ShaderProgram& pr
     program.use();
 
     for (const auto& entity : World::instance().m_entities) {
-        program.setMat4("u_modelMatrix", entity.smooth_transform.getMatrix());
+        program.setMat4("u_modelMatrix", entity.smoothTransform.getMatrix());
         entity.draw();
     }
 }

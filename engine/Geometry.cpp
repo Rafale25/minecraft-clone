@@ -4,17 +4,17 @@
 void Mesh::draw() {
     glBindVertexArray(VAO);
 
-    if (has_element_buffer)
-        glDrawElements(geometry_type, count, GL_UNSIGNED_INT, 0);
+    if (hasElementBuffer)
+        glDrawElements(geometryType, count, GL_UNSIGNED_INT, 0);
     else
-        glDrawArrays(geometry_type, 0, count);
+        glDrawArrays(geometryType, 0, count);
 }
 
 Mesh Geometry::quad_2d() {
     Mesh mesh;
-    mesh.has_element_buffer = false;
+    mesh.hasElementBuffer = false;
     mesh.count = 4;
-    mesh.geometry_type = GL_TRIANGLE_STRIP;
+    mesh.geometryType = GL_TRIANGLE_STRIP;
 
     const float vertices[] = {
         // positions      // texture Coords
@@ -73,9 +73,9 @@ Mesh Geometry::cube(const glm::vec3& size, const glm::vec3& center, bool normals
     };
 
     Mesh mesh;
-    mesh.has_element_buffer = false;
+    mesh.hasElementBuffer = false;
     mesh.count = sizeof(positions) / sizeof(float);
-    mesh.geometry_type = GL_TRIANGLES;
+    mesh.geometryType = GL_TRIANGLES;
     mesh.VBO = createBufferStorage(&positions[0], sizeof(positions));
     mesh.VAO = createVAO(mesh.VBO, "3f");
 

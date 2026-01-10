@@ -127,7 +127,7 @@ public:
     const uint32_t MAX_COMMANDS = 500'000;
     const uint32_t MAX_MEMORY = 2'147'483'647;
 
-    BufferAllocator buffer_allocator_vertices {"BufferAllocatorVertice", MAX_MEMORY};
+    BufferAllocator m_bufferAllocatorVertices {"BufferAllocatorVertice", MAX_MEMORY};
 
     GLuint m_chunkVao;
     GLuint m_drawCommandBuffer;
@@ -140,5 +140,5 @@ public:
     std::vector<std::tuple<glm::ivec3, ChunkRawMesh>> m_chunksWaitingBufferslot;
     std::mutex m_chunksWaitingBufferslot_mutex;
 
-    ankerl::unordered_dense::map<glm::ivec3, ChunkMesh> meshes;
+    ankerl::unordered_dense::map<glm::ivec3, ChunkMesh> m_meshes;
 };

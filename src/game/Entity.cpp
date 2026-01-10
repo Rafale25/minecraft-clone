@@ -8,13 +8,13 @@ Entity::Entity(int32_t id): id(id) {
 
 Entity::Entity(int32_t id, const glm::vec3 &position): id(id) {
     transform.position = position;
-    smooth_transform.position = position;
+    smoothTransform.position = position;
     init();
 }
 
 Entity::Entity(int32_t id, const glm::vec3 &position, const std::string& name): id(id), name(name) {
     transform.position = position;
-    smooth_transform.position = position;
+    smoothTransform.position = position;
     init();
 }
 
@@ -59,7 +59,7 @@ void Entity::init() {
         7, 1, 5
     };
 
-    indices_count = sizeof(indices) / sizeof(GLuint);
+    indicesCount = sizeof(indices) / sizeof(GLuint);
 
     VBO = createBufferStorage(vertices, sizeof(vertices), GL_DYNAMIC_STORAGE_BIT);
     EBO = createBufferStorage(indices, sizeof(indices), GL_DYNAMIC_STORAGE_BIT);
@@ -69,5 +69,5 @@ void Entity::init() {
 void Entity::draw() const
 {
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, indices_count, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, 0);
 }

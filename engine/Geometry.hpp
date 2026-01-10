@@ -7,8 +7,8 @@
 struct Mesh {
     GLuint VAO, VBO, EBO;
     uint64_t count;
-    int32_t geometry_type = GL_TRIANGLES;
-    bool has_element_buffer = false;
+    int32_t geometryType = GL_TRIANGLES;
+    bool hasElementBuffer = false;
     bool released = false;
 
     void draw();

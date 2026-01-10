@@ -1,18 +1,18 @@
 #include "TaskQueue.hpp"
 
 void TaskQueue::push_safe(std::function<void()> task) {
-    const std::lock_guard<std::mutex> lock(_task_queue_mutex);
-    _task_queue.emplace_back(std::move(task));
+    const std::lock_guard<std::mutex> lock(m_taskQueueMutex);
+    m_taskQueue.emplace_back(std::move(task));
 };
 
 void TaskQueue::execute() {
     // TODO: Don't understand why i can't pop an element from the task queue.
     // Using the auto for loop for the moment because it works.
-    const std::lock_guard<std::mutex> lock(_task_queue_mutex);
-    for (auto &task: _task_queue) {
+    const std::lock_guard<std::mutex> lock(m_taskQueueMutex);
+    for (auto &task: m_taskQueue) {
         task();
     }
-    _task_queue.clear();
+    m_taskQueue.clear();
 }
 
 // std::function<void()> popFront() {
@@ -24,4 +24,4 @@ void TaskQueue::execute() {
 //     return task;
 // }
 
-int32_t TaskQueue::count() const { return _task_queue.size(); };
+int32_t TaskQueue::count() const { return m_taskQueue.size(); };

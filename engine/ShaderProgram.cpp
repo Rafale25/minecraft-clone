@@ -11,7 +11,7 @@
 #endif
 
 ShaderProgram::ShaderProgram(const char* vertexPath, const char* fragmentPath, const char* geometryPath):
-_vertexPath(vertexPath), _fragmentPath(fragmentPath), _geometryPath(geometryPath)
+m_vertexPath(vertexPath), m_fragmentPath(fragmentPath), m_geometryPath(geometryPath)
 {
     load(vertexPath, fragmentPath, geometryPath);
 }
@@ -114,11 +114,11 @@ void ShaderProgram::load(const char* vertexPath, const char* fragmentPath, const
     //     logD("Program {} - {} - Location {}", id, key, value);
     // }
 
-    logI("[Shader] Compiled shader program: {}, {} {} {}", ID, _vertexPath, _fragmentPath, geometryPath ? geometryPath : "");
+    logI("[Shader] Compiled shader program: {}, {} {} {}", ID, m_vertexPath, m_fragmentPath, geometryPath ? geometryPath : "");
 }
 
 void ShaderProgram::reload() {
-    load(_vertexPath, _fragmentPath, _geometryPath);
+    load(m_vertexPath, m_fragmentPath, m_geometryPath);
 }
 
 void ShaderProgram::use() const {
@@ -137,7 +137,7 @@ GLint ShaderProgram::getUniformLocation(const std::string &name) const {
         #ifdef NO_REPEAT_ERRORS
         if (!invalid_uniforms.contains(name))
         #endif
-        logE("Invalid uniform {} for Program {};\n{};\n{}", name, ID, _vertexPath, _fragmentPath);
+        logE("Invalid uniform {} for Program {};\n{};\n{}", name, ID, m_vertexPath, m_fragmentPath);
 
         #ifdef NO_REPEAT_ERRORS
         invalid_uniforms.insert(name);
@@ -236,7 +236,7 @@ int ShaderProgram::checkCompileErrors(GLuint shader, const std::string& type, co
             glGetProgramInfoLog(shader, 4096, NULL, infoLog);
 
             logE("PROGRAM_LINKING_ERROR of type: {}", type);
-            logE("Files concerned: {} {} {}", _vertexPath, _fragmentPath, _geometryPath ? _geometryPath : "");
+            logE("Files concerned: {} {} {}", m_vertexPath, m_fragmentPath, m_geometryPath ? m_geometryPath : "");
             logE("\n{}--------------", infoLog);
             return 0;
         }

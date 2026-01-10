@@ -74,8 +74,8 @@ private:
 
     // -- World editor -- //
     bool m_blockSelectionMode = false;
-    glm::ivec3 blockA = {0.0f, 0.0f, 0.0f};
-    glm::ivec3 blockB = {0.0f, 0.0f, 0.0f};
+    glm::ivec3 m_blockA = {0.0f, 0.0f, 0.0f};
+    glm::ivec3 m_blockB = {0.0f, 0.0f, 0.0f};
     // --
 
     char m_inputTextBuffer[4096] = {};

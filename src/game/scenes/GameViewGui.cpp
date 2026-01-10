@@ -1,7 +1,7 @@
 #include "GameView.hpp"
 #include "Client.hpp"
 #include "World.hpp"
-#include "world_to_screen_space.hpp"
+#include "worldToScreenSpace.hpp"
 #include "mem_info.h"
 #include <imgui.h>
 
@@ -21,9 +21,9 @@ void GameView::drawPlayersNames()
     int32_t idx = 0;
     for (const Entity& e : World::instance().m_entities) {
 
-        glm::ivec2 screen_pos = worldToScreenSpace(e.smooth_transform.position + glm::vec3(0.0f, 0.8f, 0.0f), m_camera.getProjection(), m_camera.getView(), ctx.width, ctx.height);
+        glm::ivec2 screen_pos = worldToScreenSpace(e.smoothTransform.position + glm::vec3(0.0f, 0.8f, 0.0f), m_camera.getProjection(), m_camera.getView(), ctx.width, ctx.height);
         screen_pos.y -= 20;
-        if (glm::dot(m_camera.forward(), glm::normalize(e.smooth_transform.position - m_camera.getPosition())) < 0.2f) {
+        if (glm::dot(m_camera.forward(), glm::normalize(e.smoothTransform.position - m_camera.getPosition())) < 0.2f) {
             continue;
         }
 
@@ -68,10 +68,10 @@ void GameView::gui(float dt)
 
     // ImGui::Text("%s", SimpleProfiler::instance().dump().c_str());
     ImGui::Text("RAM: %.4f / %.4f Go", ((double)getCurrentRSS()) / (1024*1024*1024), ((double)getPeakRSS()) / (1024*1024*1024));
-    ImGui::Text("BufferVertices: %d / %d - %d", m_worldRenderer.buffer_allocator_vertices.getAvailableMemory(), m_worldRenderer.buffer_allocator_vertices.getMaxMemory(), m_worldRenderer.buffer_allocator_vertices.getSlotCount());
+    ImGui::Text("BufferVertices: %d / %d - %d", m_worldRenderer.m_bufferAllocatorVertices.getAvailableMemory(), m_worldRenderer.m_bufferAllocatorVertices.getMaxMemory(), m_worldRenderer.m_bufferAllocatorVertices.getSlotCount());
 
-    ImGui::Text("ThreadPool{%d} tasks: %d", (int32_t)m_worldRenderer.m_threadPool._workers.size(), (int32_t)m_worldRenderer.m_threadPool._task_queue.size());
-    ImGui::Text("New chunks: %d", (int32_t)Client::instance().new_chunks.size());
+    ImGui::Text("ThreadPool{%d} tasks: %d", (int32_t)m_worldRenderer.m_threadPool.m_workers.size(), (int32_t)m_worldRenderer.m_threadPool.m_taskQueue.size());
+    ImGui::Text("New chunks: %d", (int32_t)Client::instance().m_newChunks.size());
     ImGui::Text("Chunks: %d (%d rendered)", World::instance().getChunkCount(), m_worldRenderer.m_chunksDrawn);
 
     ImGui::SliderFloat("FOV", &m_camera.fov, 1.0f, 179.0f, "%.0f");
@@ -84,7 +84,7 @@ void GameView::gui(float dt)
     ImGui::Checkbox("World edit", &m_blockSelectionMode);
     ImGui::SliderFloat("Bulk Edit Radius: ", &m_bulkEditRadius, 1.0f, 32.0f, "%.2f");
 
-    ImGui::Text("ClientId: %d", Client::instance().client_id);
+    ImGui::Text("ClientId: %d", Client::instance().m_clientId);
 
     if (ImGui::TreeNode(std::format("Entities: {}", World::instance().m_entities.size()).c_str())) {
         for (auto& entity : World::instance().m_entities) {

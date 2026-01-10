@@ -17,12 +17,12 @@ public:
 
     static TextureManager& instance()
     {
-        static TextureManager _instance;
-        return _instance;
+        static TextureManager instance;
+        return instance;
     }
 
     GLuint loadTexture(const char* path, int32_t format=GL_RGB, int32_t min_filter=GL_LINEAR, int32_t max_filter=GL_LINEAR, int32_t wrap=GL_REPEAT);
 
 private:
-    std::unordered_map<std::string, GLuint> _textures;
+    std::unordered_map<std::string, GLuint> m_textures;
 };

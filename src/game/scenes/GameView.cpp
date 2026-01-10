@@ -51,7 +51,7 @@ void GameView::onUpdate(double time_since_start, float dt)
 
     {
         ScopedTask("task_queue.execute");
-        Client::instance().task_queue.execute();
+        Client::instance().m_taskQueue.execute();
     }
 
     {
@@ -136,8 +136,8 @@ void GameView::onUpdate(double time_since_start, float dt)
     }
 
     if (m_blockSelectionMode) {
-        const glm::ivec3 min = glm::min(blockA, blockB);
-        const glm::ivec3 max = glm::max(blockA, blockB);
+        const glm::ivec3 min = glm::min(m_blockA, m_blockB);
+        const glm::ivec3 max = glm::max(m_blockA, m_blockB);
         DebugDraw::instance().drawCuboidMinMax(min, max + 1);
     }
 }
@@ -303,12 +303,12 @@ void GameView::deleteFarChunks() // TODO: only do this when moving between chunk
 
 void GameView::processNewChunks()
 {
-    const std::lock_guard<std::mutex> lock(Client::instance().new_chunks_mutex);
+    const std::lock_guard<std::mutex> lock(Client::instance().m_newChunksMutex);
 
-    while (Client::instance().new_chunks.size() > 0) {
+    while (Client::instance().m_newChunks.size() > 0) {
 
-        Packet::Server::ChunkPacket* chunk_data = Client::instance().new_chunks.back();
-        Client::instance().new_chunks.pop_back();
+        Packet::Server::ChunkPacket* chunk_data = Client::instance().m_newChunks.back();
+        Client::instance().m_newChunks.pop_back();
 
         // Don't process imcoming chunk out of render distance
         // bool is_in_view_distance = isInManhattanDistance(
@@ -429,9 +429,9 @@ void GameView::onMousePress(int x, int y, int button) {
         if (!m_playerBlockRaycastHit.hit) return;
 
         if (button == GLFW_MOUSE_BUTTON_LEFT) {
-            blockA = m_playerBlockRaycastHit.block_pos;
+            m_blockA = m_playerBlockRaycastHit.block_pos;
         } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-            blockB = m_playerBlockRaycastHit.block_pos;
+            m_blockB = m_playerBlockRaycastHit.block_pos;
         }
 
         return;
@@ -477,7 +477,7 @@ void GameView::onMouseMotion(int x, int y, int dx, int dy)
 void GameView::onResize(int width, int height)
 {
     glViewport(0, 0, width, height);
-    m_camera.aspect_ratio = (float)width / (float)height;
+    m_camera.aspectRatio = (float)width / (float)height;
 
     m_worldRenderer.onResize(width, height);
 }
