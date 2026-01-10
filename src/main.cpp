@@ -8,8 +8,6 @@ const int SCR_HEIGHT = 720;
 const char* const TITLE = "Minecraft Clone";
 const bool VSYNC = true;
 
-#include <glm/vec4.hpp>
-
 int main(int argc, char** argv)
 {
     global_argc = argc;
