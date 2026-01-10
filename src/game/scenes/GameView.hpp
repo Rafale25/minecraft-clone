@@ -36,48 +36,48 @@ public:
     void onResize(int width, int height);
 
 private:
-    WorldRenderer world_renderer{ctx.width, ctx.height};
-    ScriptsManager script_manager;
+    WorldRenderer m_worldRenderer{ctx.width, ctx.height};
+    ScriptsManager m_scriptManager;
 
-    float network_timer = 1.0f;
+    float m_networkTimer = 1.0f;
 
-    bool _show_debug_gui = false;
-    bool _show_profiler_gui = false;
-    bool _cursor_enabled = false;
-    bool _vsync = true;
-    bool _delete_far_chunks = true;
+    bool m_showDebugGui = false;
+    bool m_showProfilerGui = false;
+    bool m_cursorEnabled = false;
+    bool m_vsyncEnabled = true;
+    bool m_deleteFarChunks = true;
 
-    bool _draw_chunks_borders = false;
-    bool _draw_player_chunk = false;
-    bool _draw_player_colliders = false;
-    bool _draw_hit_point = false;
+    bool m_drawChunksBorders = false;
+    bool m_drawPlayerChunk = false;
+    bool m_drawPlayerColliders = false;
+    bool m_drawHitPoint = false;
 
-    FPSCamera camera = {
+    FPSCamera m_camera = {
         glm::vec3(0.0f, 0.0, 0.0f), 0.0f, 0.0f,
         60.0f, (float)ctx.width / (float)ctx.height, 0.1f, 5000.0f,
         true
     };
 
-    BlockType block_in_hand = BlockType::Grass;
-    float bulk_edit_radius = 4.0f;
+    BlockType m_blockInHand = BlockType::Grass;
+    float m_bulkEditRadius = 4.0f;
 
-    BlockRaycastHit player_blockraycasthit;
+    BlockRaycastHit m_playerBlockRaycastHit;
 
     // -- Player physic -- //
-        bool free_cam = true;
-        const float player_height = 1.8f;
-        const float player_radius = 0.3f;
-        const float player_gravity = 45.0f;
-        glm::vec3 player_velocity = {0.0f, 0.0f, 0.0f};
-        float last_jump_press = 0;
+        bool m_freeCamEnabled = true;
+        const float m_playerHeight = 1.8f;
+        const float m_playerRadius = 0.3f;
+        const float m_playerGravity = 45.0f;
+        glm::vec3 m_playerVelocity = {0.0f, 0.0f, 0.0f};
+        float m_lastJumpPress = 0;
     // --
 
     // -- World editor -- //
-    bool block_selection_mode = false;
+    bool m_blockSelectionMode = false;
     glm::ivec3 blockA = {0.0f, 0.0f, 0.0f};
     glm::ivec3 blockB = {0.0f, 0.0f, 0.0f};
     // --
 
-    char input_text_buffer[4096] = {};
-    std::vector<std::string> tchat;
+    char m_inputTextBuffer[4096] = {};
+    std::vector<std::string> m_tchat;
 };

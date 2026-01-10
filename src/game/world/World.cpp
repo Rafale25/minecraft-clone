@@ -10,10 +10,10 @@ World::World()
 
 Entity* World::getEntity(int32_t id)
 {
-    for (size_t i = 0 ; i < entities.size() ; ++i)
+    for (size_t i = 0 ; i < m_entities.size() ; ++i)
     {
-        if (entities[i].id == id)
-            return &entities[i];
+        if (m_entities[i].id == id)
+            return &m_entities[i];
     }
     return nullptr;
 }
@@ -21,7 +21,7 @@ Entity* World::getEntity(int32_t id)
 void World::updateEntities()
 {
     const float smoothness = 0.2f;
-    for (auto& entity : entities)
+    for (auto& entity : m_entities)
     {
         entity.smooth_transform.position = glm::mix(entity.smooth_transform.position, entity.transform.position, smoothness);
         entity.smooth_transform.rotation = glm::slerp(entity.smooth_transform.rotation, entity.transform.rotation, smoothness);
@@ -30,15 +30,15 @@ void World::updateEntities()
 
 void World::addEntity(Entity e)
 {
-    entities.push_back(e);
+    m_entities.push_back(e);
 }
 
 void World::removeEntity(int32_t id)
 {
-    for (size_t i = 0 ; i < entities.size() ; ++i)
+    for (size_t i = 0 ; i < m_entities.size() ; ++i)
     {
-        if (entities[i].id == id) {
-            entities.erase(entities.begin() + i);
+        if (m_entities[i].id == id) {
+            m_entities.erase(m_entities.begin() + i);
             // delete entity ?
         }
     }
@@ -74,8 +74,8 @@ BlockType World::getBlock(const glm::ivec3& pos) const
 
     // printf("chunck pos: %d %d %d\n", chunk_pos.x, chunk_pos.y, chunk_pos.z);
     // printf("local_pos: %d %d %d\n", local_pos.x, local_pos.y, local_pos.z);
-    auto it = chunks.find(chunk_pos);
-    if (it == chunks.end()) return BlockType::Air; // chunk doesn't exist //
+    auto it = m_chunks.find(chunk_pos);
+    if (it == m_chunks.end()) return BlockType::Air; // chunk doesn't exist //
 
     int32_t index = Chunk::XYZtoIndex(local_pos.x, local_pos.y, local_pos.z);
     return it->second->blocks[index];
@@ -134,18 +134,18 @@ Chunk* World::setChunk(const glm::ivec3& pos, const BlockType* blocks)
     Chunk* chunk = nullptr;
 
     // Chrono chrono;
-    const std::lock_guard<std::shared_mutex> lock(chunks_mutex);// TODO: This is where the program waits the most
+    const std::lock_guard<std::shared_mutex> lock(m_chunksMutex);// TODO: This is where the program waits the most
                                                                 // How to fix: separate chunks and their mesh, so we can have different mutex for data and rendering
                                                                 // Can also just optimize rendering as a temporary solution
     // chrono.log();
 
-    auto it = chunks.find(pos);
+    auto it = m_chunks.find(pos);
 
-    if (it == chunks.end()) { // if not found
+    if (it == m_chunks.end()) { // if not found
         chunk = new Chunk();
         chunk->pos = pos;
 
-        chunks[pos] = chunk;
+        m_chunks[pos] = chunk;
     } else { // if found
         uint32_t hash_existing_chunk = hashBlocks((uint8_t*)blocks);
         uint32_t hash_new_chunk = hashBlocks((uint8_t*)it->second->blocks);
@@ -165,27 +165,27 @@ Chunk* World::setChunk(const glm::ivec3& pos, const BlockType* blocks)
 
 void World::deleteChunk(const glm::ivec3 &pos) {
     //NOTE: might need to use .find() in case pos doesn't exist
-    Chunk* chunk = chunks.at(pos);
+    Chunk* chunk = m_chunks.at(pos);
     if (chunk == nullptr) return;
 
     delete chunk;
-    chunks.erase(pos);
+    m_chunks.erase(pos);
 }
 
 Chunk* World::getChunk(const glm::ivec3& pos) const
 {
-    const std::shared_lock<std::shared_mutex> lock(chunks_mutex);
+    const std::shared_lock<std::shared_mutex> lock(m_chunksMutex);
 
-    auto it = chunks.find(pos);
-    if (it != chunks.end())
+    auto it = m_chunks.find(pos);
+    if (it != m_chunks.end())
         return it->second;
     return nullptr;
 }
 
 Chunk* World::getChunkUnsafe(const glm::ivec3& pos) const
 {
-    auto it = chunks.find(pos);
-    if (it != chunks.end())
+    auto it = m_chunks.find(pos);
+    if (it != m_chunks.end())
         return it->second;
     return nullptr;
 }

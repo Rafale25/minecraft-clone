@@ -22,12 +22,12 @@ inline double nsToS(int64_t ns) {
 
 WorldRenderer::WorldRenderer(int32_t width, int32_t height)
 {
-    chunk_vao = createVAO(0, "i");
-    draw_command_buffer = createBufferStorage(nullptr, sizeof(DrawElementsIndirectCommand) * MAX_COMMANDS, GL_DYNAMIC_STORAGE_BIT);
-    ssbo_chunk_positions = createBufferStorage(nullptr, sizeof(GLfloat)*4 * MAX_COMMANDS, GL_DYNAMIC_STORAGE_BIT);
-    ssbo_chunk_element_buffer = createBufferStorage(nullptr, sizeof(uint32_t) * CHUNK_BLOCK_COUNT * 6 * 6, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
+    m_chunkVao = createVAO(0, "i");
+    m_drawCommandBuffer = createBufferStorage(nullptr, sizeof(DrawElementsIndirectCommand) * MAX_COMMANDS, GL_DYNAMIC_STORAGE_BIT);
+    m_ssboChunkPositions = createBufferStorage(nullptr, sizeof(GLfloat)*4 * MAX_COMMANDS, GL_DYNAMIC_STORAGE_BIT);
+    m_ssboChunkElementBuffer = createBufferStorage(nullptr, sizeof(uint32_t) * CHUNK_BLOCK_COUNT * 6 * 6, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
 
-    uint32_t* buf = (uint32_t*)glMapNamedBuffer(ssbo_chunk_element_buffer, GL_WRITE_ONLY);
+    uint32_t* buf = (uint32_t*)glMapNamedBuffer(m_ssboChunkElementBuffer, GL_WRITE_ONLY);
     for (int i = 0 ; i < CHUNK_BLOCK_COUNT * 6 * 6 ; i += 6) {
         buf[i + 0] = i + 0;
         buf[i + 1] = i + 2;
@@ -37,7 +37,7 @@ WorldRenderer::WorldRenderer(int32_t width, int32_t height)
         buf[i + 4] = i + 3;
         buf[i + 5] = i + 2;
     }
-    glUnmapNamedBuffer(ssbo_chunk_element_buffer);
+    glUnmapNamedBuffer(m_ssboChunkElementBuffer);
 
     _shaders.at("cube").use();
     _shaders.at("cube").setInt("u_shadowmap", 0);
@@ -45,17 +45,17 @@ WorldRenderer::WorldRenderer(int32_t width, int32_t height)
     BlockTextureManager::loadAllTextures();
     ssbo_texture_handles = createBufferStorage(BlockTextureManager::Get().textures_handles.data(), BlockTextureManager::Get().textures_handles.size() * sizeof(GLuint64));
 
-    _buffer_ssbo_uniforms = createBufferStorage(nullptr, sizeof(uniformsParameters));
+    m_bufferUniformsSSBO = createBufferStorage(nullptr, sizeof(uniformsParameters));
 
-    glGenTextures(uniform_parameters.cascadeCount, _texture_view);
-    for (int i = 0 ; i < uniform_parameters.cascadeCount ; ++i) {
+    glGenTextures(m_uniformParameters.cascadeCount, m_textureView);
+    for (int i = 0 ; i < m_uniformParameters.cascadeCount ; ++i) {
         glTextureView(
-            _texture_view[i], GL_TEXTURE_2D,
-            shadowmap._depthTextureArray, GL_DEPTH_COMPONENT32F,
+            m_textureView[i], GL_TEXTURE_2D,
+            m_shadowmap._depthTextureArray, GL_DEPTH_COMPONENT32F,
             0, 1, i, 1
         );
         constexpr GLint rgba[4] = { GL_RED, GL_RED, GL_RED, GL_ONE };
-        glTextureParameteriv(_texture_view[i], GL_TEXTURE_SWIZZLE_RGBA, (GLint*)&rgba); // to make the texture grayscale in imgui
+        glTextureParameteriv(m_textureView[i], GL_TEXTURE_SWIZZLE_RGBA, (GLint*)&rgba); // to make the texture grayscale in imgui
     }
 
     onResize(width, height);
@@ -88,8 +88,8 @@ void WorldRenderer::render(const Camera &camera)
     const glm::mat4 camera_view = camera.getView();
     const glm::mat4 view_projection = camera_projection * camera_view;
 
-    if (!_is_shadow_camera_freezed) {
-        _shadow_camera = dynamic_cast<const FPSCamera &>(camera);
+    if (!m_isShadowCameraFreezed) {
+        m_shadowCamera = dynamic_cast<const FPSCamera &>(camera);
     }
 
     std::vector<DrawElementsIndirectCommand> commands_opaque;
@@ -100,22 +100,22 @@ void WorldRenderer::render(const Camera &camera)
     const glm::vec3 sunDirection = getSunDirection();
     const float sun_dot_angle = glm::dot(glm::normalize(sunDirection), {0.0f, 1.0f, 0.0f});
 
-    uniform_parameters.projection = camera_projection;
-    uniform_parameters.view = camera_view;
-    uniform_parameters.projection_view = view_projection;
-    uniform_parameters.projection_view_noviewtranslate = camera_projection * glm::mat4(glm::mat3(camera_view));
-    uniform_parameters.resolution = glm::vec2(_framebuffer_width, _framebuffer_height);
-    uniform_parameters.aspectRatio = _framebuffer_width / _framebuffer_height;
-    uniform_parameters.sunDotAngle = sun_dot_angle;
-    uniform_parameters.FOV = glm::radians(camera.fov);
-    uniform_parameters.sunDirection = glm::vec4(glm::normalize(sunDirection), 0);
-    uniform_parameters.viewPosition = glm::vec4(camera.getPosition(), 0);
-    uniform_parameters.lightSpaceMatrix = shadowmap._lightSpaceMatrix;
-    uniform_parameters.shadow_bias = shadowmap._shadow_bias;
-    uniform_parameters.time = (float)glfwGetTime();
-    uniform_parameters.cascadePlaneDistances = *(glm::vec4*)shadowmap.shadowCascadeLevels.data();
+    m_uniformParameters.projection = camera_projection;
+    m_uniformParameters.view = camera_view;
+    m_uniformParameters.projection_view = view_projection;
+    m_uniformParameters.projection_view_noviewtranslate = camera_projection * glm::mat4(glm::mat3(camera_view));
+    m_uniformParameters.resolution = glm::vec2(m_framebufferWidth, m_framebufferHeight);
+    m_uniformParameters.aspectRatio = m_framebufferWidth / m_framebufferHeight;
+    m_uniformParameters.sunDotAngle = sun_dot_angle;
+    m_uniformParameters.FOV = glm::radians(camera.fov);
+    m_uniformParameters.sunDirection = glm::vec4(glm::normalize(sunDirection), 0);
+    m_uniformParameters.viewPosition = glm::vec4(camera.getPosition(), 0);
+    m_uniformParameters.lightSpaceMatrix = m_shadowmap._lightSpaceMatrix;
+    m_uniformParameters.shadow_bias = m_shadowmap._shadow_bias;
+    m_uniformParameters.time = (float)glfwGetTime();
+    m_uniformParameters.cascadePlaneDistances = *(glm::vec4*)m_shadowmap.shadowCascadeLevels.data();
 
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, _buffer_ssbo_uniforms);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, m_bufferUniformsSSBO);
 
     // uniform_parameters_buffer.set(&uniformsParameters::projection, camera.getProjection());
     // uniform_parameters_buffer.set(&uniformsParameters::view, camera.getView());
@@ -135,30 +135,30 @@ void WorldRenderer::render(const Camera &camera)
     // uniform_parameters_buffer.set(&uniformsParameters::exposure, _exposure);
     // uniform_parameters_buffer.bind(3);
 
-    glNamedBufferSubData(_buffer_ssbo_uniforms, 0, sizeof(uniformsParameters), &uniform_parameters);
+    glNamedBufferSubData(m_bufferUniformsSSBO, 0, sizeof(uniformsParameters), &m_uniformParameters);
 
     setDefaultRenderState();
 
-    if (uniform_parameters.shadows_enabled)
+    if (m_uniformParameters.shadows_enabled)
     { // SHADOWMAP //
         glClearDepth(1.0f);
         glClipControl(GL_LOWER_LEFT, GL_NEGATIVE_ONE_TO_ONE );
         glDepthFunc(GL_LESS);
 
-        shadowmap.setSunDir(sunDirection);
+        m_shadowmap.setSunDir(sunDirection);
 
-        const auto lightSpaceMatrices = shadowmap.getLightSpaceMatrices(_shadow_camera);
+        const auto lightSpaceMatrices = m_shadowmap.getLightSpaceMatrices(m_shadowCamera);
 
-        std::memcpy(uniform_parameters.lightSpaceMatrices, lightSpaceMatrices.data(), sizeof(uniform_parameters.lightSpaceMatrices));
-        glNamedBufferSubData(_buffer_ssbo_uniforms, 0, sizeof(uniformsParameters), &uniform_parameters);
+        std::memcpy(m_uniformParameters.lightSpaceMatrices, lightSpaceMatrices.data(), sizeof(m_uniformParameters.lightSpaceMatrices));
+        glNamedBufferSubData(m_bufferUniformsSSBO, 0, sizeof(uniformsParameters), &m_uniformParameters);
 
         for (int i = 0 ; i < 4 ; ++i) {
-            shadowmap.begin(lightSpaceMatrices[i], _shadow_camera.getView(), _shaders.at("cube_depth_only"), i);
+            m_shadowmap.begin(lightSpaceMatrices[i], m_shadowCamera.getView(), _shaders.at("cube_depth_only"), i);
 
-            uniform_parameters.lightSpaceMatrix = lightSpaceMatrices[i];
-            glNamedBufferSubData(_buffer_ssbo_uniforms, 0, sizeof(uniformsParameters), &uniform_parameters);
+            m_uniformParameters.lightSpaceMatrix = lightSpaceMatrices[i];
+            glNamedBufferSubData(m_bufferUniformsSSBO, 0, sizeof(uniformsParameters), &m_uniformParameters);
 
-            if (_debug_draw_shadowmap_frustums) {
+            if (m_debugDrawShadowmapFrustums) {
                 constexpr glm::vec3 debug_colors[4] = {{1,0,0}, {0,1,0}, {0,0,1}, {1,0,1}};
                 DebugDraw::instance().drawFrustum(lightSpaceMatrices[i], debug_colors[i]);
             }
@@ -179,23 +179,23 @@ void WorldRenderer::render(const Camera &camera)
             chunk_positions_opaque.clear();
             chunk_positions_translucent.clear();
 
-            shadowmap.end();
+            m_shadowmap.end();
         }
 
-        uniform_parameters.lightSpaceMatrix = lightSpaceMatrices[0];
-        glNamedBufferSubData(_buffer_ssbo_uniforms, 0, sizeof(uniformsParameters), &uniform_parameters);
+        m_uniformParameters.lightSpaceMatrix = lightSpaceMatrices[0];
+        glNamedBufferSubData(m_bufferUniformsSSBO, 0, sizeof(uniformsParameters), &m_uniformParameters);
     }
 
-    _framebuffer.bind();
+    m_framebuffer.bind();
     uint32_t attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-    _framebuffer.drawBuffers(3, attachments); // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
+    m_framebuffer.drawBuffers(3, attachments); // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
 
     glClearDepth(0.0f);
     glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
     glDepthFunc(GL_GEQUAL);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glPolygonMode(GL_FRONT_AND_BACK, _wireframe ? GL_LINE : GL_FILL);
+    glPolygonMode(GL_FRONT_AND_BACK, m_wireframeEnabled ? GL_LINE : GL_FILL);
 
     // ZPrePass
     // TODO: should use a framebuffer with glDrawBuffer(GL_NONE) to completely disable fragment stage
@@ -203,7 +203,7 @@ void WorldRenderer::render(const Camera &camera)
     // cube_shader_depth_only.setMat4("u_lightSpaceMatrix", view_projection);
     // renderTerrain();
 
-    glBindTextureUnit(0, shadowmap._depthTextureArray);
+    glBindTextureUnit(0, m_shadowmap._depthTextureArray);
 
     {
         ScopedTask("terrain: generateDrawCommands");
@@ -240,23 +240,23 @@ void WorldRenderer::render(const Camera &camera)
     {
         ScopedTaskGPU("Volumetrics");
 
-        _framebuffer_volumetrics.bind();
+        m_framebufferVolumetrics.bind();
         glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
         glClear(GL_COLOR_BUFFER_BIT);
-        glViewport(0, 0, _texture_volumetrics._width, _texture_volumetrics._height);
+        glViewport(0, 0, m_textureVolumetrics._width, m_textureVolumetrics._height);
 
-        glBindTextureUnit(1, _texture_world_position._texture);
-        glBindTextureUnit(3, shadowmap._depthTextureArray);
+        glBindTextureUnit(1, m_textureWorldPosition._texture);
+        glBindTextureUnit(3, m_shadowmap._depthTextureArray);
 
         const auto& shader_volumetrics = _shaders.at("volumetrics");
         shader_volumetrics.use();
         shader_volumetrics.setInt("worldPosTexture", 1);
         shader_volumetrics.setInt("u_shadowmap", 3);
 
-        _quad_fs.draw();
+        m_quadFS.draw();
     }
 
-    glViewport(0, 0, _framebuffer_width, _framebuffer_height);
+    glViewport(0, 0, m_framebufferWidth, m_framebufferHeight);
 
     // - Extract bright areas
     // - Combine bright areas with volumetrics
@@ -266,18 +266,18 @@ void WorldRenderer::render(const Camera &camera)
     {
         ScopedTaskGPU("Combine Volumetrics");
 
-        _framebuffer.bind();
-        _framebuffer.drawBuffers(1, attachments);
+        m_framebuffer.bind();
+        m_framebuffer.drawBuffers(1, attachments);
 
         const auto& shader_combine = _shaders.at("bloom_combine");
         shader_combine.use();
         shader_combine.setInt("u_scene", 0);
         shader_combine.setInt("u_bloomBlur", 1);
 
-        glBindTextureUnit(0, _texture_color._texture);
-        glBindTextureUnit(1, _texture_volumetrics._texture);
+        glBindTextureUnit(0, m_textureColor._texture);
+        glBindTextureUnit(1, m_textureVolumetrics._texture);
 
-        _quad_fs.draw();
+        m_quadFS.draw();
     }
 
 
@@ -292,12 +292,12 @@ void WorldRenderer::render(const Camera &camera)
         shader_post_processing.setInt("colorTexture", 0);
         // shader_post_processing.setInt("depthTexture", 2);
 
-        glBindTextureUnit(0, _texture_color._texture);
+        glBindTextureUnit(0, m_textureColor._texture);
         // glBindTextureUnit(2, _depth_texture._texture);
 
         {
             ScopedTaskGPU("postProcessing");
-            _quad_fs.draw();
+            m_quadFS.draw();
         }
     }
 }
@@ -316,7 +316,7 @@ void WorldRenderer::onAddedChunk(const glm::ivec3 &chunk_pos) {
     for (int32_t y = -1 ; y <= 1; ++y) {
     for (int32_t x = -1 ; x <= 1; ++x) {
         const glm::ivec3 offset = {x, y, z};
-        chunks_to_remesh.insert(chunk_pos + offset);
+        m_chunksToRemesh.insert(chunk_pos + offset);
     }}}
 }
 
@@ -324,30 +324,30 @@ void WorldRenderer::onResize(int32_t width, int32_t height) {
     width = glm::max(8, width);
     height = glm::max(8, height);
 
-    _framebuffer_width = width;
-    _framebuffer_height = height;
+    m_framebufferWidth = width;
+    m_framebufferHeight = height;
 
-    _framebuffer.destroy();
-    _texture_color.destroy();
-    _texture_world_position.destroy();
-    _texture_normals.destroy();
-    _texture_depth.destroy();
-    _framebuffer_volumetrics.destroy();
-    _texture_volumetrics.destroy();
+    m_framebuffer.destroy();
+    m_textureColor.destroy();
+    m_textureWorldPosition.destroy();
+    m_textureNormals.destroy();
+    m_textureDepth.destroy();
+    m_framebufferVolumetrics.destroy();
+    m_textureVolumetrics.destroy();
 
-    _framebuffer = Framebuffer();
-    _texture_color = Texture(width, height, GL_RGB16F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
-    _texture_world_position = Texture(width, height, GL_RGB32F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
-    _texture_normals = Texture(width, height, GL_RGB32F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
-    _texture_depth = Texture(width, height, GL_DEPTH_COMPONENT32F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER); // floating point buffer needed for reversed depth
-    _framebuffer.attachTexture(_texture_color._texture, GL_COLOR_ATTACHMENT0);
-    _framebuffer.attachTexture(_texture_world_position._texture, GL_COLOR_ATTACHMENT1);
-    _framebuffer.attachTexture(_texture_normals._texture, GL_COLOR_ATTACHMENT2);
-    _framebuffer.attachTexture(_texture_depth._texture, GL_DEPTH_ATTACHMENT);
+    m_framebuffer = Framebuffer();
+    m_textureColor = Texture(width, height, GL_RGB16F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
+    m_textureWorldPosition = Texture(width, height, GL_RGB32F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
+    m_textureNormals = Texture(width, height, GL_RGB32F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
+    m_textureDepth = Texture(width, height, GL_DEPTH_COMPONENT32F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER); // floating point buffer needed for reversed depth
+    m_framebuffer.attachTexture(m_textureColor._texture, GL_COLOR_ATTACHMENT0);
+    m_framebuffer.attachTexture(m_textureWorldPosition._texture, GL_COLOR_ATTACHMENT1);
+    m_framebuffer.attachTexture(m_textureNormals._texture, GL_COLOR_ATTACHMENT2);
+    m_framebuffer.attachTexture(m_textureDepth._texture, GL_DEPTH_ATTACHMENT);
 
-    _framebuffer_volumetrics = Framebuffer();
-    _texture_volumetrics = Texture(width/4, height/4, GL_RGB16F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
-    _framebuffer_volumetrics.attachTexture(_texture_volumetrics._texture, GL_COLOR_ATTACHMENT0);
+    m_framebufferVolumetrics = Framebuffer();
+    m_textureVolumetrics = Texture(width/4, height/4, GL_RGB16F, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER);
+    m_framebufferVolumetrics.attachTexture(m_textureVolumetrics._texture, GL_COLOR_ATTACHMENT0);
 }
 
 void WorldRenderer::update() {
@@ -357,24 +357,24 @@ void WorldRenderer::update() {
 
 void WorldRenderer::processChunksToMesh()
 {
-    for (const auto& pos : chunks_to_remesh) {
-        thread_pool.enqueue([this, pos] {
+    for (const auto& pos : m_chunksToRemesh) {
+        m_threadPool.enqueue([this, pos] {
             Chunk* chunk = World::instance().getChunk(pos);
             if (chunk != nullptr) {
                 ChunkRawMesh raw_mesh = computeVertexBuffer(pos);
 
-                std::lock_guard<std::mutex> lock(chunks_waiting_bufferslot_mutex);
-                chunks_waiting_bufferslot.push_back(std::tuple(pos, raw_mesh));
+                std::lock_guard<std::mutex> lock(m_chunksWaitingBufferslot_mutex);
+                m_chunksWaitingBufferslot.push_back(std::tuple(pos, raw_mesh));
             }
         });
     }
-    chunks_to_remesh.clear();
+    m_chunksToRemesh.clear();
 }
 
 void WorldRenderer::allocateVAOforWaitingChunks() {
-    const std::lock_guard<std::mutex> lock(chunks_waiting_bufferslot_mutex);
+    const std::lock_guard<std::mutex> lock(m_chunksWaitingBufferslot_mutex);
 
-    for (const auto& [chunk_pos, chunk_raw_mesh]: chunks_waiting_bufferslot) {
+    for (const auto& [chunk_pos, chunk_raw_mesh]: m_chunksWaitingBufferslot) {
         const Chunk* c = World::instance().getChunkUnsafe(chunk_pos);
         if (c == nullptr) continue;
 
@@ -390,7 +390,7 @@ void WorldRenderer::allocateVAOforWaitingChunks() {
         meshes[chunk_pos] = new_mesh;
     }
 
-    chunks_waiting_bufferslot.clear();
+    m_chunksWaitingBufferslot.clear();
 }
 
 void WorldRenderer::generateDrawCommands(
@@ -403,7 +403,7 @@ void WorldRenderer::generateDrawCommands(
 ) {
     Frustum camera_frustum = createFrustumFromViewProjection(view_projection);
 
-    chunks_drawn = 0;
+    m_chunksDrawn = 0;
 
     for (const auto& [chunk_pos, mesh] : meshes)
     {
@@ -436,7 +436,7 @@ void WorldRenderer::generateDrawCommands(
             });
         }
 
-        ++chunks_drawn;
+        ++m_chunksDrawn;
     }
 }
 
@@ -447,25 +447,25 @@ void WorldRenderer::renderTerrain(
     const std::vector<glm::vec4>& chunk_positions_translucent,
     bool drawTranslucent
 ) {
-    glBindVertexArray(chunk_vao);
-    glVertexArrayVertexBuffer(chunk_vao, 0, buffer_allocator_vertices.getBufferObject(), 0, 1 * VERTEX_SIZE); // Not needed anymore but crashes without
-    glVertexArrayElementBuffer(chunk_vao, ssbo_chunk_element_buffer);
+    glBindVertexArray(m_chunkVao);
+    glVertexArrayVertexBuffer(m_chunkVao, 0, buffer_allocator_vertices.getBufferObject(), 0, 1 * VERTEX_SIZE); // Not needed anymore but crashes without
+    glVertexArrayElementBuffer(m_chunkVao, m_ssboChunkElementBuffer);
 
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_texture_handles);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo_chunk_positions);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_ssboChunkPositions);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, buffer_allocator_vertices.getBufferObject());
 
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, draw_command_buffer);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_drawCommandBuffer);
 
     // opaque
-    glNamedBufferSubData(ssbo_chunk_positions, 0, sizeof(GLfloat) * 4 * chunk_positions_opaque.size(), (const void *)chunk_positions_opaque.data());
-    glNamedBufferSubData(draw_command_buffer, 0, sizeof(commands_opaque[0]) * commands_opaque.size(), (const void *)commands_opaque.data());
+    glNamedBufferSubData(m_ssboChunkPositions, 0, sizeof(GLfloat) * 4 * chunk_positions_opaque.size(), (const void *)chunk_positions_opaque.data());
+    glNamedBufferSubData(m_drawCommandBuffer, 0, sizeof(commands_opaque[0]) * commands_opaque.size(), (const void *)commands_opaque.data());
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (const void *)0, commands_opaque.size(), 0);
 
     // translucent //
     if (!drawTranslucent) return;
-    glNamedBufferSubData(ssbo_chunk_positions, 0, sizeof(GLfloat) * 4 * chunk_positions_translucent.size(), (const void *)chunk_positions_translucent.data());
-    glNamedBufferSubData(draw_command_buffer, 0, sizeof(commands_translucent[0]) * commands_translucent.size(), (const void *)commands_translucent.data());
+    glNamedBufferSubData(m_ssboChunkPositions, 0, sizeof(GLfloat) * 4 * chunk_positions_translucent.size(), (const void *)chunk_positions_translucent.data());
+    glNamedBufferSubData(m_drawCommandBuffer, 0, sizeof(commands_translucent[0]) * commands_translucent.size(), (const void *)commands_translucent.data());
 
     glEnable(GL_BLEND);
     // glDisable(GL_DEPTH_TEST);
@@ -482,7 +482,7 @@ void WorldRenderer::renderEntities(const Camera &camera, const ShaderProgram& pr
 {
     program.use();
 
-    for (const auto& entity : World::instance().entities) {
+    for (const auto& entity : World::instance().m_entities) {
         program.setMat4("u_modelMatrix", entity.smooth_transform.getMatrix());
         entity.draw();
     }
@@ -492,7 +492,7 @@ glm::vec3 WorldRenderer::getSunDirection() const
 {
     glm::vec3 v = glm::normalize(
         glm::vec3(
-            glm::yawPitchRoll(_sun_yaw, _sun_pitch, _sun_rotation) * glm::vec4{1.0f, 0.0f, 0.0f, 1.0f}
+            glm::yawPitchRoll(m_sunYaw, m_sunPitch, m_sunRotation) * glm::vec4{1.0f, 0.0f, 0.0f, 1.0f}
         )
     );
 
@@ -507,7 +507,7 @@ glm::vec3 WorldRenderer::getSunDirection() const
 //         ImGui::Begin("G-buffer");
 //             ImGui::BeginGroup();
 //                 ImGui::Text("Volumetrics");
-//                 ImGui::Image((ImTextureID)(intptr_t) world_renderer._texture_volumetrics._texture, ImVec2(world_renderer._texture_volumetrics._width/1, world_renderer._texture_volumetrics._height/1), ImVec2(0, 1), ImVec2(1, 0));
+//                 ImGui::Image((ImTextureID)(intptr_t) world_renderer.m_textureVolumetrics._texture, ImVec2(world_renderer.m_textureVolumetrics._width/1, world_renderer.m_textureVolumetrics._height/1), ImVec2(0, 1), ImVec2(1, 0));
 //             ImGui::EndGroup();
 //             ImGui::SameLine();
 //             ImGui::BeginGroup();

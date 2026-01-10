@@ -63,38 +63,37 @@ private:
     void renderEntities(const Camera &camera, const ShaderProgram& program) const;
 
 private:
-    float _framebuffer_width;
-    float _framebuffer_height;
+    float m_framebufferWidth;
+    float m_framebufferHeight;
 
 public:
-    Shadowmap shadowmap{4096};
-    GLuint _texture_view[4]{};
+    Shadowmap m_shadowmap{4096};
+    GLuint m_textureView[4]{};
 
+    float m_maxShadowDistance = 350.0f;
+    float m_sunRotation = glm::radians(90.0f);
+    float m_sunPitch = glm::radians(20.0f);
+    float m_sunYaw = glm::radians(128.0f);
 
-    float _max_shadow_distance = 350.0f;
-    float _sun_rotation = glm::radians(90.0f);
-    float _sun_pitch = glm::radians(20.0f);
-    float _sun_yaw = glm::radians(128.0f);
+    FPSCamera m_shadowCamera; // camera used for shadow calculations
+    bool m_isShadowCameraFreezed = false;
+    bool m_debugDrawShadowmapFrustums = false;
 
-    FPSCamera _shadow_camera; // camera used for shadow calculations
-    bool _is_shadow_camera_freezed = false;
-    bool _debug_draw_shadowmap_frustums = false;
+    int32_t m_chunksDrawn;
+    bool m_wireframeEnabled = false;
 
-    int32_t chunks_drawn;
-    bool _wireframe = false;
+    Framebuffer m_framebuffer;
+    Texture m_textureColor;
+    Texture m_textureWorldPosition;
+    Texture m_textureNormals;
+    Texture m_textureDepth;
 
-    Framebuffer _framebuffer;
-    Texture _texture_color;
-    Texture _texture_world_position;
-    Texture _texture_normals;
-    Texture _texture_depth;
+    Framebuffer m_framebufferVolumetrics;
+    Texture m_textureVolumetrics;
 
-    Framebuffer _framebuffer_volumetrics;
-    Texture _texture_volumetrics;
-
-    GLuint _buffer_ssbo_uniforms;
+    GLuint m_bufferUniformsSSBO;
     // StructGPUBuffer<uniformsParameters> uniform_parameters_buffer;
-    uniformsParameters uniform_parameters = {
+    uniformsParameters m_uniformParameters = {
         .fogDensity = 0.0005f,
         .ambient_occlusion_strength = 0.67f,
         .exposure = 1.0,
@@ -107,7 +106,8 @@ public:
         .shadows_enabled = 1,
     };
 
-    Mesh _quad_fs = Geometry::quad_2d();
+    // m_meshQuadFullscreen
+    Mesh m_quadFS = Geometry::quad_2d();
     Mesh _skybox_cube = Geometry::cube(glm::vec3(1000.0f), glm::vec3(0.0f)); // make it big to avoid clipping with high FOV (>120)
 
     GLuint ssbo_texture_handles;
@@ -129,17 +129,16 @@ public:
 
     BufferAllocator buffer_allocator_vertices {"BufferAllocatorVertice", MAX_MEMORY};
 
-    GLuint chunk_vao;
-    GLuint draw_command_buffer;
-    GLuint ssbo_chunk_positions;
-    GLuint ssbo_chunk_element_buffer;
+    GLuint m_chunkVao;
+    GLuint m_drawCommandBuffer;
+    GLuint m_ssboChunkPositions;
+    GLuint m_ssboChunkElementBuffer;
 
-    ThreadPool thread_pool;
+    ThreadPool m_threadPool;
 
-
-    std::unordered_set<glm::ivec3> chunks_to_remesh;
-    std::vector<std::tuple<glm::ivec3, ChunkRawMesh>> chunks_waiting_bufferslot;
-    std::mutex chunks_waiting_bufferslot_mutex;
+    std::unordered_set<glm::ivec3> m_chunksToRemesh;
+    std::vector<std::tuple<glm::ivec3, ChunkRawMesh>> m_chunksWaitingBufferslot;
+    std::mutex m_chunksWaitingBufferslot_mutex;
 
     ankerl::unordered_dense::map<glm::ivec3, ChunkMesh> meshes;
 };

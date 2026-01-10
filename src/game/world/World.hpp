@@ -63,12 +63,12 @@ public:
         return instance;
     }
 
-    int32_t getChunkCount() const { return chunks.size(); }
+    int32_t getChunkCount() const { return m_chunks.size(); }
 
 public:
-    std::unordered_map<glm::ivec3, Chunk*> chunks;
-    mutable std::shared_mutex chunks_mutex;
+    std::unordered_map<glm::ivec3, Chunk*> m_chunks;
+    mutable std::shared_mutex m_chunksMutex;
 
-    std::vector<Entity> entities;
+    std::vector<Entity> m_entities;
     // std::unordered_map<int32_t, Entity> entities; // TODO: switch to this data structure
 };
