@@ -144,13 +144,13 @@ void GameView::onUpdate(double time_since_start, float dt)
 
 void GameView::playerMovements(float dt)
 {
+    if (m_cursorEnabled || ImGui::GetIO().WantCaptureKeyboard) return;
+
     glm::vec3 delta = {
         ctx.keystate[GLFW_KEY_A] - ctx.keystate[GLFW_KEY_D],
         ctx.keystate[GLFW_KEY_LEFT_CONTROL] - ctx.keystate[GLFW_KEY_SPACE],
         ctx.keystate[GLFW_KEY_W] - ctx.keystate[GLFW_KEY_S]
     };
-
-    if (m_cursorEnabled || ImGui::GetIO().WantCaptureKeyboard) return;
 
     if (m_freeCamEnabled) {
         m_camera.setSpeed(
@@ -208,8 +208,8 @@ void GameView::playerMovements(float dt)
     }
 
     if (is_grounded) {
-        m_playerVelocity.x *= 0.8f;
-        m_playerVelocity.z *= 0.8f;
+        m_playerVelocity.x *= 0.9f;
+        m_playerVelocity.z *= 0.9f;
     }
     if (is_grounded && ctx.keystate[GLFW_KEY_SPACE]) { // JUMP
         m_playerVelocity.y += 12.0f;
@@ -228,50 +228,50 @@ void GameView::playerMovements(float dt)
 
 
     // -- PLAYER/ENTITY AABB COLLISION -- //
+    {
+        AABB player_aabb_y = {
+            glm::vec3(player_feet_position.x, next_pos.y, player_feet_position.z) + glm::vec3(-0.3f, 0.0f, -0.3f),
+            glm::vec3(player_feet_position.x, next_pos.y, player_feet_position.z) + glm::vec3(0.3f, m_playerHeight, 0.3f)};
+        if (m_drawPlayerColliders) DebugDraw::instance().drawCuboidMinMax(player_aabb_y.min, player_aabb_y.max, {1.0f, 0.2, 0.8});
 
-    AABB player_aabb_y = {
-        glm::vec3(player_feet_position.x, next_pos.y, player_feet_position.z) + glm::vec3(-0.3f, 0.0f, -0.3f),
-        glm::vec3(player_feet_position.x, next_pos.y, player_feet_position.z) + glm::vec3(0.3f, m_playerHeight, 0.3f)};
-    if (m_drawPlayerColliders) DebugDraw::instance().drawCuboidMinMax(player_aabb_y.min, player_aabb_y.max, {1.0f, 0.2, 0.8});
+        // Y
+        for (const auto& aabb : neighbours_blocks_AABB) {
+            if (AABB::AABBtoAABB(aabb, player_aabb_y)) {
+                float dy = AABB::AABBtoAABBOverlapDistance(aabb, player_aabb_y).y;
+                next_pos.y += dy + glm::sign(dy) * 0.0001f;
+                m_playerVelocity.y = 0.0f;
+                break;
+            }
+        }
 
-    // Y
-    for (const auto& aabb : neighbours_blocks_AABB) {
-        if (AABB::AABBtoAABB(aabb, player_aabb_y)) {
-            float dy = AABB::AABBtoAABBOverlapDistance(aabb, player_aabb_y).y;
-            next_pos.y += dy + glm::sign(dy) * 0.0001f;
-            m_playerVelocity.y = 0.0f;
-            break;
+        AABB player_aabb_x = {
+            glm::vec3(next_pos.x, next_pos.y, player_feet_position.z) + glm::vec3(-0.3f, 0.0f, -0.3f),
+            glm::vec3(next_pos.x, next_pos.y, player_feet_position.z) + glm::vec3(0.3f, m_playerHeight, 0.3f)};
+
+        // X
+        for (const auto& aabb : neighbours_blocks_AABB) {
+            if (AABB::AABBtoAABB(aabb, player_aabb_x)) {
+                float dx = AABB::AABBtoAABBOverlapDistance(aabb, player_aabb_x).x;
+                next_pos.x += dx + glm::sign(dx) * 0.0001f;
+                m_playerVelocity.x = 0.0f;
+                break;
+            }
+        }
+
+        AABB player_aabb_z = {
+            glm::vec3(next_pos.x, next_pos.y, next_pos.z) + glm::vec3(-0.3f, 0.0f, -0.3f),
+            glm::vec3(next_pos.x, next_pos.y, next_pos.z) + glm::vec3(0.3f, m_playerHeight, 0.3f)};
+
+        // Z
+        for (const auto& aabb : neighbours_blocks_AABB) {
+            if (AABB::AABBtoAABB(aabb, player_aabb_z)) {
+                float dz = AABB::AABBtoAABBOverlapDistance(aabb, player_aabb_z).z;
+                next_pos.z += dz + glm::sign(dz) * 0.0001f;
+                m_playerVelocity.z = 0.0f;
+                break;
+            }
         }
     }
-
-    AABB player_aabb_x = {
-        glm::vec3(next_pos.x, next_pos.y, player_feet_position.z) + glm::vec3(-0.3f, 0.0f, -0.3f),
-        glm::vec3(next_pos.x, next_pos.y, player_feet_position.z) + glm::vec3(0.3f, m_playerHeight, 0.3f)};
-
-    // X
-    for (const auto& aabb : neighbours_blocks_AABB) {
-        if (AABB::AABBtoAABB(aabb, player_aabb_x)) {
-            float dx = AABB::AABBtoAABBOverlapDistance(aabb, player_aabb_x).x;
-            next_pos.x += dx + glm::sign(dx) * 0.0001f;
-            m_playerVelocity.x = 0.0f;
-            break;
-        }
-    }
-
-    AABB player_aabb_z = {
-        glm::vec3(next_pos.x, next_pos.y, next_pos.z) + glm::vec3(-0.3f, 0.0f, -0.3f),
-        glm::vec3(next_pos.x, next_pos.y, next_pos.z) + glm::vec3(0.3f, m_playerHeight, 0.3f)};
-
-    // Z
-    for (const auto& aabb : neighbours_blocks_AABB) {
-        if (AABB::AABBtoAABB(aabb, player_aabb_z)) {
-            float dz = AABB::AABBtoAABBOverlapDistance(aabb, player_aabb_z).z;
-            next_pos.z += dz + glm::sign(dz) * 0.0001f;
-            m_playerVelocity.z = 0.0f;
-            break;
-        }
-    }
-    // ------------------------------------------------- //
 
 
     m_camera.setPosition(next_pos + glm::vec3(0.0f, m_playerHeight, 0.0f));
