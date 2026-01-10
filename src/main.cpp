@@ -12,12 +12,6 @@ const bool VSYNC = true;
 
 int main(int argc, char** argv)
 {
-    glm::vec2 a = {1, 2};
-    glm::vec3 b = {1, 2, 3};
-    glm::vec4 c = {1, 2, 3, 4};
-    logD("{} {} {}", a, b, c);
-    return 0;
-
     global_argc = argc;
     global_argv = argv;
 
