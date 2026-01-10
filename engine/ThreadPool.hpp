@@ -16,13 +16,13 @@ public:
     void stop();
     void enqueue(std::function<void()> task);
 
-    std::vector<std::thread> _workers;
-    std::queue<std::function<void()>> _task_queue;
-    std::mutex _task_queue_mutex;
+    std::vector<std::thread> m_workers;
+    std::queue<std::function<void()>> m_taskQueue;
+    std::mutex m_taskQueueMutex;
 
 private:
-    std::condition_variable _cv;
-    bool _stop = false;
+    std::condition_variable m_cv;
+    bool m_stop = false;
 };
 
 /*

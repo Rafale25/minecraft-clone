@@ -42,11 +42,11 @@ public:
     {
         int size = 0;
         for (const auto &[name, bytes] : def) {
-            if (_uniforms.contains(name)) {
+            if (m_uniforms.contains(name)) {
                 logE("Duplicate uniform {}", name);
                 exit(-1);
             }
-            _uniforms.insert({name, {bytes, size}});
+            m_uniforms.insert({name, {bytes, size}});
             // logD("added {:30} {:-2} -> {:-2} ; {:-3}", name, bytes, getBytesPower(bytes), size);
 
             size += getBytesPower(bytes);
@@ -54,23 +54,23 @@ public:
 
         // logD("Buffer created with {} bytes", size);
 
-        _buffer = createBufferStorage(nullptr, size);
+        m_buffer = createBufferStorage(nullptr, size);
     }
 
     void bind(int id)
     {
-        glBindBufferBase(GL_UNIFORM_BUFFER, id, _buffer);
+        glBindBufferBase(GL_UNIFORM_BUFFER, id, m_buffer);
     }
 
     template <typename T>
     void set(const char* name, const T& data) {
-        const auto& it =_uniforms.find(name);
-        if (it != _uniforms.end()) {
+        const auto& it =m_uniforms.find(name);
+        if (it != m_uniforms.end()) {
             if (sizeof(data) != it->second.bytes) {
                 logE("{} data is {} instead of the {} registered", name, sizeof(data), it->second.bytes);
                 exit(-1);
             }
-            glNamedBufferSubData(_buffer, it->second.offset, it->second.bytes, &data);
+            glNamedBufferSubData(m_buffer, it->second.offset, it->second.bytes, &data);
         } else {
             logE("Uniform variable {} does not exist!", name);
         }
@@ -78,8 +78,8 @@ public:
 
 // private:
 public:
-    std::unordered_map<std::string, UniformInfo> _uniforms;
-    GLuint _buffer = 0;
+    std::unordered_map<std::string, UniformInfo> m_uniforms;
+    GLuint m_buffer = 0;
 };
 
 

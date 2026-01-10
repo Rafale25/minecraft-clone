@@ -13,11 +13,11 @@ public:
     using Struct = T;
 
     StructGPUBuffer() {
-        _buffer = createBufferStorage(nullptr, sizeof(T));
+        m_buffer = createBufferStorage(nullptr, sizeof(T));
     }
 
     void bind(int id) const {
-        glBindBufferBase(GL_UNIFORM_BUFFER, id, _buffer);
+        glBindBufferBase(GL_UNIFORM_BUFFER, id, m_buffer);
     }
 
     template <typename StructT, typename MemberT>
@@ -32,21 +32,21 @@ public:
         int offset = offset_of(member);
 
         memcpy(
-            reinterpret_cast<char*>(&data) + offset,
+            reinterpret_cast<char*>(&m_data) + offset,
             &value,
             sizeof(MemberT)
         );
 
-        glNamedBufferSubData(_buffer, offset, sizeof(MemberT), &value);
+        glNamedBufferSubData(m_buffer, offset, sizeof(MemberT), &value);
     }
 
     void upload() const {
-        glNamedBufferSubData(_buffer, 0, sizeof(T), &data);
+        glNamedBufferSubData(m_buffer, 0, sizeof(T), &m_data);
     }
 
 // private:
 
 public:
-    T data = {};
-    GLuint _buffer = 0;
+    T m_data = {};
+    GLuint m_buffer = 0;
 };

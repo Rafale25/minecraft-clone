@@ -15,7 +15,7 @@ void GameView::guiWorldEdit()
     static Blueprint bp = {};
     static int32_t selected_index = -1;
 
-    ImGui::Begin("WorldEdit", nullptr, !_cursor_enabled ? ImGuiWindowFlags_NoInputs : 0);
+    ImGui::Begin("WorldEdit", nullptr, !m_cursorEnabled ? ImGuiWindowFlags_NoInputs : 0);
 
     const std::string path = "blueprints";
     std::vector<BlueprintFileInfo> blueprint_infos;
@@ -29,8 +29,8 @@ void GameView::guiWorldEdit()
     }
 
     if (ImGui::Button("Save Selection as Blueprint")) {
-        const glm::ivec3 min = glm::min(blockA, blockB);
-        const glm::ivec3 max = glm::max(blockA, blockB);
+        const glm::ivec3 min = glm::min(m_blockA, m_blockB);
+        const glm::ivec3 max = glm::max(m_blockA, m_blockB);
         bp = createBlueprintFromSelection(min, max);
 
         ImGui::OpenPopup("SaveBlueprint");
@@ -96,7 +96,7 @@ void GameView::guiWorldEdit()
                 const Blueprint& temp_bp = createBlueprintFromFile(blueprint_infos[selected_index].entry.path().string());
                 // printf("%d %d %d\n", bp.dimensions.x, bp.dimensions.y, bp.dimensions.z);
                 // printf("%d\n", (int32_t)bp.blocks.size());
-                pasteBlueprintIntoWorld(temp_bp, player_blockraycasthit.block_pos);
+                pasteBlueprintIntoWorld(temp_bp, m_playerBlockRaycastHit.block_pos);
             }
         }
         ImGui::SameLine();

@@ -5,6 +5,27 @@
 #include <print>
 #include <chrono>
 
+
+#define GLM_EXT_INCLUDED
+#include <glm/gtx/type_trait.hpp>
+#include <glm/gtx/string_cast.hpp>
+#undef GLM_EXT_INCLUDED
+
+template<typename T>
+concept GLM_TYPE = glm::type<T>::is_vec || glm::type<T>::is_mat || glm::type<T>::is_quat;
+
+template <GLM_TYPE T>
+struct std::formatter<T>
+{
+    constexpr auto parse(std::format_parse_context& ctx) {
+        return ctx.begin();
+    }
+    auto format(const T& v, std::format_context& ctx) const {
+        return std::format_to(ctx.out(), "{}", glm::to_string(v));
+    }
+};
+
+
 #define _LOG_TIME_FORMAT "{:%H:%M:%S}"
 
 #ifdef NO_CHRONO_CURRENT_ZONE

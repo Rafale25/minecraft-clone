@@ -35,7 +35,7 @@ private:
     DebugDraw& operator=(DebugDraw&&) = delete;
 
 private:
-    ShaderProgram _program{ENGINE_RESSOURCE_PATH "debug_draw/line.vert", ENGINE_RESSOURCE_PATH "debug_draw/line.frag"};
-    GLuint _vao, _vbo;
-    std::vector<float> _vertices;
+    ShaderProgram m_program{ENGINE_RESSOURCE_PATH "debug_draw/line.vert", ENGINE_RESSOURCE_PATH "debug_draw/line.frag"};
+    GLuint m_vao, m_vbo;
+    std::vector<float> m_vertices;
 };

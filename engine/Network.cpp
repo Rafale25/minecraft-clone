@@ -72,7 +72,7 @@ int NetworkConnection::init() {
     // std::cout << "Socket is OK!" << std::endl;
     return 0;
 #else
-    _socket = socket(AF_INET, SOCK_STREAM, 0);
+    m_socket = socket(AF_INET, SOCK_STREAM, 0);
     return 0;
 #endif
 }
@@ -107,21 +107,21 @@ int NetworkConnection::connectToServer(const char *ip, int port) {
 
     fd_set set;
     FD_ZERO(&set);
-    FD_SET(_socket, &set);
+    FD_SET(m_socket, &set);
 
     // Set to blocking mode
-    int opts = fcntl(_socket, F_SETFL, O_NONBLOCK); // https://stackoverflow.com/questions/2597608/c-socket-connection-timeout
+    int opts = fcntl(m_socket, F_SETFL, O_NONBLOCK); // https://stackoverflow.com/questions/2597608/c-socket-connection-timeout
 
     // setNonBlocking(_socket);
 
     printf("Connecting to %s...\n", ip);
-    int res = connect(_socket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
+    int res = connect(m_socket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
     if (errno != EINPROGRESS) {
         printf("Connection failed.\n");
         return -1;
     }
 
-    res = select(_socket+1, NULL, &set, NULL, &tv);
+    res = select(m_socket+1, NULL, &set, NULL, &tv);
 
     if (res < 0 && errno != EINTR) {
         printf("Error connecting %d - %s\n", errno, strerror(errno));
@@ -131,7 +131,7 @@ int NetworkConnection::connectToServer(const char *ip, int port) {
         socklen_t lon = sizeof(int);
         int valopt;
 
-        if (getsockopt(_socket, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0) {
+        if (getsockopt(m_socket, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0) {
             fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno));
             exit(0);
         }
@@ -148,7 +148,7 @@ int NetworkConnection::connectToServer(const char *ip, int port) {
 
     // Set blocking mode back
     opts = opts & (~O_NONBLOCK);
-    fcntl(_socket, F_SETFL, opts);
+    fcntl(m_socket, F_SETFL, opts);
 
     return 0;
 #endif
@@ -183,7 +183,7 @@ int NetworkConnection::waitForData(const bool& should_stop)
     return 0;
 #else
     struct pollfd fds;
-    fds.fd = _socket;
+    fds.fd = m_socket;
     fds.events = POLLIN;
 
     while (!should_stop) {
@@ -201,20 +201,20 @@ int NetworkConnection::receive(uint8_t* buffer, uint32_t size) {
 #if defined(_WIN32)
     int bytes_read = recv(_socket, (char*)buffer, size, 0);
 #else
-    int bytes_read = recv(_socket, buffer, size, 0);
+    int bytes_read = recv(m_socket, buffer, size, 0);
 #endif
     return bytes_read;
 }
 
 int NetworkConnection::receiveAll(uint8_t* buffer, uint32_t size) {
-    return recvAll(_socket, buffer, size);
+    return recvAll(m_socket, buffer, size);
 }
 
 void NetworkConnection::sendD(const void *data, uint32_t size) {
 #if defined(_WIN32)
    int r = send(_socket, (const char*)data, size, 0);
 #else
-   int r = send(_socket, data, size, 0);
+   int r = send(m_socket, data, size, 0);
 #endif
 
     if (r != (int)size) {
@@ -229,6 +229,6 @@ void NetworkConnection::closeConnection() {
 #else
 #include <unistd.h>
 void NetworkConnection::closeConnection() {
-    close(_socket);
+    close(m_socket);
 }
 #endif

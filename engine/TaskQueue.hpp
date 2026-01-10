@@ -11,6 +11,6 @@ public:
     int32_t count() const;
 
 public:
-    std::deque<std::function<void()>> _task_queue;
-    std::mutex _task_queue_mutex;
+    std::deque<std::function<void()>> m_taskQueue;
+    std::mutex m_taskQueueMutex;
 };

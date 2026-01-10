@@ -11,13 +11,13 @@ void Client::decode(PacketId id, ByteBuffer buffer) {
 
 void Client::init(std::vector<std::string>& tchat, const char* ip, int32_t port)
 {
-    _tchat = &tchat;
+    m_tchat = &tchat;
 
-    if (_client.init() == 0) { // success
+    if (m_client.init() == 0) { // success
         logI("Connection initialized successfully");
     }
 
-    if (_client.connectToServer(ip, port) == 0) {
+    if (m_client.connectToServer(ip, port) == 0) {
         logI("Connected to server {}:{}", ip, port);
     }
 
@@ -26,15 +26,15 @@ void Client::init(std::vector<std::string>& tchat, const char* ip, int32_t port)
 
 void Client::Start()
 {
-    _stop_thread = false;
-    client_thread = std::thread(&Client::clientThreadFunc, this);
+    m_stopThread = false;
+    m_clientThread = std::thread(&Client::clientThreadFunc, this);
 }
 
 void Client::Stop()
 {
-    _stop_thread = true;
-    _client.closeConnection();
-    client_thread.join();
+    m_stopThread = true;
+    m_client.closeConnection();
+    m_clientThread.join();
 }
 
 void Client::clientThreadFunc()
@@ -42,11 +42,11 @@ void Client::clientThreadFunc()
     uint8_t buffer[35000] = {};
     int32_t recv_size = -1;
 
-    while (!_stop_thread)
+    while (!m_stopThread)
     {
-        _client.waitForData(_stop_thread); // wait for data to read
+        m_client.waitForData(m_stopThread); // wait for data to read
 
-        recv_size = _client.receiveAll(buffer, 1);
+        recv_size = m_client.receiveAll(buffer, 1);
         if (recv_size == -1) {
             logE("Failed to receive from server (packet id)");
             break;
@@ -60,7 +60,7 @@ void Client::clientThreadFunc()
         }
 
         const size_t packet_size = packets.at(id).size;
-        recv_size = _client.receiveAll(buffer, packet_size);
+        recv_size = m_client.receiveAll(buffer, packet_size);
         if (recv_size == -1) {
             logE("Failed to receive from server (packet data)");
             break;
@@ -73,5 +73,5 @@ void Client::clientThreadFunc()
 
 void Client::sendPacket(const void *buf, size_t size)
 {
-    _client.sendD(buf, size);
+    m_client.sendD(buf, size);
 }

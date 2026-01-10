@@ -12,6 +12,6 @@ static glm::mat4 MakeInfReversedZProjRH(float fovY_radians, float aspectWbyH, fl
 }
 
 glm::mat4 Camera::getProjection() const {
-    if (reversedZ_enabled) return MakeInfReversedZProjRH(glm::radians(fov), aspect_ratio, near_plane);
-    return glm::perspective(glm::radians(fov), aspect_ratio, near_plane, far_plane);
+    if (reversedZEnabled) return MakeInfReversedZProjRH(glm::radians(fov), aspectRatio, nearPlane);
+    return glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane);
 }

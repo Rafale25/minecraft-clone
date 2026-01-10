@@ -112,8 +112,8 @@ Context::Context(int width, int height, const char *title, int maximized, int sa
 
     double mouseX, mouseY;
     glfwGetCursorPos(window, &mouseX, &mouseY);
-    _mouse_x = mouseX;
-    _mouse_y = mouseY;
+    m_mouseX = mouseX;
+    m_mouseY = mouseY;
 
     this->width = width;
     this->height = height;
@@ -145,10 +145,10 @@ void Context::run()
 
         legit::Profiler::beginFrame();
 
-        _current_view->onUpdate(time_since_start, delta_time);
+        m_currentView->onUpdate(time_since_start, delta_time);
 
         imguiNewFrame();
-        _current_view->onDraw(time_since_start, delta_time);
+        m_currentView->onDraw(time_since_start, delta_time);
 
         legit::Profiler::endFrame();
         imguiRender();
@@ -158,7 +158,7 @@ void Context::run()
         glfwPollEvents();
     }
 
-    _current_view->onHideView();
+    m_currentView->onHideView();
 }
 
 void Context::swapBuffers()
@@ -229,8 +229,8 @@ void Context::imguiInit()
 
 void Context::showView(View& view)
 {
-    _current_view->onHideView();
-    _current_view = &view;
+    m_currentView->onHideView();
+    m_currentView = &view;
     view.onShowView();
 
     // call resize callback on first frame
@@ -253,25 +253,25 @@ void Context::key_callback(GLFWwindow* window, int key, int scancode, int action
 
     // call pressed/release events (need to do that because of key repeat)
     if (action == GLFW_PRESS)
-        ctx->_current_view->onKeyPress(key);
+        ctx->m_currentView->onKeyPress(key);
     else if (action == GLFW_RELEASE)
-        ctx->_current_view->onKeyRelease(key);
+        ctx->m_currentView->onKeyRelease(key);
 }
 
 void Context::cursor_position_callback(GLFWwindow* window, double x, double y)
 {
     Context* ctx = (Context*)glfwGetWindowUserPointer(window);
 
-    float dx = x - ctx->_mouse_x;
-    float dy = y - ctx->_mouse_y;
+    float dx = x - ctx->m_mouseX;
+    float dy = y - ctx->m_mouseY;
 
-    ctx->_current_view->onMouseMotion(x, y, dx, dy);
+    ctx->m_currentView->onMouseMotion(x, y, dx, dy);
 
-    ctx->_mouse_x = x;
-    ctx->_mouse_y = y;
+    ctx->m_mouseX = x;
+    ctx->m_mouseY = y;
 
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-        ctx->_current_view->onMouseDrag(x, y, dx, dy);
+        ctx->m_currentView->onMouseDrag(x, y, dx, dy);
     }
 }
 
@@ -280,16 +280,16 @@ void Context::mouse_button_callback(GLFWwindow* window, int button, int action, 
     Context* ctx = (Context*)glfwGetWindowUserPointer(window);
 
     if (action == GLFW_PRESS)
-        ctx->_current_view->onMousePress(ctx->_mouse_x, ctx->_mouse_y, button);
+        ctx->m_currentView->onMousePress(ctx->m_mouseX, ctx->m_mouseY, button);
     else if (action == GLFW_RELEASE)
-        ctx->_current_view->onMouseRelease(ctx->_mouse_x, ctx->_mouse_y, button);
+        ctx->m_currentView->onMouseRelease(ctx->m_mouseX, ctx->m_mouseY, button);
 }
 
 void Context::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     Context* ctx = (Context*)glfwGetWindowUserPointer(window);
 
-    ctx->_current_view->onMouseScroll(xoffset, yoffset);
+    ctx->m_currentView->onMouseScroll(xoffset, yoffset);
 }
 
 void Context::cursor_enter_callback(GLFWwindow* window, int entered)
@@ -297,9 +297,9 @@ void Context::cursor_enter_callback(GLFWwindow* window, int entered)
     Context* ctx = (Context*)glfwGetWindowUserPointer(window);
 
     if (entered)
-        ctx->_current_view->onMouseEnter(ctx->_mouse_x, ctx->_mouse_y);
+        ctx->m_currentView->onMouseEnter(ctx->m_mouseX, ctx->m_mouseY);
     else
-        ctx->_current_view->onMouseLeave(ctx->_mouse_x, ctx->_mouse_y);
+        ctx->m_currentView->onMouseLeave(ctx->m_mouseX, ctx->m_mouseY);
 }
 
 void Context::framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -308,5 +308,5 @@ void Context::framebuffer_size_callback(GLFWwindow* window, int width, int heigh
 
     ctx->width = width;
     ctx->height = height;
-    ctx->_current_view->onResize(width, height);
+    ctx->m_currentView->onResize(width, height);
 }

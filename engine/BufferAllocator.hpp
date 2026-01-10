@@ -41,18 +41,18 @@ public:
     BufferSlot allocate(int32_t size, const void * data);
     void deallocate(const BufferSlot& slot);
 
-    GLuint getBufferObject() const { return _buffer; };
-    int32_t getMaxMemory() const { return _max_memory; };
-    int32_t getAvailableMemory() const { return _available_memory; };
-    int32_t getSlotCount() const { return _slots.size(); };
+    GLuint getBufferObject() const { return m_buffer; };
+    int32_t getMaxMemory() const { return m_maxMemory; };
+    int32_t getAvailableMemory() const { return m_availableMemory; };
+    int32_t getSlotCount() const { return m_slots.size(); };
 
 private:
-    const char* _name;
-    const size_t _max_memory;
-    size_t _available_memory;
+    const char* m_name;
+    const size_t m_maxMemory;
+    size_t m_availableMemory;
 
-    GLuint _buffer;
+    GLuint m_buffer;
 
-    std::map<int32_t, std::vector<std::list<BufferSlot>::iterator>> _free_slot_of_size;
-    std::list<BufferSlot> _slots;
+    std::map<int32_t, std::vector<std::list<BufferSlot>::iterator>> m_freeSlotOfSize;
+    std::list<BufferSlot> m_slots;
 };

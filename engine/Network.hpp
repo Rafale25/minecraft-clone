@@ -24,6 +24,6 @@ private:
 #if defined(_WIN32)
     SOCKET _socket;
 #else
-    int _socket;
+    int m_socket;
 #endif
 };

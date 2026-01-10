@@ -74,7 +74,7 @@ void BlockTextureManager::_loadAllTextures()
         if (!glIsTextureHandleResidentARB(texture_handle_hy)) glMakeTextureHandleResidentARB(texture_handle_hy);
 #endif
 
-        uint32_t id_base_offset = textures_handles.size();
+        uint32_t id_base_offset = m_texturesHandles.size();
         uint32_t texture_id_lz = id_base_offset + 0;
         uint32_t texture_id_hz = id_base_offset + 1;
         uint32_t texture_id_lx = id_base_offset + 2;
@@ -82,14 +82,14 @@ void BlockTextureManager::_loadAllTextures()
         uint32_t texture_id_ly = id_base_offset + 4;
         uint32_t texture_id_hy = id_base_offset + 5;
 
-        textures_handles.push_back(texture_handle_lz);
-        textures_handles.push_back(texture_handle_hz);
-        textures_handles.push_back(texture_handle_lx);
-        textures_handles.push_back(texture_handle_hx);
-        textures_handles.push_back(texture_handle_ly);
-        textures_handles.push_back(texture_handle_hy);
+        m_texturesHandles.push_back(texture_handle_lz);
+        m_texturesHandles.push_back(texture_handle_hz);
+        m_texturesHandles.push_back(texture_handle_lx);
+        m_texturesHandles.push_back(texture_handle_hx);
+        m_texturesHandles.push_back(texture_handle_ly);
+        m_texturesHandles.push_back(texture_handle_hy);
 
-        block_textures_handles.insert( {(BlockType)i, {texture_handle_lz, texture_handle_hz, texture_handle_lx, texture_handle_hx, texture_handle_ly, texture_handle_hy}} );
-        block_textures_ids.insert( {(BlockType)i, {texture_id_lz, texture_id_hz, texture_id_lx, texture_id_hx, texture_id_ly, texture_id_hy}} );
+        m_blockTexturesHandles.insert( {(BlockType)i, {texture_handle_lz, texture_handle_hz, texture_handle_lx, texture_handle_hx, texture_handle_ly, texture_handle_hy}} );
+        m_blockTexturesIds.insert( {(BlockType)i, {texture_id_lz, texture_id_hz, texture_id_lx, texture_id_hx, texture_id_ly, texture_id_hy}} );
     }
 }

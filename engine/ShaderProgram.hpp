@@ -11,9 +11,9 @@ class ShaderProgram
 {
 private:
     GLuint ID = 0;
-    const char* _vertexPath;
-    const char* _fragmentPath;
-    const char* _geometryPath;
+    const char* m_vertexPath;
+    const char* m_fragmentPath;
+    const char* m_geometryPath;
 
     std::unordered_map<std::string, int> _uniformsLocations;
 

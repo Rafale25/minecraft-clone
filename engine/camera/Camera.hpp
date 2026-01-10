@@ -6,7 +6,7 @@ class Camera {
     public:
         Camera() {}
         Camera(float fov, float aspect_ratio, float near_plane, float far_plane, bool reversedZ_enabled=false):
-            fov(fov), aspect_ratio(aspect_ratio), near_plane(near_plane), far_plane(far_plane), reversedZ_enabled(reversedZ_enabled)
+            fov(fov), aspectRatio(aspect_ratio), nearPlane(near_plane), farPlane(far_plane), reversedZEnabled(reversedZ_enabled)
         {}
 
         virtual ~Camera() = default;
@@ -22,8 +22,8 @@ class Camera {
 
     public:
         float fov = 60.0f;
-        float aspect_ratio = 16.0f / 9.0f;
-        float near_plane = 0.1f;
-        float far_plane = 1000.0f;
-        bool reversedZ_enabled = false;
+        float aspectRatio = 16.0f / 9.0f;
+        float nearPlane = 0.1f;
+        float farPlane = 1000.0f;
+        bool reversedZEnabled = false;
 };

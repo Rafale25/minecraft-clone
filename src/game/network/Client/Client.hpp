@@ -93,17 +93,17 @@ private:
     void sendPacket(const void *buf, size_t size);
 
 public:
-    TaskQueue task_queue;
+    TaskQueue m_taskQueue;
 
-    std::deque<Packet::Server::ChunkPacket*> new_chunks;
-    std::mutex new_chunks_mutex;
+    std::deque<Packet::Server::ChunkPacket*> m_newChunks;
+    std::mutex m_newChunksMutex;
 
-    int32_t client_id = -1;
+    int32_t m_clientId = -1;
 
 private:
-    NetworkConnection _client;
+    NetworkConnection m_client;
 
-    bool _stop_thread;
-    std::thread client_thread;
-    std::vector<std::string>* _tchat;
+    bool m_stopThread;
+    std::thread m_clientThread;
+    std::vector<std::string>* m_tchat;
 };

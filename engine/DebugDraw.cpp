@@ -22,21 +22,21 @@ static inline float intBitsToFloat(int32_t int_value) {
 DebugDraw::DebugDraw()
 {
     constexpr int initial_size = 10'000 * sizeof(float) * 4;
-    _vbo = createBufferData(nullptr, initial_size, GL_DYNAMIC_DRAW);
-    _vao = createVAO(_vbo, "3f 1i");
+    m_vbo = createBufferData(nullptr, initial_size, GL_DYNAMIC_DRAW);
+    m_vao = createVAO(m_vbo, "3f 1i");
 }
 
 void DebugDraw::drawLine(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &color)
 {
-    _vertices.emplace_back(a.x);
-    _vertices.emplace_back(a.y);
-    _vertices.emplace_back(a.z);
-    _vertices.emplace_back(intBitsToFloat(packColor(color.r * 255, color.g * 255, color.b * 255)));
+    m_vertices.emplace_back(a.x);
+    m_vertices.emplace_back(a.y);
+    m_vertices.emplace_back(a.z);
+    m_vertices.emplace_back(intBitsToFloat(packColor(color.r * 255, color.g * 255, color.b * 255)));
 
-    _vertices.emplace_back(b.x);
-    _vertices.emplace_back(b.y);
-    _vertices.emplace_back(b.z);
-    _vertices.emplace_back(intBitsToFloat(packColor(color.r * 255, color.g * 255, color.b * 255)));
+    m_vertices.emplace_back(b.x);
+    m_vertices.emplace_back(b.y);
+    m_vertices.emplace_back(b.z);
+    m_vertices.emplace_back(intBitsToFloat(packColor(color.r * 255, color.g * 255, color.b * 255)));
 }
 
 void DebugDraw::drawRay(const glm::vec3 &start, const glm::vec3 &v, const glm::vec3 &color)
@@ -127,33 +127,33 @@ void DebugDraw::drawFrustum(const glm::mat4 &view_projection, const glm::vec3& c
 }
 
 void DebugDraw::draw(const glm::mat4& view_projection) {
-    const int32_t vertex_count = _vertices.size() / 4; // x y z packedColor
-    const int32_t vertices_size_bytes = _vertices.size() * sizeof(float);
+    const int32_t vertex_count = m_vertices.size() / 4; // x y z packedColor
+    const int32_t vertices_size_bytes = m_vertices.size() * sizeof(float);
 
     int32_t buffer_size = -1;
-    glGetNamedBufferParameteriv(_vbo, GL_BUFFER_SIZE, &buffer_size);
+    glGetNamedBufferParameteriv(m_vbo, GL_BUFFER_SIZE, &buffer_size);
 
     if (buffer_size < vertices_size_bytes) {
-        glNamedBufferData(_vbo, vertices_size_bytes, (const void *)_vertices.data(), GL_DYNAMIC_DRAW);
+        glNamedBufferData(m_vbo, vertices_size_bytes, (const void *)m_vertices.data(), GL_DYNAMIC_DRAW);
     } else {
-        glNamedBufferSubData(_vbo, 0, vertices_size_bytes, (const void *)_vertices.data());
+        glNamedBufferSubData(m_vbo, 0, vertices_size_bytes, (const void *)m_vertices.data());
     }
 
-    _program.use();
-    _program.setMat4("u_viewProjection", view_projection);
+    m_program.use();
+    m_program.setMat4("u_viewProjection", view_projection);
 
     float line_width; // save state
     glGetFloatv(GL_LINE_WIDTH, &line_width);
     glLineWidth(2.0f);
 
-    glBindVertexArray(_vao);
+    glBindVertexArray(m_vao);
     glDrawArrays(GL_LINES, 0, vertex_count);
 
     glLineWidth(line_width);
 }
 
 void DebugDraw::flush() {
-    _vertices.clear();
+    m_vertices.clear();
 }
 
 void DebugDraw::drawAndFlush(const glm::mat4& view_projection)
