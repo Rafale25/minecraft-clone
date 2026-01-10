@@ -10,9 +10,9 @@
 	path = submodules/glm
 	url = https://github.com/g-truc/glm
 	shallow = true
-[submodule ".\\submodules\\lua"]
-	path = .\\submodules\\lua
+[submodule "submodules/lua"]
+	path = submodules/lua
 	url = https://github.com/walterschell/Lua
-[submodule "submodules\\sol2"]
-	path = submodules\\sol2
+[submodule "submodules/sol2"]
+	path = submodules/sol2
 	url = https://github.com/ThePhD/sol2
