@@ -14,14 +14,12 @@ const vec3 orientation_normal_table[] = {
     vec3(1.0, 0.0, 0.0), // Right = 5
 };
 
+
 in VS_OUT {
     vec3 frag_pos;
     vec2 uv;
-    flat uint orientation;
-    flat uint texture_id;
     float ambient_occlusion;
-    vec4 FragPosLightSpace;
-    flat uint isTranslucent;
+    flat uint data;
 } fs_in;
 
 #include "uniforms.glsl"
@@ -36,15 +34,29 @@ layout (location = 2) out vec3 gNormals;
 
 uniform sampler2DArray u_shadowmap;
 
+void unpackData(uint data, inout uint orientation, inout uint isTranslucent, inout uint isEmissive, inout uint textureId)
+{
+    orientation =       data       & 7;
+    isTranslucent =    (data >> 3) & 1;
+    isEmissive =       (data >> 4) & 1;
+    textureId =        (data >> 5) & 511;
+}
+
 void main()
 {
+    uint fs_in_orientation;
+    uint fs_in_isTranslucent;
+    uint fs_in_isEmissive;
+    uint fs_in_texture_id;
+    unpackData(fs_in.data, fs_in_orientation, fs_in_isTranslucent, fs_in_isEmissive, fs_in_texture_id);
+
     vec2 uv = (gl_FragCoord.xy - 0.5*uniforms.resolution.xy) / uniforms.resolution.y;
 
     // vec4 color = vec4(0.2, 1.0, 0.0, 1.0);
-    vec4 color = texture(texture_handles[fs_in.texture_id], fs_in.uv).rgba;
+    vec4 color = texture(texture_handles[fs_in_texture_id], fs_in.uv).rgba;
     color.rgb = toLinearSRGB(color.rgb);// pow(color.rgb, vec3(2.2));
 
-    vec3 normal = orientation_normal_table[fs_in.orientation];
+    vec3 normal = orientation_normal_table[fs_in_orientation];
     vec3 lightColor = vec3(255.0, 244.0, 196.0) / 255.0;
 
     // ambient
@@ -55,7 +67,7 @@ void main()
     float diff = max(dot(normal, normalize(uniforms.sunDirection.xyz)), 0.0);
     vec3 diffuse = diff * lightColor;
 
-    if (fs_in.isTranslucent == 0 && color.a < 0.65) { // magic value
+    if (fs_in_isTranslucent == 0 && color.a < 0.65) { // magic value
         discard;
     }
 
@@ -71,8 +83,11 @@ void main()
     || uniforms.sunDirection.y < 0.0) // if sun is under the ground (points up)
         shadow = 1.0;
 
-    /*
-    */
+
+    if (fs_in_isEmissive == 1) {
+        shadow = 0.0;
+        diffuse = lightColor;
+    }
 
     // vec3 lighting = (ambient + diffuse) * color.rgb;
     vec3 lighting = (ambient + (1.0 - shadow) * diffuse) * color.rgb;

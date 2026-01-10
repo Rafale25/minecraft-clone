@@ -11,14 +11,30 @@ layout(binding = 2, std430) readonly buffer ssbo_blocks_faces {
     uint64_t blocks_faces[];
 };
 
+// TODO: optimize VS_OUT
+// improve layout & compact stuff
+uint packData(uint orientation, uint isTranslucent, uint isEmissive, uint textureId)
+{
+    return
+        ((orientation       & 7)       ) |
+        ((isTranslucent     & 1)   << 3) |
+        ((isEmissive        & 1)   << 4) |
+        ((textureId         & 511) << 5);
+}
+
 out VS_OUT {
     vec3 frag_pos;
     vec2 uv;
-    flat uint orientation;
-    flat uint texture_id;
     float ambient_occlusion;
-    vec4 FragPosLightSpace;
-    flat uint isTranslucent;
+
+    flat uint data; // tttttttttetaaooo
+
+    // flat uint orientation;
+    // flat uint isTranslucent;
+    // flat uint isEmissive;
+    // flat uint texture_id;
+
+    // vec4 FragPosLightSpace;
 } vs_out;
 
 #include "uniforms.glsl"
@@ -73,6 +89,7 @@ void main() {
     };
 
     uint isTranslucent = uint((data >> 40) & 1);
+    uint isEmissive = uint((data >> 41) & 1);
 
     int offset = (orientation == 1 || orientation == 3) ? 4 : 0;
     int vertex_index = (gl_VertexID % 4) + offset;
@@ -98,13 +115,17 @@ void main() {
     // vec3 world_pos = chunk_positions[gl_DrawID].xyz + block_pos + model_offset;
     vec3 world_pos = chunk_positions[gl_DrawID].xyz + block_pos + model_offset;
 
-    vs_out.FragPosLightSpace = uniforms.lightSpaceMatrix * vec4(world_pos, 1.0);
+    // vs_out.FragPosLightSpace = uniforms.lightSpaceMatrix * vec4(world_pos, 1.0);
     vs_out.frag_pos = world_pos;
     vs_out.uv = uv;
-    vs_out.orientation = orientation;
-    vs_out.texture_id = texture_id;
     vs_out.ambient_occlusion = ao_factor;
-    vs_out.isTranslucent = isTranslucent;
+
+    vs_out.data = packData(orientation, isTranslucent, isEmissive, uint(texture_id));
+
+    // vs_out.orientation = orientation;
+    // vs_out.isTranslucent = isTranslucent;
+    // vs_out.isEmissive = isEmissive;
+    // vs_out.texture_id = texture_id;
 
     gl_Position = uniforms.projection_view  * vec4(world_pos, 1.0);
 }
