@@ -3,7 +3,7 @@
 #include "ChunkExtra.hpp"
 #include "Logger.hpp"
 
-static inline GLuint64 packVertex(int32_t x, int32_t y, int32_t z, int32_t o, int32_t t, int32_t ao00, int32_t ao10, int32_t ao11, int32_t ao01, bool translucent) {
+static inline GLuint64 packVertex(int32_t x, int32_t y, int32_t z, int32_t o, int32_t t, int32_t ao00, int32_t ao10, int32_t ao11, int32_t ao01, bool translucent, bool emissive) {
     // 8 bytes, 64 bits
 
     // -----------------------iaaaaaaaa
@@ -19,7 +19,8 @@ static inline GLuint64 packVertex(int32_t x, int32_t y, int32_t z, int32_t o, in
         (((GLuint64)(ao10 & 3)) << 34) |
         (((GLuint64)(ao11 & 3)) << 36) |
         (((GLuint64)(ao01 & 3)) << 38) |
-        (((GLuint64)(translucent & 1)) << 40);
+        (((GLuint64)(translucent & 1)) << 40) |
+        (((GLuint64)(emissive & 1)) << 41);
 
     return p;
 }
@@ -162,7 +163,7 @@ static inline void makeFace(
     int32_t a11 = vertexAO(nb_hx, nb_hy, nb_hxhy);
     int32_t a01 = vertexAO(nb_lx, nb_hy, nb_lxhy);
 
-    GLuint64 facedata = packVertex(x, y, z, orientation, texture_id, a00, a10, a11, a01, self_block_info.translucent);
+    GLuint64 facedata = packVertex(x, y, z, orientation, texture_id, a00, a10, a11, a01, self_block_info.translucent, self_block_info.emissive);
 
     if (self_block_info.translucent) {
         mesh.vertices_translucent.push_back(facedata);

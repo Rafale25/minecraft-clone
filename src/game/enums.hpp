@@ -80,74 +80,75 @@ struct TextureCube {
     TextureName lz, hz, lx, hx, ly, hy;
 };
 
+#define T TextureName
+
 struct BlockInfo {
     // TODO: Use bit field instead
-    bool transparent;
-    bool translucent;
-    bool affectsAmbiantOcclusion;
-    bool liquid;
-    TextureCube textures;
+    bool transparent = false;
+    bool translucent = false;
+    bool affectsAmbiantOcclusion = false;
+    bool liquid = false;
+    bool emissive = false;
+    TextureCube textures = {T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID};
 };
-
-#define T TextureName
 
 constexpr BlockInfo g_blocksInfo[] = {
     // Air = 0
-    { true, false, false, false, {T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID} },
+    { true, false, false, false, false, {T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID} },
 
     // Grass = 1
-    { false, false, true, false, {T::GrassSide, T::GrassSide, T::GrassSide, T::GrassSide, T::Dirt, T::GrassTop} },
+    { false, false, true, false, false, {T::GrassSide, T::GrassSide, T::GrassSide, T::GrassSide, T::Dirt, T::GrassTop} },
 
     // Dirt = 2
-    { false, false, true, false, {T::Dirt, T::Dirt, T::Dirt, T::Dirt, T::Dirt, T::Dirt} },
+    { false, false, true, false, false, {T::Dirt, T::Dirt, T::Dirt, T::Dirt, T::Dirt, T::Dirt} },
 
     // Stone = 3
-    { false, false, true, false, {T::Stone, T::Stone, T::Stone, T::Stone, T::Stone, T::Stone} },
+    { false, false, true, false, false, {T::Stone, T::Stone, T::Stone, T::Stone, T::Stone, T::Stone} },
 
     // OakLog = 4
-    { false, false, true, false, {T::OakLog, T::OakLog, T::OakLog, T::OakLog, T::OakLogTop, T::OakLogTop} },
+    { false, false, true, false, false, {T::OakLog, T::OakLog, T::OakLog, T::OakLog, T::OakLogTop, T::OakLogTop} },
 
     // OakLeaves = 5
-    { true, false, true, false, {T::OakLeaves, T::OakLeaves, T::OakLeaves, T::OakLeaves, T::OakLeaves, T::OakLeaves} },
+    { true, false, true, false, false, {T::OakLeaves, T::OakLeaves, T::OakLeaves, T::OakLeaves, T::OakLeaves, T::OakLeaves} },
 
     // Glass = 6
-    { true, false, false, false, {T::Glass, T::Glass, T::Glass, T::Glass, T::Glass, T::Glass} },
+    { true, false, false, false, false, {T::Glass, T::Glass, T::Glass, T::Glass, T::Glass, T::Glass} },
 
     // Water = 7
-    { false, true, false, true, {T::Water, T::Water, T::Water, T::Water, T::Water, T::Water} },
+    { false, true, false, true, false, {T::Water, T::Water, T::Water, T::Water, T::Water, T::Water} },
 
     // Sand = 8
-    { false, false, true, false, {T::Sand, T::Sand, T::Sand, T::Sand, T::Sand, T::Sand} },
+    { false, false, true, false, false, {T::Sand, T::Sand, T::Sand, T::Sand, T::Sand, T::Sand} },
 
     // Snow = 9
-    { false, false, true, false, {T::Snow, T::Snow, T::Snow, T::Snow, T::Snow, T::Snow} },
+    { false, false, true, false, false, {T::Snow, T::Snow, T::Snow, T::Snow, T::Snow, T::Snow} },
 
     // OakPlank = 10
-    { false, false, true, false, {T::OakPlank, T::OakPlank, T::OakPlank, T::OakPlank, T::OakPlank, T::OakPlank} },
+    { false, false, true, false, false, {T::OakPlank, T::OakPlank, T::OakPlank, T::OakPlank, T::OakPlank, T::OakPlank} },
 
     // StoneBrick = 11
-    { false, false, true, false, {T::StoneBrick, T::StoneBrick, T::StoneBrick, T::StoneBrick, T::StoneBrick, T::StoneBrick} },
+    { false, false, true, false, false, {T::StoneBrick, T::StoneBrick, T::StoneBrick, T::StoneBrick, T::StoneBrick, T::StoneBrick} },
 
     // Netherrack = 12
-    { false, false, true, false, {T::Netherrack, T::Netherrack, T::Netherrack, T::Netherrack, T::Netherrack, T::Netherrack} },
+    { false, false, true, false, false, {T::Netherrack, T::Netherrack, T::Netherrack, T::Netherrack, T::Netherrack, T::Netherrack} },
 
     // Gold = 13
-    { false, false, true, false, {T::Gold, T::Gold, T::Gold, T::Gold, T::Gold, T::Gold} },
+    { false, false, true, false, false, {T::Gold, T::Gold, T::Gold, T::Gold, T::Gold, T::Gold} },
 
     // PackedIce = 14
-    { false, false, true, false, {T::PackedIce, T::PackedIce, T::PackedIce, T::PackedIce, T::PackedIce, T::PackedIce} },
+    { false, false, true, false, false, {T::PackedIce, T::PackedIce, T::PackedIce, T::PackedIce, T::PackedIce, T::PackedIce} },
 
     // Lava = 15
-    { false, false, true, false, {T::Lava, T::Lava, T::Lava, T::Lava, T::Lava, T::Lava} },
+    { false, false, true, false, true, {T::Lava, T::Lava, T::Lava, T::Lava, T::Lava, T::Lava} },
 
     // Barrel = 16
-    { false, false, true, false, {T::BarrelSide, T::BarrelSide, T::BarrelSide, T::BarrelSide, T::BarrelBottom, T::BarrelTop} },
+    { false, false, true, false, false, {T::BarrelSide, T::BarrelSide, T::BarrelSide, T::BarrelSide, T::BarrelBottom, T::BarrelTop} },
 
     // Bookshelf = 17
-    { false, false, true, false, {T::BookshelfSide, T::BookshelfSide, T::BookshelfSide, T::BookshelfSide, T::BookshelfBottom, T::BookshelfTop} },
+    { false, false, true, false, false, {T::BookshelfSide, T::BookshelfSide, T::BookshelfSide, T::BookshelfSide, T::BookshelfBottom, T::BookshelfTop} },
 
     // INVALID
-    { false, false, false, false, {T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID} },
+    { false, false, false, false, false, {T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID, T::INVALID} },
 };
 
 #undef T
