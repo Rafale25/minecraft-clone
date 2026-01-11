@@ -22,7 +22,7 @@ public:
 private:
 
 #if defined(_WIN32)
-    SOCKET _socket;
+    SOCKET m_socket;
 #else
     int m_socket;
 #endif

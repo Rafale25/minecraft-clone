@@ -61,10 +61,10 @@ int NetworkConnection::init() {
         // std::cout << "The status: " << wsaData.szSystemStatus << std::endl;
     }
 
-    _socket = INVALID_SOCKET;
-    _socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    m_socket = INVALID_SOCKET;
+    m_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-    if (_socket == INVALID_SOCKET) {
+    if (m_socket == INVALID_SOCKET) {
         logF("Error at socket(): {}", WSAGetLastError());
         WSACleanup();
         return -1;
@@ -85,7 +85,7 @@ int NetworkConnection::connectToServer(const char *ip, int port) {
     service.sin_addr.s_addr = inet_addr(ip);  // Replace with your desired IP address
     service.sin_port = htons(port);  // Choose a port number
 
-    if (connect(_socket, (SOCKADDR*)&service, sizeof(service)) == SOCKET_ERROR) {
+    if (connect(m_socket, (SOCKADDR*)&service, sizeof(service)) == SOCKET_ERROR) {
         // std::cout << "Client: connect() - Failed to connect: " << WSAGetLastError() << std::endl;
         WSACleanup();
         return -1;
@@ -112,7 +112,7 @@ int NetworkConnection::connectToServer(const char *ip, int port) {
     // Set to blocking mode
     int opts = fcntl(m_socket, F_SETFL, O_NONBLOCK); // https://stackoverflow.com/questions/2597608/c-socket-connection-timeout
 
-    // setNonBlocking(_socket);
+    // setNonBlocking(m_socket);
 
     printf("Connecting to %s...\n", ip);
     int res = connect(m_socket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
@@ -161,13 +161,13 @@ int NetworkConnection::waitForData(const bool& should_stop)
     while (!should_stop)
     {
         FD_ZERO(&set);
-        FD_SET(_socket, &set);
+        FD_SET(m_socket, &set);
 
         struct timeval tv;
         tv.tv_sec = 0;
         tv.tv_usec = 30; //timeout; // N Microseconds for Polling
 
-        int res = select(_socket + 1, &set, NULL, NULL, &tv);
+        int res = select(m_socket + 1, &set, NULL, NULL, &tv);
 
         if (res == SOCKET_ERROR) {
             // std::cout << "Socket Error" << std::endl;
@@ -199,7 +199,7 @@ int NetworkConnection::waitForData(const bool& should_stop)
 
 int NetworkConnection::receive(uint8_t* buffer, uint32_t size) {
 #if defined(_WIN32)
-    int bytes_read = recv(_socket, (char*)buffer, size, 0);
+    int bytes_read = recv(m_socket, (char*)buffer, size, 0);
 #else
     int bytes_read = recv(m_socket, buffer, size, 0);
 #endif
@@ -212,7 +212,7 @@ int NetworkConnection::receiveAll(uint8_t* buffer, uint32_t size) {
 
 void NetworkConnection::sendD(const void *data, uint32_t size) {
 #if defined(_WIN32)
-   int r = send(_socket, (const char*)data, size, 0);
+   int r = send(m_socket, (const char*)data, size, 0);
 #else
    int r = send(m_socket, data, size, 0);
 #endif
@@ -224,7 +224,7 @@ void NetworkConnection::sendD(const void *data, uint32_t size) {
 
 #if defined(_WIN32)
 void NetworkConnection::closeConnection() {
-    closesocket(_socket);
+    closesocket(m_socket);
 }
 #else
 #include <unistd.h>
