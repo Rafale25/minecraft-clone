@@ -27,12 +27,11 @@ out VS_OUT {
     vec2 uv;
     float ambient_occlusion;
 
-    flat uint data; // tttttttttetaaooo
-
-    // flat uint orientation;
-    // flat uint isTranslucent;
-    // flat uint isEmissive;
-    // flat uint texture_id;
+    flat uint data;
+    // orientation 3 bits
+    // isTranslucent 1 bit
+    // isEmissive 1 bit
+    // texture_id 9 bits
 
     // vec4 FragPosLightSpace;
 } vs_out;
