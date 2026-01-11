@@ -18,7 +18,7 @@ class Geometry {
     public:
         // TODO: add position and size args (https://moderngl-window.readthedocs.io/en/latest/reference/geometry.html)
         static Mesh quad_2d();
-        static Mesh cube(const glm::vec3& size, const glm::vec3& center, bool normal = false, bool uvs = false);
+        static Mesh cube(const glm::vec3& size, const glm::vec3& center, bool normal=false, bool uvs=false);
 
         // void quad_fs() {}
         // void sphere() {}
