@@ -72,13 +72,13 @@ void main() {
     uint64_t data = blocks_faces[gl_BaseInstance + gl_VertexID / 6];
 
     ivec3 block_pos = ivec3(
-        int((data >> 0)  & 63),
-        int((data >> 6)  & 63),
-        int((data >> 12) & 63)
+        int((data >> 0)  & uint64_t(63)),
+        int((data >> 6)  & uint64_t(63)),
+        int((data >> 12) & uint64_t(63))
     );
 
-    int orientation = int((data >> 18) & 7);
-    int texture_id  = int((data >> 21) & 511);
+    int orientation = int((data >> 18) & uint64_t(7));
+    int texture_id  = int((data >> 21) & uint64_t(511));
 
     // int ao[4] = {
     //     int((data >> 32) & 3),
@@ -87,8 +87,8 @@ void main() {
     //     int((data >> 38) & 3)
     // };
 
-    uint isTranslucent = uint((data >> 40) & 1);
-    uint isEmissive = uint((data >> 41) & 1);
+    uint isTranslucent = uint((data >> 40) & uint64_t(1));
+    uint isEmissive = uint((data >> 41) & uint64_t(1));
 
     int offset = (orientation == 1 || orientation == 3) ? 4 : 0;
     int vertex_index = (gl_VertexID % 4) + offset;
