@@ -48,15 +48,15 @@ const ivec2 model_face_flipped[8] = {
     ivec2(0, 1), ivec2(1, 1), ivec2(1, 0), ivec2(0, 0)
 };
 
-const int ao_order[8] = {
-    1, 2, 3, 0,
-    3, 2, 1, 0
-};
+// const int ao_order[8] = {
+//     1, 2, 3, 0,
+//     3, 2, 1, 0
+// };
 
-const int ao_order_flipped[8] = {
-    0, 1, 2, 3,
-    0, 3, 2, 1
-};
+// const int ao_order_flipped[8] = {
+//     0, 1, 2, 3,
+//     0, 3, 2, 1
+// };
 
 ivec2 rotate_uv(ivec2 uv, int rot) {
     switch (rot) {
@@ -80,12 +80,12 @@ void main() {
     int orientation = int((data >> 18) & 7);
     int texture_id  = int((data >> 21) & 511);
 
-    int ao[4] = {
-        int((data >> 32) & 3),
-        int((data >> 34) & 3),
-        int((data >> 36) & 3),
-        int((data >> 38) & 3)
-    };
+    // int ao[4] = {
+    //     int((data >> 32) & 3),
+    //     int((data >> 34) & 3),
+    //     int((data >> 36) & 3),
+    //     int((data >> 38) & 3)
+    // };
 
     uint isTranslucent = uint((data >> 40) & 1);
     uint isEmissive = uint((data >> 41) & 1);
@@ -93,7 +93,7 @@ void main() {
     int offset = (orientation == 1 || orientation == 3) ? 4 : 0;
     int vertex_index = (gl_VertexID % 4) + offset;
 
-    bool flip = (ao[0] + ao[2]) > (ao[1] + ao[3]);
+    // bool flip = (ao[0] + ao[2]) > (ao[1] + ao[3]);
     // const ivec2[] model = flip ? model_face : model_face_flipped;
     // const int[] ao_index = flip ? ao_order_flipped : ao_order;
 
@@ -103,13 +103,13 @@ void main() {
     ivec2 uv;
     int ao_value;
 
-    if (flip) {
+    // if (flip) {
         uv = model_face[vertex_index];
-        ao_value = ao_order_flipped[vertex_index];
-    } else {
-        uv = model_face_flipped[vertex_index];
-        ao_value = ao_order[vertex_index];
-    }
+        // ao_value = ao_order_flipped[vertex_index];
+    // } else {
+    //     uv = model_face_flipped[vertex_index];
+    //     ao_value = ao_order[vertex_index];
+    // }
 
 
     switch (orientation) {
@@ -121,7 +121,7 @@ void main() {
         case 5: model_offset = vec3(1, uv.y, uv.x); break; // RIGHT
     }
 
-    float ao_factor = float(ao[ao_value]) / 3.0;
+    // float ao_factor = float(ao[ao_value]) / 3.0;
 
     // vec3 world_pos = chunk_positions[gl_DrawID].xyz + block_pos + model_offset;
     vec3 world_pos = chunk_positions[gl_DrawID].xyz + block_pos + model_offset;
@@ -129,7 +129,7 @@ void main() {
     // vs_out.FragPosLightSpace = uniforms.lightSpaceMatrix * vec4(world_pos, 1.0);
     vs_out.frag_pos = world_pos;
     vs_out.uv = uv;
-    vs_out.ambient_occlusion = ao_factor;
+    vs_out.ambient_occlusion = 1.0;//ao_factor;
 
     vs_out.data = packData(orientation, isTranslucent, isEmissive, uint(texture_id));
 
