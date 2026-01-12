@@ -12,7 +12,6 @@ int getShadowMapLayer(mat4 viewMatrix, vec3 fragWorldPos, int cascadeCount)
 {
     vec4 fragPosViewSpace = viewMatrix * vec4(fragWorldPos, 1.0);
     float depthValue = abs(fragPosViewSpace.z);
-    // float depthValue = distance(fragWorldPos, uniforms.viewPosition.xyz);
 
     int layer = -1;
     for (int i = 0; i < cascadeCount; ++i)

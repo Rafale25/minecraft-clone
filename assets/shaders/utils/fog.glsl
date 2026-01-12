@@ -26,7 +26,6 @@ vec3 applyFog(vec3  col,   // color of pixel
               vec3  rd,    // camera to point
               vec3  lig,   // sun direction
               vec3 fogColor,
-            //   vec3 sunColor,
               float fogDensity // = 0.003
 ){
     float fogAmount = 1.0 - exp(-t*fogDensity * t*fogDensity);

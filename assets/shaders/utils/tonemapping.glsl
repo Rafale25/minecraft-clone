@@ -1,6 +1,6 @@
 vec3 Uncharted2Tonemap(vec3 x) {
 	float Brightness = 0.28;
-	x*= Brightness;
+	x *= Brightness;
 	float A = 0.28;
 	float B = 0.29;
 	float C = 0.10;
@@ -13,7 +13,7 @@ vec3 Uncharted2Tonemap(vec3 x) {
 vec3 unchartedTonemapping(vec3 color)
 {
     vec3 curr = Uncharted2Tonemap(color*4.7);
-    color = curr/Uncharted2Tonemap(vec3(15.2));
+    color = curr / Uncharted2Tonemap(vec3(15.2));
     return color;
 }
 
