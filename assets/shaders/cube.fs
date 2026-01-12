@@ -52,8 +52,9 @@ void main()
 
     vec2 uv = (gl_FragCoord.xy - 0.5*uniforms.resolution.xy) / uniforms.resolution.y;
 
-    // vec4 color = vec4(0.2, 1.0, 0.0, 1.0);
-    vec4 color = texture(texture_handles[fs_in_texture_id], fs_in.uv).rgba;
+    vec4 color = vec4(0.2, 0.8, 0.0, 1.0);
+    // vec4 color = texture(texture_handles[fs_in_texture_id], fs_in.uv).rgba;
+
     color.rgb = toLinearSRGB(color.rgb);// pow(color.rgb, vec3(2.2));
 
     vec3 normal = orientation_normal_table[fs_in_orientation];

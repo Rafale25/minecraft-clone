@@ -3,7 +3,7 @@
 #include "stb_image.h"
 #include <glad/gl.h>
 
-// #define DISABLE_BINDLESS_TEXTURE
+#define DISABLE_BINDLESS_TEXTURE
 
 static int32_t getFormat(const char* filepath)
 {
