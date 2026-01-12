@@ -15,8 +15,10 @@ layout (location = 1) uniform sampler2D u_bloomBlur;
 //     return hdrColor;
 // }
 
-vec3 upsample(sampler2D samplerTexture, vec2 texcoords, float aspectRatio, float filterRadius=0.00085)
+vec3 upsample(sampler2D samplerTexture, vec2 texcoords, float aspectRatio, float filterRadius)
 {
+    // filterRadius=0.00085
+
     // The filter kernel is applied with a radius, specified in texture
     // coordinates, so that the radius will vary across mip resolutions.
     float x = filterRadius;
@@ -57,7 +59,7 @@ vec3 upsample(sampler2D samplerTexture, vec2 texcoords, float aspectRatio, float
 vec3 bloom()
 {
     vec3 hdrColor = texture(u_scene, TexCoords).rgb;
-    vec3 bloomColor = upsample(u_bloomBlur, TexCoords, uniforms.aspectRatio);
+    vec3 bloomColor = upsample(u_bloomBlur, TexCoords, uniforms.aspectRatio, 0.00085);
 
     // vec3 bloomColor = texture(u_bloomBlur, TexCoords).rgb;
     return hdrColor + bloomColor;// * u_bloomStrength; // additive blending
