@@ -56,5 +56,15 @@ namespace Packet
 
 #pragma pack(pop)
 
+        static constexpr int LARGEST_PACKET_SIZE = std::max({
+            sizeof(Packet::Server::Identification),
+            sizeof(Packet::Server::AddEntity),
+            sizeof(Packet::Server::RemoveEntity),
+            sizeof(Packet::Server::UpdateEntity),
+            sizeof(Packet::Server::ChunkPacket),
+            sizeof(Packet::Server::MonoChunkPacket),
+            sizeof(Packet::Server::ChatMessage),
+            sizeof(Packet::Server::UpdateEntityMetadata)
+        });
     }
 }

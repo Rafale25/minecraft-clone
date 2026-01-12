@@ -36,11 +36,6 @@ private:
     Client() = default;
     ~Client() = default;
 
-    Client(const Client&) = delete;
-    Client& operator=(const Client&) = delete;
-    Client(Client&&) = delete;
-    Client& operator=(Client&&) = delete;
-
     static void decodePacketIdentification(ByteBuffer buffer);
     static void decodePacketAddEntity(ByteBuffer buffer);
     static void decodePacketRemoveEntity(ByteBuffer buffer);
