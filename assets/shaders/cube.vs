@@ -94,11 +94,23 @@ void main() {
     int vertex_index = (gl_VertexID % 4) + offset;
 
     bool flip = (ao[0] + ao[2]) > (ao[1] + ao[3]);
-    const ivec2[] model = flip ? model_face : model_face_flipped;
-    const int[] ao_index = flip ? ao_order_flipped : ao_order;
+    // const ivec2[] model = flip ? model_face : model_face_flipped;
+    // const int[] ao_index = flip ? ao_order_flipped : ao_order;
 
-    ivec2 uv = model[vertex_index];
+    // ivec2 uv = model[vertex_index];
     vec3 model_offset;
+
+    ivec2 uv;
+    int ao_value;
+
+    if (flip) {
+        uv = model_face[vertex_index];
+        ao_value = ao_order_flipped[vertex_index];
+    } else {
+        uv = model_face_flipped[vertex_index];
+        ao_value = ao_order[vertex_index];
+    }
+
 
     switch (orientation) {
         case 0: model_offset = vec3(uv.x, 1, uv.y); break; // TOP
@@ -109,7 +121,7 @@ void main() {
         case 5: model_offset = vec3(1, uv.y, uv.x); break; // RIGHT
     }
 
-    float ao_factor = float(ao[ao_index[vertex_index]]) / 3.0;
+    float ao_factor = float(ao[ao_value]) / 3.0;
 
     // vec3 world_pos = chunk_positions[gl_DrawID].xyz + block_pos + model_offset;
     vec3 world_pos = chunk_positions[gl_DrawID].xyz + block_pos + model_offset;
