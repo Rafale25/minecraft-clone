@@ -1,9 +1,9 @@
 #version 460 core
-#extension GL_ARB_bindless_texture : require
+// #extension GL_ARB_bindless_texture : require
 
-layout(std430, binding = 0) readonly buffer ssbo_texture_handles {
-    sampler2D texture_handles[];
-};
+// layout(std430, binding = 0) readonly buffer ssbo_texture_handles {
+//     sampler2D texture_handles[];
+// };
 
 in VS_OUT {
     in vec2 uv;

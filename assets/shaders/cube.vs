@@ -16,10 +16,10 @@ layout(binding = 2, std430) readonly buffer ssbo_blocks_faces {
 uint packData(uint orientation, uint isTranslucent, uint isEmissive, uint textureId)
 {
     return
-        ((orientation       & 7)       ) |
-        ((isTranslucent     & 1)   << 3) |
-        ((isEmissive        & 1)   << 4) |
-        ((textureId         & 511) << 5);
+        (uint(orientation       & 7)       ) |
+        (uint(isTranslucent     & 1)   << 3) |
+        (uint(isEmissive        & 1)   << 4) |
+        (uint(textureId         & 511) << 5);
 }
 
 out VS_OUT {

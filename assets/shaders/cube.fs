@@ -1,11 +1,11 @@
 #version 460 core
-#extension GL_ARB_bindless_texture : require
+// #extension GL_ARB_bindless_texture : require
 
-layout(std430, binding = 0) readonly buffer ssbo_texture_handles {
-    sampler2D texture_handles[];
-};
+// layout(std430, binding = 0) readonly buffer ssbo_texture_handles {
+//     sampler2D texture_handles[];
+// };
 
-const vec3 orientation_normal_table[] = {
+const vec3 orientation_normal_table[6] = {
     vec3(0.0, 1.0, 0.0), // Top = 0
     vec3(0.0, -1.0, 0.0), // Bottom = 1
     vec3(0.0, 0.0, -1.0), // Front = 2
@@ -36,10 +36,10 @@ uniform sampler2DArray u_shadowmap;
 
 void unpackData(uint data, inout uint orientation, inout uint isTranslucent, inout uint isEmissive, inout uint textureId)
 {
-    orientation =       data       & 7;
-    isTranslucent =    (data >> 3) & 1;
-    isEmissive =       (data >> 4) & 1;
-    textureId =        (data >> 5) & 511;
+    orientation =      uint(data       & 7);
+    isTranslucent =    uint((data >> 3) & 1);
+    isEmissive =       uint((data >> 4) & 1);
+    textureId =        uint((data >> 5) & 511);
 }
 
 void main()
