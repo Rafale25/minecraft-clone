@@ -14,5 +14,5 @@ class Framebuffer {
         void destroy();
 
     // private:
-        GLuint m_framebuffer;
+        GLuint m_framebuffer = 0;
 };

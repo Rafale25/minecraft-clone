@@ -3,6 +3,7 @@
 *.out
 
 /build/
+/out/
 
 .vs
 .vscode

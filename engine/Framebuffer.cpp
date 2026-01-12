@@ -26,4 +26,5 @@ void Framebuffer::attachTexture(GLuint texture, GLenum attachment) {
 
 void Framebuffer::destroy() {
     glDeleteFramebuffers(1, &m_framebuffer);
+    m_framebuffer = 0;
 }

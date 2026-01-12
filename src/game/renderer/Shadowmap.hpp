@@ -29,11 +29,11 @@ public:
     glm::mat4 getLightSpaceMatrix(const glm::mat4& lightViewProjectionMatrix);
     std::vector<glm::mat4> getLightSpaceMatrices(const Camera& camera);
 
-    GLsizei _shadowmap_size;
+    GLsizei _shadowmap_size = 0;
     Framebuffer _depthFBO{GL_NONE, GL_NONE};
-    glm::vec3 _sunDir;
+    glm::vec3 _sunDir{0.0f, 0.0f, 0.0f};
 private:
-    GLint _cached_viewport[4];
+    GLint _cached_viewport[4]{};
 
 public:
     static constexpr float camera_far_plane = 1000.0f;
@@ -47,7 +47,6 @@ public:
     };
 
     GLuint m_depthTextureArray = 0;
-    Texture m_depthTexture;
     glm::mat4 m_lightSpaceMatrix;
     float m_shadowBias = 0.0005; // 0.0005 looks good for 4096
 };
