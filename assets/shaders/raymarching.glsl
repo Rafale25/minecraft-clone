@@ -12,7 +12,8 @@ float beersLaw(float dist, float absorption) {
     return exp(-dist * absorption);
 }
 
-float raymarchVolumetricLighting(vec3 end, float density=0.05, float volumetricHGphaseFront=0.65, float volumetricHGphaseBack=-0.36, float ambiantLight=0.01, float maxDistance=100.0)
+// float raymarchVolumetricLighting(vec3 end, float density=0.05, float volumetricHGphaseFront=0.65, float volumetricHGphaseBack=-0.36, float ambiantLight=0.01, float maxDistance=100.0)
+float raymarchVolumetricLighting(vec3 end, float density, float volumetricHGphaseFront, float volumetricHGphaseBack, float ambiantLight, float maxDistance)
 {
     vec3 startPos = uniforms.viewPosition.xyz;
     vec3 endPos = end;

@@ -28,7 +28,8 @@ void main()
         uniforms.volumetricDensity,
         uniforms.volumetricHGphaseFront,
         uniforms.volumetricHGphaseBack,
-        uniforms.volumetricAmbiantLight
+        uniforms.volumetricAmbiantLight,
+        100.0
     );
 
     // bool is_in_shadow = isInShadow(u_shadowmap, uniforms.view, worldPos, uniforms.cascadeCount);

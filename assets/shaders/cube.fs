@@ -44,10 +44,10 @@ void unpackData(uint data, inout uint orientation, inout uint isTranslucent, ino
 
 void main()
 {
-    uint fs_in_orientation;
-    uint fs_in_isTranslucent;
-    uint fs_in_isEmissive;
-    uint fs_in_texture_id;
+    uint fs_in_orientation = 0;
+    uint fs_in_isTranslucent = 0;
+    uint fs_in_isEmissive = 0;
+    uint fs_in_texture_id = 0;
     unpackData(fs_in.data, fs_in_orientation, fs_in_isTranslucent, fs_in_isEmissive, fs_in_texture_id);
 
     vec2 uv = (gl_FragCoord.xy - 0.5*uniforms.resolution.xy) / uniforms.resolution.y;
