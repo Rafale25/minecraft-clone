@@ -15,6 +15,6 @@ class Texture {
         void destroy();
 
     public:
-        GLsizei _width, _height;
-        GLuint _texture;
+        GLsizei _width = 0, _height = 0;
+        GLuint _texture = 0;
 };

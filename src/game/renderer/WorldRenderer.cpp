@@ -9,6 +9,8 @@
 #include "VAO.hpp"
 #include "ChunkMesh.hpp"
 #include "Profiler.hpp"
+#include "glm/ext/quaternion_float.hpp"
+#include "glm/gtc/quaternion.hpp"
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
@@ -98,6 +100,7 @@ void WorldRenderer::render(const Camera &camera)
     std::vector<glm::vec4> chunk_positions_translucent;
 
     const glm::vec3 sunDirection = getSunDirection();
+    const glm::quat sunQuat = getSunQuaternionRotation();
     const float sun_dot_angle = glm::dot(glm::normalize(sunDirection), {0.0f, 1.0f, 0.0f});
 
     m_uniformParameters.projection = camera_projection;
@@ -109,7 +112,9 @@ void WorldRenderer::render(const Camera &camera)
     m_uniformParameters.sunDotAngle = sun_dot_angle;
     m_uniformParameters.FOV = glm::radians(camera.fov);
     m_uniformParameters.sunDirection = glm::vec4(glm::normalize(sunDirection), 0);
+    m_uniformParameters.sunQuaternionRotation = glm::vec4(sunQuat.x, sunQuat.y, sunQuat.z, sunQuat.w);
     m_uniformParameters.viewPosition = glm::vec4(camera.getPosition(), 0);
+    m_uniformParameters.viewDirection = glm::vec4(camera.forward(), 0);
     m_uniformParameters.lightSpaceMatrix = m_shadowmap._lightSpaceMatrix;
     m_uniformParameters.shadow_bias = m_shadowmap._shadow_bias;
     m_uniformParameters.time = (float)glfwGetTime();
@@ -497,6 +502,11 @@ glm::vec3 WorldRenderer::getSunDirection() const
     );
 
     return v;
+}
+
+glm::quat WorldRenderer::getSunQuaternionRotation() const
+{
+    return glm::quat_cast(glm::yawPitchRoll(m_sunYaw, m_sunPitch, m_sunRotation));
 }
 
 // void WorldRenderer::imguiRender()
