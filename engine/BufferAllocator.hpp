@@ -32,7 +32,7 @@ struct DrawArraysIndirectCommand {
 };
 
 // NOTE: Crash when max size exceed int32_t max
-static constexpr uint64_t MAX_BUFFER_SIZE = 2'147'483'647; // 2^31-1 ~2.1Go
+static constexpr uint64_t MAX_BUFFER_SIZE = 2'147'483'647; // 2^31-1 ~2.147Go
 
 class BufferAllocator {
 public:
@@ -46,7 +46,7 @@ public:
     int32_t getAvailableMemory() const { return _available_memory; };
     int32_t getSlotCount() const { return _slots.size(); };
 
-private:
+// private:
     const char* _name;
     const size_t _max_memory;
     size_t _available_memory;
