@@ -46,7 +46,7 @@ public:
     int32_t getAvailableMemory() const { return m_availableMemory; };
     int32_t getSlotCount() const { return m_slots.size(); };
 
-private:
+// private:
     const char* m_name;
     const size_t m_maxMemory;
     size_t m_availableMemory;

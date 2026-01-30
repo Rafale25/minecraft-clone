@@ -85,9 +85,9 @@ void WorldRenderer::imguiRender()
             float width = regionSize.x;
             float height = regionSize.y;//80.0f;
 
-            const float maxMemory = buffer_allocator_vertices._max_memory;
+            const float maxMemory = m_bufferAllocatorVertices.m_maxMemory;
 
-            for (const auto& slot : buffer_allocator_vertices._slots) {
+            for (const auto& slot : m_bufferAllocatorVertices.m_slots) {
                 if (!slot.used) continue;
 
                 double left = map(slot.start, 0.0, maxMemory, 0.0, width);
