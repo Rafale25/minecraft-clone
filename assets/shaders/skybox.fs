@@ -119,13 +119,15 @@ vec3 stars(vec3 p, vec3 sunDirection)
     return c*c*.8;
 }
 
+#define BACKGROUND_BRIGHTNESS (0.1)
+
 vec3 bg(in vec3 rd, vec3 sunDirection)
 {
     float sd = dot(normalize(sunDirection), rd)*0.5+0.5;
     // float sd = dot(normalize(vec3(-0.5, -0.6, 0.9)), rd)*0.5+0.5;
     sd = pow(sd, 5.);
     vec3 col = mix(vec3(0.05, 0.1, 0.2), vec3(0.1, 0.05, 0.2), sd);
-    return col*.63;
+    return col * BACKGROUND_BRIGHTNESS;
 }
 
 vec3 sunColor = vec3(1.0, 0.9, 0.7);
