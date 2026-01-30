@@ -1,6 +1,10 @@
 #include "WorldRenderer.hpp"
 #include <imgui.h>
 
+double map(double value, double min1, double max1, double min2, double max2) {
+    return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
+}
+
 static void ImguiCheckboxInt(const char* title, int& value) {
     bool checked = value != 0;
     if (ImGui::Checkbox(title, &checked))
@@ -69,4 +73,36 @@ void WorldRenderer::imguiRender()
     ImGui::SliderFloat("TEST_SLIDER_0", &m_uniformParameters.TEST_SLIDER_0, -1.0f, 1.0f, "%.6f");
     ImGui::SliderFloat("TEST_SLIDER_1", &m_uniformParameters.TEST_SLIDER_1, -1.0f, 1.0f, "%.6f");
 
+
+    static bool _memoryAllocatorWindow = false;
+    ImGui::Checkbox("Memory-Allocator Window", &_memoryAllocatorWindow);
+    if (_memoryAllocatorWindow) {
+        ImGui::Begin("Vertex buffer");
+            ImDrawList* drawList = ImGui::GetWindowDrawList();
+            ImVec2 widgetPos = ImGui::GetCursorScreenPos();
+            ImVec2 regionSize = ImGui::GetContentRegionAvail();
+
+            float width = regionSize.x;
+            float height = regionSize.y;//80.0f;
+
+            const float maxMemory = buffer_allocator_vertices._max_memory;
+
+            for (const auto& slot : buffer_allocator_vertices._slots) {
+                if (!slot.used) continue;
+
+                double left = map(slot.start, 0.0, maxMemory, 0.0, width);
+                double right = map(slot.start + slot.size, 0.0, maxMemory, 0.0, width);
+
+                float r, g, b;
+                ImGui::ColorConvertHSVtoRGB(static_cast<float>(slot.start % 360) / 360.0f, 1.0f, 1.0f, r, g, b);
+
+                drawList->AddRectFilled(
+                    ImVec2(widgetPos.x + left, widgetPos.y),
+                    ImVec2(widgetPos.x + right, widgetPos.y + height),
+                    ImGui::GetColorU32(ImVec4(r, g, b, 1.0f))
+                    // ImGui::GetColorU32()
+                );
+            }
+        ImGui::End();
+    }
 }

@@ -34,7 +34,7 @@ void main()
         float ambiant_factor = 1.0 - pow(2.0, -steepness*uniforms.sunDotAngle - night_factor);
         ambiant_factor = clamp(ambiant_factor, 0.25, 1.0);
 
-        finalColor = color * ambiant_factor;
+        // finalColor = color * ambiant_factor;
     }
 
     if (uniforms.tonemapping_enabled == 1) {

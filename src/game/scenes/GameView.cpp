@@ -19,10 +19,12 @@ GameView::GameView(Context& ctx): View(ctx)
     glfwSetInputMode(ctx.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (global_argc > 3) {
-        GameState::setRenderDistance(std::atoi(global_argv[3]));
+        // GameState::setRenderDistance(std::atoi(global_argv[3]));
+        GameState::setRenderDistance(16);
     }
 
-    Client::instance().init(m_tchat, global_argv[1], std::atoi(global_argv[2]));
+    // Client::instance().init(m_tchat, global_argv[1], std::atoi(global_argv[2]));
+    Client::instance().init(m_tchat, "127.0.0.1", 20000);
     Client::instance().Start();
 
     m_scriptManager.registerScript(SCRIPTS_PATH "gun.lua");

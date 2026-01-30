@@ -59,8 +59,10 @@ private:
         bool drawTranslucent = true
     );
 
-    glm::vec3 getSunDirection() const;
     void renderEntities(const Camera &camera, const ShaderProgram& program) const;
+
+    glm::vec3 getSunDirection() const;
+    glm::quat getSunQuaternionRotation() const;
 
 private:
     float m_framebufferWidth;

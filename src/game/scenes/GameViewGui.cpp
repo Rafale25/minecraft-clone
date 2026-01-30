@@ -121,6 +121,8 @@ void GameView::gui(float dt)
 
     ImGui::NewLine();
 
+    ImGui::NewLine();
+
     m_worldRenderer.imguiRender();
 
     ImGui::Dummy({0.0f, ImGui::GetWindowSize().y});
