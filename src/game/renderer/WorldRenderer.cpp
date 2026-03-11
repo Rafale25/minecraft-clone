@@ -86,13 +86,19 @@ void WorldRenderer::setDefaultRenderState()
 
 void WorldRenderer::render(const Camera &camera)
 {
-    const glm::mat4 camera_projection = camera.getProjection();
-    const glm::mat4 camera_view = camera.getView();
-    const glm::mat4 view_projection = camera_projection * camera_view;
-
     if (!m_isShadowCameraFreezed) {
         m_shadowCamera = dynamic_cast<const FPSCamera &>(camera);
     }
+
+    const glm::mat4 camera_projection = camera.getProjection();
+
+    glm::vec3 cameraPosLocalToChunk = glm::mod(camera.getPosition(), 16.0);
+    // glm::mat4 localTranslation = glm::translate(glm::mat4(1.0f), cameraPosLocalToChunk);
+    // const glm::mat4 camera_view =  glm::mat4(glm::mat3(m_shadowCamera.getViewLocal()));
+    const glm::mat4 camera_view = m_shadowCamera.getViewLocal();
+    // const glm::mat4 camera_view = camera.getView();
+    const glm::mat4 view_projection = camera_projection * camera_view;
+
 
     std::vector<DrawElementsIndirectCommand> commands_opaque;
     std::vector<DrawElementsIndirectCommand> commands_translucent;
@@ -113,7 +119,8 @@ void WorldRenderer::render(const Camera &camera)
     m_uniformParameters.FOV = glm::radians(camera.fov);
     m_uniformParameters.sunDirection = glm::vec4(glm::normalize(sunDirection), 0);
     m_uniformParameters.sunQuaternionRotation = glm::vec4(sunQuat.x, sunQuat.y, sunQuat.z, sunQuat.w);
-    m_uniformParameters.viewPosition = glm::vec4(camera.getPosition(), 0);
+    // m_uniformParameters.viewPosition = glm::vec4(camera.getPosition(), 0);
+    m_uniformParameters.viewPosition = glm::vec4(cameraPosLocalToChunk, 0);
     m_uniformParameters.viewDirection = glm::vec4(camera.forward(), 0);
     m_uniformParameters.lightSpaceMatrix = m_shadowmap.m_lightSpaceMatrix;
     m_uniformParameters.shadow_bias = m_shadowmap.m_shadowBias;
@@ -410,17 +417,22 @@ void WorldRenderer::generateDrawCommands(
 
     m_chunksDrawn = 0;
 
+    glm::dvec3 cameraPos = m_shadowCamera.getPosition();
+    glm::ivec3 cameraPosSnapped = glm::floor(cameraPos / 16.0) * 16.0;
+
     for (const auto& [chunk_pos, mesh] : m_meshes)
     {
         if (mesh.slot_vertices.start == -1 && mesh.slot_vertices_translucent.start == -1) continue;
 
-        if (use_frustum_culling) {
-            AABB chunk_aabb = {(chunk_pos * CHUNK_SIZE), (chunk_pos * CHUNK_SIZE) + CHUNK_SIZE};
-            if (!isAABBOnFrustum(chunk_aabb, camera_frustum)) continue;
-        }
+        // if (use_frustum_culling) {
+        //     AABB chunk_aabb = {(chunk_pos * CHUNK_SIZE), (chunk_pos * CHUNK_SIZE) + CHUNK_SIZE};
+        //     if (!isAABBOnFrustum(chunk_aabb, camera_frustum)) continue;
+        // }
+
+        glm::ivec3 chunkPosMoved = chunk_pos - cameraPosSnapped/16;
 
         if (mesh.slot_vertices.start != -1) {
-            chunk_positions_opaque.push_back(glm::vec4(chunk_pos * CHUNK_SIZE, 1.0f));
+            chunk_positions_opaque.push_back(glm::vec4(chunkPosMoved * CHUNK_SIZE, 1.0f));
             commands_opaque.push_back({
                 (uint32_t)(mesh.slot_vertices.size / VERTEX_SIZE) * 6, // one face if 2 triangles, 6 vertices
                 1u,
@@ -431,7 +443,7 @@ void WorldRenderer::generateDrawCommands(
         }
 
         if (mesh.slot_vertices_translucent.start != -1) {
-            chunk_positions_translucent.push_back(glm::vec4(chunk_pos * CHUNK_SIZE, 1.0f));
+            chunk_positions_translucent.push_back(glm::vec4(chunkPosMoved * CHUNK_SIZE, 1.0f));
             commands_translucent.push_back({
                 (uint32_t)(mesh.slot_vertices_translucent.size / VERTEX_SIZE) * 6, // one face if 2 triangles, 6 vertices
                 1u,

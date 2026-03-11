@@ -18,6 +18,7 @@ class FPSCamera: public Camera {
         }
 
         glm::mat4 getView() const;
+        glm::mat4 getViewLocal() const;
 
         glm::vec3 right() const;
         glm::vec3 up() const;
@@ -26,9 +27,11 @@ class FPSCamera: public Camera {
 
         float getYaw() const;
         float getPitch() const;
-        glm::vec3 getPosition() const;
-        void setPosition(const glm::vec3& p);
-        void update(float dt);
+
+        glm::dvec3 getPosition() const;
+
+        void setPosition(const glm::dvec3& p);
+        void update(double dt);
         void move(const glm::vec3& direction);
         void onMouseMotion(int x, int y, int dx, int dy);
         void setSpeed(float value);
@@ -40,9 +43,9 @@ class FPSCamera: public Camera {
         float m_speed = 10.0f;
         float m_mouseSensitivity = 0.002f;
 
-        glm::vec3 m_movement = {0.0f, 0.0f, 0.0f}; // reset each frame
+        glm::dvec3 m_movement = {0.0f, 0.0f, 0.0f}; // reset each frame
 
-        glm::vec3 m_position = {0.0f, 0.0f, 0.0f};
+        glm::dvec3 m_position = {0.0f, 0.0f, 0.0f};
         float m_yaw = 0.0f;
         float m_pitch = 0.0f;
         float m_roll = 0.0f;
@@ -50,7 +53,7 @@ class FPSCamera: public Camera {
         float m_smoothYaw = 0.0f;
         float m_smoothPitch = 0.0f;
         float m_smoothRoll = 0.0f;
-        glm::vec3 m_smoothPosition = {0.0f, 0.0f, 0.0f};
+        glm::dvec3 m_smoothPosition = {0.0f, 0.0f, 0.0f};
 
         glm::vec3 m_worldUp = {0.0, 1.0, 0.0};
         glm::vec3 m_up = {0.0, 1.0, 0.0};

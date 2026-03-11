@@ -46,6 +46,7 @@ public:
 
     BlockRaycastHit blockRaycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance) const;
 
+    BlockType getBlock(const glm::dvec3& posf) const;
     BlockType getBlock(const glm::vec3& posf) const;
     BlockType getBlock(const glm::ivec3& pos) const;
 

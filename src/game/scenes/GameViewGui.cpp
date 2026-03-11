@@ -23,7 +23,7 @@ void GameView::drawPlayersNames()
 
         glm::ivec2 screen_pos = worldToScreenSpace(e.smoothTransform.position + glm::vec3(0.0f, 0.8f, 0.0f), m_camera.getProjection(), m_camera.getView(), ctx.width, ctx.height);
         screen_pos.y -= 20;
-        if (glm::dot(m_camera.forward(), glm::normalize(e.smoothTransform.position - m_camera.getPosition())) < 0.2f) {
+        if (glm::dot(m_camera.forward(), glm::normalize(e.smoothTransform.position - (glm::vec3)m_camera.getPosition())) < 0.2f) {
             continue;
         }
 

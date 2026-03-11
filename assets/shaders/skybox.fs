@@ -135,7 +135,8 @@ vec3 sunColor = vec3(1.0, 0.9, 0.7);
 void main()
 {
     vec3 ray = normalize(fragPosLocal);
-    vec3 color = vec3(0.0);//getSkyColor(ray, uniforms.sunDotAngle);
+    // vec3 color = vec3(0.0);
+    vec3 color = getSkyColor(ray, uniforms.sunDotAngle);
 
     vec3 ro = vec3(0, clamp(uniforms.viewPosition.y * 0.0002, -0.5, 0.8), 0);
     // vec3 ro = vec3(0, 0, 0);
@@ -145,15 +146,15 @@ void main()
     vec3 brd = rd;
     float fade = smoothstep(0.,0.01,abs(brd.y))*0.1+0.9;
 
-    col = bg(rd, -uniforms.sunDirection.xyz);//*fade;
+    // col = bg(rd, -uniforms.sunDirection.xyz);//*fade;
 
-    col += stars(rd, uniforms.sunDirection.xyz);
-    if (rd.y > -0.04){
-        vec4 aur = smoothstep(0.0, 1.5, aurora(ro,rd)) * fade;
-        col = col * (1.0 - aur.a) + aur.rgb;
-    }
+    // col += stars(rd, uniforms.sunDirection.xyz);
+    // if (rd.y > -0.04){
+    //     vec4 aur = smoothstep(0.0, 1.5, aurora(ro,rd)) * fade;
+    //     col = col * (1.0 - aur.a) + aur.rgb;
+    // }
 
-    color = col;
+    // color = col;
 
     mixSunColor(color, sunColor, ray, uniforms.sunDirection.xyz);
 

@@ -11,14 +11,14 @@ class GameView: public View {
 public:
     GameView(Context& ctx);
 
-    void onUpdate(double time_since_start, float dt);
+    void onUpdate(double time_since_start, double dt);
     void onHideView();
 
     void deleteFarChunks();
     void processNewChunks();
     void networkUpdate();
 
-    void playerMovements(float dt);
+    void playerMovements(double dt);
     void sendTextMessage();
     void placeSphere(const glm::ivec3& center, float radius, BlockType blocktype);
     void setPlayerPosition(const glm::vec3& p);
@@ -27,7 +27,7 @@ public:
     void guiWorldEdit();
     void gui(float dt);
 
-    void onDraw(double time_since_start, float dt);
+    void onDraw(double time_since_start, double dt);
     void onKeyPress(int key);
     void onMousePress(int x, int y, int button);
     void onMouseDrag(int x, int y, int dx, int dy);
@@ -68,7 +68,7 @@ private:
         const float m_playerHeight = 1.8f;
         const float m_playerRadius = 0.3f;
         const float m_playerGravity = 45.0f;
-        glm::vec3 m_playerVelocity = {0.0f, 0.0f, 0.0f};
+        glm::dvec3 m_playerVelocity = {0.0f, 0.0f, 0.0f};
         float m_lastJumpPress = 0;
     // --
 

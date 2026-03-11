@@ -13,7 +13,7 @@ end
 local projectiles = {}
 
 function onUpdate(timeSinceStart, deltaTime)
-    local camPos = Camera:getPosition()
+    local camPos = (glm::vec3)Camera:getPosition()
     local camForward = Camera:forward()
 
     local pos = camPos + camForward * 4.0

@@ -14,7 +14,7 @@ class Camera {
         glm::mat4 getProjection() const;
 
         virtual glm::mat4 getView() const = 0;
-        virtual glm::vec3 getPosition() const = 0;
+        virtual glm::dvec3 getPosition() const = 0;
 
         virtual glm::vec3 right() const = 0;
         virtual glm::vec3 up() const = 0;

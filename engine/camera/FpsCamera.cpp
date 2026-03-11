@@ -5,7 +5,13 @@
 
 glm::mat4 FPSCamera::getView() const
 {
-    return glm::lookAt(m_smoothPosition, m_smoothPosition + m_forward, m_worldUp);
+    return glm::lookAt((glm::vec3)m_smoothPosition, (glm::vec3)(m_smoothPosition + (glm::dvec3)m_forward), m_worldUp);
+}
+
+glm::mat4 FPSCamera::getViewLocal() const
+{
+    glm::vec3 localPos = glm::mod(m_smoothPosition, 16.0);
+    return glm::lookAt(localPos, localPos + m_forward, m_worldUp);
 }
 
 float FPSCamera::getYaw() const
@@ -18,28 +24,28 @@ float FPSCamera::getPitch() const
     return (m_smoothPitch);
 }
 
-glm::vec3 FPSCamera::getPosition() const
+glm::dvec3 FPSCamera::getPosition() const
 {
     return m_smoothPosition;
 }
 
-void FPSCamera::setPosition(const glm::vec3& p)
+void FPSCamera::setPosition(const glm::dvec3& p)
 {
     m_position = p;
     m_smoothPosition = p;
 }
 
 
-void FPSCamera::update(float dt)
+void FPSCamera::update(double dt)
 {
-    m_position += m_movement * m_speed * dt;
-    m_movement = glm::vec3(0.0f);
+    m_position += m_movement * (double)m_speed * dt;
+    m_movement = glm::dvec3(0.0);
 
-    m_smoothYaw = expDecay(m_smoothYaw, m_yaw, 50.0f, dt);
-    m_smoothPitch = expDecay(m_smoothPitch, m_pitch, 50.0f, dt);
-    m_smoothRoll = expDecay(m_smoothRoll, m_roll, 50.0f, dt);
+    m_smoothYaw = expDecay((double)m_smoothYaw, (double)m_yaw, 50.0, dt);
+    m_smoothPitch = expDecay((double)m_smoothPitch, (double)m_pitch, 50.0, dt);
+    m_smoothRoll = expDecay((double)m_smoothRoll, (double)m_roll, 50.0, dt);
 
-    m_smoothPosition = expDecay(m_smoothPosition, m_position, 16.0f, dt);
+    m_smoothPosition = expDecay(m_smoothPosition, m_position, 16.0, dt);
 
     _updateVectors();
 }

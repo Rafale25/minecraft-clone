@@ -31,6 +31,8 @@ GameView::GameView(Context& ctx): View(ctx)
     m_scriptManager.refresh();
 
     m_scriptManager.init(m_camera, *this);
+
+    m_camera.setPosition({100'000'000.f, 100.0f, 0.0f});
 }
 
 void GameView::onHideView()
@@ -39,7 +41,7 @@ void GameView::onHideView()
     m_worldRenderer.m_threadPool.stop();
 }
 
-void GameView::onUpdate(double time_since_start, float dt)
+void GameView::onUpdate(double time_since_start, double dt)
 {
     legit::Profiler::setEnable(m_showProfilerGui);
 
@@ -103,12 +105,12 @@ void GameView::onUpdate(double time_since_start, float dt)
 
     if (m_drawPlayerChunk) {
         for (int32_t i = 0; i <= CHUNK_SIZE ; ++i) {
-            const glm::vec3 py00 = glm::floor(m_camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3(0.0f, (float)i, 0.0f);
-            const glm::vec3 py11 = glm::floor(m_camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3(CHUNK_SIZEF, (float)i, CHUNK_SIZEF);
-            const glm::vec3 pz00 = glm::floor(m_camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3((float)i, 0.0f, 0.0f);
-            const glm::vec3 pz11 = glm::floor(m_camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3((float)i, CHUNK_SIZEF, CHUNK_SIZEF);
-            const glm::vec3 px00 = glm::floor(m_camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3(0.0f, 0.0f, (float)i);
-            const glm::vec3 px11 = glm::floor(m_camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3(CHUNK_SIZEF, CHUNK_SIZEF, (float)i);
+            const glm::vec3 py00 = glm::floor((glm::vec3)m_camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3(0.0f, (float)i, 0.0f);
+            const glm::vec3 py11 = glm::floor((glm::vec3)m_camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3(CHUNK_SIZEF, (float)i, CHUNK_SIZEF);
+            const glm::vec3 pz00 = glm::floor((glm::vec3)m_camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3((float)i, 0.0f, 0.0f);
+            const glm::vec3 pz11 = glm::floor((glm::vec3)m_camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3((float)i, CHUNK_SIZEF, CHUNK_SIZEF);
+            const glm::vec3 px00 = glm::floor((glm::vec3)m_camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3(0.0f, 0.0f, (float)i);
+            const glm::vec3 px11 = glm::floor((glm::vec3)m_camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3(CHUNK_SIZEF, CHUNK_SIZEF, (float)i);
 
             DebugDraw::instance().drawLine(py00, py00 + glm::vec3{CHUNK_SIZE, 0, 0});
             DebugDraw::instance().drawLine(py00, py00 + glm::vec3{0, 0, CHUNK_SIZE});
@@ -128,7 +130,7 @@ void GameView::onUpdate(double time_since_start, float dt)
 
         for (int32_t z = - 1 ; z <= 1 ; ++z) {
         for (int32_t x = - 1 ; x <= 1 ; ++x) {
-            const glm::vec3 p = glm::floor(m_camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3(x, 0, z) * CHUNK_SIZEF;
+            const glm::vec3 p = glm::floor((glm::vec3)m_camera.getPosition() / CHUNK_SIZEF) * CHUNK_SIZEF + glm::vec3(x, 0, z) * CHUNK_SIZEF;
             DebugDraw::instance().drawLine(p + glm::vec3(0, -128, 0), p + glm::vec3{0, 128, 0}, {1, 0, 1});
             DebugDraw::instance().drawLine(p + glm::vec3(CHUNK_SIZE, -128, 0), p + glm::vec3{CHUNK_SIZE, 128, 0}, {1, 0, 1});
             DebugDraw::instance().drawLine(p + glm::vec3(0, -128, CHUNK_SIZE), p + glm::vec3{0, 128, CHUNK_SIZE}, {1, 0, 1});
@@ -144,11 +146,11 @@ void GameView::onUpdate(double time_since_start, float dt)
     }
 }
 
-void GameView::playerMovements(float dt)
+void GameView::playerMovements(double dt)
 {
     if (m_cursorEnabled || ImGui::GetIO().WantCaptureKeyboard) return;
 
-    glm::vec3 delta = {
+    glm::dvec3 delta = {
         ctx.keystate[GLFW_KEY_A] - ctx.keystate[GLFW_KEY_D],
         ctx.keystate[GLFW_KEY_LEFT_CONTROL] - ctx.keystate[GLFW_KEY_SPACE],
         ctx.keystate[GLFW_KEY_W] - ctx.keystate[GLFW_KEY_S]
@@ -156,47 +158,47 @@ void GameView::playerMovements(float dt)
 
     if (m_freeCamEnabled) {
         m_camera.setSpeed(
-            ctx.keystate[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS ? 220.0f : 10.0f
+            ctx.keystate[GLFW_KEY_LEFT_SHIFT] == GLFW_PRESS ? 220.0 : 10.0
         );
 
-        m_playerVelocity = {0.0f, 0.0f, 0.0f};
+        m_playerVelocity = {0.0, 0.0, 0.0};
 
         if (!m_cursorEnabled && !ImGui::GetIO().WantCaptureKeyboard) m_camera.move(delta);
         return;
     }
 
-    delta *= 0.5f;
+    delta *= 0.5;
 
-    glm::vec3 forward_xz = glm::normalize(glm::vec3(m_camera.forward().x, 0.0f, m_camera.forward().z));
-    glm::vec3 move_vector = -delta.x * m_camera.right() + delta.z * forward_xz;
+    glm::dvec3 forward_xz = glm::normalize(glm::dvec3(m_camera.forward().x, 0.0, m_camera.forward().z));
+    glm::dvec3 move_vector = -delta.x * (glm::dvec3)m_camera.right() + delta.z * forward_xz;
 
-    glm::vec3 player_feet_position = m_camera.getPosition() - glm::vec3(0.0f, m_playerHeight, 0.0f);
+    glm::dvec3 player_feet_position = m_camera.getPosition() - glm::dvec3(0.0, m_playerHeight, 0.0);
 
     // printf("Y: %.6f %.6f %.6f\n", glm::mod(player_feet_position.x, 1.0f), glm::mod(player_feet_position.y, 1.0f), glm::mod(player_feet_position.z, 1.0f));
 
     AABB player_aabb_under_feet = {
-        player_feet_position + glm::vec3(-m_playerRadius+0.01f, -0.001f, -m_playerRadius+0.01f),
-        player_feet_position + glm::vec3(m_playerRadius-0.01f, 0.001f, m_playerRadius-0.01f)
+        player_feet_position + glm::dvec3(-m_playerRadius+0.01, -0.001, -m_playerRadius+0.01),
+        player_feet_position + glm::dvec3(m_playerRadius-0.01, 0.001, m_playerRadius-0.01)
     };
 
     AABB player_aabb = {
-        player_feet_position + glm::vec3(-0.3f, 0.0f, -0.3f),
-        player_feet_position + glm::vec3(0.3f, m_playerHeight, 0.3f)};
+        player_feet_position + glm::dvec3(-0.3, 0.0, -0.3),
+        player_feet_position + glm::dvec3(0.3, m_playerHeight, 0.3)};
 
-    if (m_drawPlayerColliders) DebugDraw::instance().drawCuboidMinMax(player_aabb_under_feet.min, player_aabb_under_feet.max, {0.4f, 0.2, 0.8});
+    if (m_drawPlayerColliders) DebugDraw::instance().drawCuboidMinMax(player_aabb_under_feet.min, player_aabb_under_feet.max, {0.4, 0.2, 0.8});
 
     std::vector<AABB> neighbours_blocks_AABB;
     for (int32_t z = -3 ; z <= 3 ; ++z) {
     for (int32_t y = -3 ; y <= 3 ; ++y) {
     for (int32_t x = -3 ; x <= 3 ; ++x) {
-        glm::vec3 p = glm::floor(player_feet_position + glm::vec3(x, y, z));
+        glm::dvec3 p = glm::floor(player_feet_position + glm::dvec3(x, y, z));
         if (World::instance().getBlock(p) != BlockType::Air) {
-            const AABB block_aabb = {p, p + 1.0f};
+            const AABB block_aabb = {p, p + 1.0};
             if (AABB::AABBtoAABB(player_aabb, block_aabb)) continue;  // Don't create collider if player already inside block
 
             neighbours_blocks_AABB.push_back(block_aabb);
 
-            if (m_drawPlayerColliders) DebugDraw::instance().drawCuboidMinMax(p, p + 1.0f);
+            if (m_drawPlayerColliders) DebugDraw::instance().drawCuboidMinMax(p, p + 1.0);
         }
     }}}
 
@@ -210,30 +212,30 @@ void GameView::playerMovements(float dt)
     }
 
     if (is_grounded) {
-        m_playerVelocity.x *= 0.9f;
-        m_playerVelocity.z *= 0.9f;
+        m_playerVelocity.x *= 0.9;
+        m_playerVelocity.z *= 0.9;
     }
     if (is_grounded && ctx.keystate[GLFW_KEY_SPACE]) { // JUMP
-        m_playerVelocity.y += 12.0f;
+        m_playerVelocity.y += 12.0;
     }
 
     m_playerVelocity.y -= m_playerGravity * dt;
-    m_playerVelocity.y = glm::clamp(m_playerVelocity.y, -400.0f, 400.0f);
+    m_playerVelocity.y = glm::clamp(m_playerVelocity.y, -400.0, 400.0);
 
     if (is_grounded) {
-        m_playerVelocity += move_vector * 1.0f;
+        m_playerVelocity += move_vector * 1.0;
     } else {
-        m_playerVelocity += move_vector * 0.1f;
+        m_playerVelocity += move_vector * 0.1;
     }
 
-    glm::vec3 next_pos = player_feet_position + m_playerVelocity * dt;
+    glm::dvec3 next_pos = player_feet_position + m_playerVelocity * dt;
 
 
     // -- PLAYER/ENTITY AABB COLLISION -- //
     {
         AABB player_aabb_y = {
-            glm::vec3(player_feet_position.x, next_pos.y, player_feet_position.z) + glm::vec3(-0.3f, 0.0f, -0.3f),
-            glm::vec3(player_feet_position.x, next_pos.y, player_feet_position.z) + glm::vec3(0.3f, m_playerHeight, 0.3f)};
+            glm::dvec3(player_feet_position.x, next_pos.y, player_feet_position.z) + glm::dvec3(-0.3f, 0.0f, -0.3f),
+            glm::dvec3(player_feet_position.x, next_pos.y, player_feet_position.z) + glm::dvec3(0.3f, m_playerHeight, 0.3f)};
         if (m_drawPlayerColliders) DebugDraw::instance().drawCuboidMinMax(player_aabb_y.min, player_aabb_y.max, {1.0f, 0.2, 0.8});
 
         // Y
@@ -247,8 +249,8 @@ void GameView::playerMovements(float dt)
         }
 
         AABB player_aabb_x = {
-            glm::vec3(next_pos.x, next_pos.y, player_feet_position.z) + glm::vec3(-0.3f, 0.0f, -0.3f),
-            glm::vec3(next_pos.x, next_pos.y, player_feet_position.z) + glm::vec3(0.3f, m_playerHeight, 0.3f)};
+            glm::dvec3(next_pos.x, next_pos.y, player_feet_position.z) + glm::dvec3(-0.3f, 0.0f, -0.3f),
+            glm::dvec3(next_pos.x, next_pos.y, player_feet_position.z) + glm::dvec3(0.3f, m_playerHeight, 0.3f)};
 
         // X
         for (const auto& aabb : neighbours_blocks_AABB) {
@@ -261,8 +263,8 @@ void GameView::playerMovements(float dt)
         }
 
         AABB player_aabb_z = {
-            glm::vec3(next_pos.x, next_pos.y, next_pos.z) + glm::vec3(-0.3f, 0.0f, -0.3f),
-            glm::vec3(next_pos.x, next_pos.y, next_pos.z) + glm::vec3(0.3f, m_playerHeight, 0.3f)};
+            glm::dvec3(next_pos.x, next_pos.y, next_pos.z) + glm::dvec3(-0.3f, 0.0f, -0.3f),
+            glm::dvec3(next_pos.x, next_pos.y, next_pos.z) + glm::dvec3(0.3f, m_playerHeight, 0.3f)};
 
         // Z
         for (const auto& aabb : neighbours_blocks_AABB) {
@@ -276,7 +278,7 @@ void GameView::playerMovements(float dt)
     }
 
 
-    m_camera.setPosition(next_pos + glm::vec3(0.0f, m_playerHeight, 0.0f));
+    m_camera.setPosition(next_pos + glm::dvec3(0.0f, m_playerHeight, 0.0f));
 }
 
 void GameView::deleteFarChunks() // TODO: only do this when moving between chunks
@@ -337,7 +339,7 @@ void GameView::networkUpdate()
     Client::instance().sendUpdateEntityPacket(m_camera.getPosition(), m_camera.getYaw() + glm::pi<float>(), - m_camera.getPitch());
 }
 
-void GameView::onDraw(double time_since_start, float dt)
+void GameView::onDraw(double time_since_start, double dt)
 {
     {
         // ScopedTask("world_renderer.render");
