@@ -48,6 +48,12 @@ target_compile_definitions(myEngine PUBLIC
     SCRIPTS_PATH="${CMAKE_CURRENT_SOURCE_DIR}/src/game/scripts/"
 )
 
+if (MINGW)
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        -Wa,-mbig-obj
+    )
+endif()
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "./"
 )
